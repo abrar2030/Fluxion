@@ -1,4 +1,4 @@
-# Synthetic Asset Liquidity Engine (SAL-E)  
+# Synthetic Asset Liquidity Engine (Fluxion)  
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
 
 ## 🌀 Overview  
