@@ -1,9 +1,8 @@
 # Synthetic Asset Liquidity Engine (SAL-E)  
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
-[![CI/CD](https://github.com/your-org/sal-e/actions/workflows/deploy-zk.yml/badge.svg)](https://github.com/your-org/sal-e/actions)  
 
 ## 🌀 Overview  
-SAL-E is a next-generation decentralized exchange engine for synthetic assets, combining ZK-Rollup scalability with AI-driven liquidity optimization. Facilitates institutional-grade trading with hybrid AMM models and cross-chain composability.  
+Fluxion is a next-generation decentralized exchange engine for synthetic assets, combining ZK-Rollup scalability with AI-driven liquidity optimization. Facilitates institutional-grade trading with hybrid AMM models and cross-chain composability.  
 
 ## 🚀 Key Features  
 - Hybrid AMM Design (Curve-style stable swaps + Uniswap V3 concentrated liquidity)  
@@ -45,8 +44,8 @@ graph TD
 
 ```bash
 # Clone repository  
-git clone https://github.com/your-org/sal-e.git  
-cd sal-e  
+git clone https://github.com/abrar2030/Fluxion.git  
+cd Fluxion  
 
 # Install dependencies  
 cd blockchain && forge install  
