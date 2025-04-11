@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import skew, kurtosis
+from scipy.stats import norm
 
 class AdvancedRiskMetrics:
     def calculate_cvar(self, returns, confidence=0.95):

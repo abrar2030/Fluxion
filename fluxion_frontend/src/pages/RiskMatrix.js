@@ -1,4 +1,6 @@
-import { useWeb3 } from './web3-config';
+import React, { useState, useEffect } from 'react';
+import { useWeb3 } from '../lib/web3-config';
+import HeatmapChart from './HeatmapChart';
 
 export default function RiskMatrix() {
   const { pools } = useWeb3();
@@ -19,6 +21,9 @@ export default function RiskMatrix() {
   }, [pools]);
 
   return (
-    <HeatmapChart data={riskData} x="id" y="metric" value="value" />
+    <div className="risk-matrix-container">
+      <h2>Risk Analysis Matrix</h2>
+      <HeatmapChart data={riskData} x="id" y="metric" value="value" />
+    </div>
   );
 }

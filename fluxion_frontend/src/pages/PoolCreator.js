@@ -1,4 +1,7 @@
-import { useWeb3 } from './web3-config';  
+import React, { useState } from 'react';
+import { useWeb3 } from '../lib/web3-config';
+import AssetSelector from './AssetSelector';
+import WeightEditor from './WeightEditor';
 
 export default function PoolCreator() {  
   const { contracts } = useWeb3();  
@@ -18,10 +21,11 @@ export default function PoolCreator() {
   };  
 
   return (  
-    <div>  
+    <div className="pool-creator-container">  
+      <h2>Create New Liquidity Pool</h2>
       <AssetSelector onChange={assets => setPoolConfig({...poolConfig, assets})} />  
       <WeightEditor weights={poolConfig.weights} onChange={weights => setPoolConfig({...poolConfig, weights})} />  
-      <button onClick={createPool}>Create Pool</button>  
+      <button className="create-pool-btn" onClick={createPool}>Create Pool</button>  
     </div>  
   );  
-}  
+}

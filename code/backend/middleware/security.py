@@ -1,5 +1,8 @@
 from fastapi import HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import os
+import jwt
+from jwt.exceptions import JWTError
 
 security = HTTPBearer()
 
