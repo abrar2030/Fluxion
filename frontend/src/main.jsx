@@ -5,7 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 import { Web3Provider } from './lib/web3-config';
-import { UIProvider } from './lib/ui-context';
+import { UIProvider } from './contexts/UIContext';
 import { DataProvider } from './lib/data-context';
 
 // Extend the theme to include custom colors, fonts, etc
@@ -48,10 +48,10 @@ const theme = extendTheme({
       },
       variants: {
         solid: {
-          bg: 'brand.500',
+          bg: 'blue.500',
           color: 'white',
           _hover: {
-            bg: 'brand.600',
+            bg: 'blue.600',
           },
         },
         outline: {
@@ -67,6 +67,14 @@ const theme = extendTheme({
   config: {
     initialColorMode: 'dark',
     useSystemColorMode: false,
+  },
+  styles: {
+    global: {
+      body: {
+        bg: 'gray.900',
+        color: 'white',
+      },
+    },
   },
 });
 

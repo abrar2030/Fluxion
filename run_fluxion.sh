@@ -16,24 +16,37 @@ if [ ! -d "venv" ]; then
   python3 -m venv venv
 fi
 
-# Start application
-echo -e "${BLUE}Starting Fluxion application...${NC}"
-cd code
-source ../venv/bin/activate
-pip install -r requirements.txt > /dev/null
+# Activate virtual environment and install dependencies
+source venv/bin/activate
+pip install -r code/requirements.txt > /dev/null
+
+# Start backend application
+echo -e "${BLUE}Starting backend service...${NC}"
+cd code/backend
 python app.py &
 APP_PID=$!
+cd ../..
+
+# Start frontend application
+echo -e "${BLUE}Starting frontend service...${NC}"
+cd frontend
+npm install > /dev/null
+npm run dev &
+FRONTEND_PID=$!
 cd ..
 
 echo -e "${GREEN}Fluxion application is running!${NC}"
-echo -e "${GREEN}Application running with PID: ${APP_PID}${NC}"
-echo -e "${GREEN}Access the application at: http://localhost:5000${NC}"
+echo -e "${GREEN}Backend running with PID: ${APP_PID}${NC}"
+echo -e "${GREEN}Frontend running with PID: ${FRONTEND_PID}${NC}"
+echo -e "${GREEN}Backend API: http://localhost:5000${NC}"
+echo -e "${GREEN}Frontend UI: http://localhost:5173${NC}"
 echo -e "${BLUE}Press Ctrl+C to stop all services${NC}"
 
 # Handle graceful shutdown
 function cleanup {
   echo -e "${BLUE}Stopping services...${NC}"
   kill $APP_PID
+  kill $FRONTEND_PID
   echo -e "${GREEN}All services stopped${NC}"
   exit 0
 }
