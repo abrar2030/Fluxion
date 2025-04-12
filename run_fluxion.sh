@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Run script for Fluxion project
 # This script starts the application components
 
@@ -23,7 +22,7 @@ pip install -r code/requirements.txt > /dev/null
 # Start backend application
 echo -e "${BLUE}Starting backend service...${NC}"
 cd code/backend
-python app.py &
+uvicorn app:app --host 0.0.0.0 --port 5000 &
 APP_PID=$!
 cd ../..
 

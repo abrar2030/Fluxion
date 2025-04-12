@@ -25,7 +25,7 @@ import {
 } from '@chakra-ui/react';
 import { FiTrendingUp, FiDollarSign, FiActivity, FiDroplet } from 'react-icons/fi';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useWeb3 } from '../lib/web3-config';
+import { useWeb3 } from .../lib/web3-config.jsx';
 import { useData } from '../lib/data-context';
 import { useUI } from '../lib/ui-context';
 import StatCard from '../components/ui/StatCard';

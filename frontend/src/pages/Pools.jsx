@@ -27,7 +27,7 @@ import {
   Divider
 } from '@chakra-ui/react';
 import { FiDroplet, FiTrendingUp, FiDollarSign, FiUsers, FiSearch, FiFilter, FiChevronDown } from 'react-icons/fi';
-import { useWeb3 } from '../lib/web3-config';
+import { useWeb3 } from .../lib/web3-config.jsx';
 import { useData } from '../lib/data-context';
 import { useUI } from '../lib/ui-context';
 import { useNavigate } from 'react-router-dom';

@@ -1,177 +1,157 @@
 import React from 'react';
-import { 
-  Box, 
-  Flex, 
-  Text, 
-  IconButton, 
-  HStack, 
-  Menu, 
-  MenuButton, 
-  MenuList, 
-  MenuItem, 
-  Avatar, 
-  Button,
-  useColorModeValue,
-  Icon,
-  Divider
-} from '@chakra-ui/react';
-import { FiMenu, FiBell, FiUser, FiLogOut, FiSettings, FiChevronDown } from 'react-icons/fi';
-import { useNavigate } from 'react-router-dom';
-import { useWeb3 } from '../../lib/web3-config';
-import { useUI } from '../../lib/ui-context';
+import { Box, Flex, HStack, Image, Button, useColorModeValue, Icon, useDisclosure, Drawer, DrawerOverlay, DrawerContent, DrawerCloseButton, DrawerHeader, DrawerBody, Avatar, Menu, MenuButton, MenuList, MenuItem, MenuDivider, IconButton, Text } from '@chakra-ui/react';
+import { FiMenu, FiBell, FiChevronDown, FiUser, FiLogOut, FiSettings } from 'react-icons/fi';
+import { Link as RouterLink } from 'react-router-dom';
+import logo from '../../assets/images/fluxion-logo.svg';
+import { useWeb3 } from '../../lib/web3-config.jsx';
 
 const Navbar = () => {
-  const navigate = useNavigate();
-  const { account, isConnected, connectWallet, disconnectWallet } = useWeb3();
-  const { toggleSidebar, addNotification } = useUI();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { account, isConnected, connectWallet } = useWeb3();
   
-  const bgColor = useColorModeValue('gray.800', 'gray.800');
-  const borderColor = useColorModeValue('gray.700', 'gray.700');
-  
-  const handleConnect = async () => {
-    try {
-      await connectWallet();
-      addNotification({
-        title: 'Wallet Connected',
-        message: 'Your wallet has been successfully connected.',
-        type: 'success'
-      });
-    } catch (error) {
-      addNotification({
-        title: 'Connection Failed',
-        message: error.message || 'Failed to connect wallet. Please try again.',
-        type: 'error'
-      });
-    }
-  };
-  
-  const handleDisconnect = () => {
-    disconnectWallet();
-    addNotification({
-      title: 'Wallet Disconnected',
-      message: 'Your wallet has been disconnected.',
-      type: 'info'
-    });
-  };
-  
+  // Format account address for display
   const formatAddress = (address) => {
     if (!address) return '';
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
-  
+
   return (
-    <Box 
-      as="header" 
-      bg={bgColor} 
-      borderBottom="1px" 
-      borderColor={borderColor} 
-      py={2} 
-      px={4}
-      position="sticky"
-      top="0"
-      zIndex="sticky"
-    >
-      <Flex justify="space-between" align="center">
-        <HStack spacing={4}>
+    <Box>
+      <Flex
+        bg={useColorModeValue('gray.900', 'gray.900')}
+        color={useColorModeValue('white', 'white')}
+        minH={'60px'}
+        py={{ base: 2 }}
+        px={{ base: 4 }}
+        borderBottom={1}
+        borderStyle={'solid'}
+        borderColor={useColorModeValue('gray.800', 'gray.700')}
+        align={'center'}
+        position="fixed"
+        top="0"
+        width="100%"
+        zIndex="1000"
+        boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+      >
+        <Flex
+          flex={{ base: 1, md: 'auto' }}
+          ml={{ base: -2 }}
+          display={{ base: 'flex', md: 'none' }}
+        >
           <IconButton
+            onClick={onOpen}
             icon={<FiMenu />}
-            variant="ghost"
-            onClick={toggleSidebar}
-            aria-label="Toggle Sidebar"
-            color="gray.400"
-            _hover={{ color: 'white', bg: 'gray.700' }}
+            variant={'outline'}
+            aria-label={'Toggle Navigation'}
           />
-          <Box 
-            as="a" 
-            href="/" 
-            fontSize="xl" 
-            fontWeight="bold" 
-            color="white"
-            cursor="pointer"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/');
-            }}
-          >
-            <Flex align="center">
-              <Text 
-                bgGradient="linear(to-r, brand.500, accent.500)" 
-                bgClip="text"
-                fontWeight="extrabold"
-              >
-                FLUXION
-              </Text>
-            </Flex>
-          </Box>
-        </HStack>
+        </Flex>
         
-        <HStack spacing={4}>
+        <Flex flex={{ base: 1 }} justify={{ base: 'center', md: 'start' }}>
+          <RouterLink to="/">
+            <Image src={logo} alt="Fluxion Logo" h="10" />
+          </RouterLink>
+        </Flex>
+
+        <HStack spacing={4} alignItems={'center'}>
+          <IconButton
+            size={'md'}
+            variant={'ghost'}
+            aria-label={'Notifications'}
+            icon={<FiBell />}
+            _hover={{
+              bg: 'brand.500',
+              color: 'white',
+            }}
+          />
+          
           {isConnected ? (
             <Menu>
               <MenuButton
                 as={Button}
-                variant="outline"
-                colorScheme="blue"
-                rightIcon={<FiChevronDown />}
-                size="sm"
+                rounded={'full'}
+                variant={'link'}
+                cursor={'pointer'}
+                minW={0}
               >
-                {formatAddress(account)}
+                <HStack>
+                  <Avatar
+                    size={'sm'}
+                    bgGradient="linear(to-r, brand.500, accent.500)"
+                  />
+                  <Text display={{ base: 'none', md: 'flex' }}>
+                    {formatAddress(account)}
+                  </Text>
+                  <Box display={{ base: 'none', md: 'flex' }}>
+                    <FiChevronDown />
+                  </Box>
+                </HStack>
               </MenuButton>
-              <MenuList bg="gray.800" borderColor="gray.700">
+              <MenuList
+                bg={useColorModeValue('gray.800', 'gray.700')}
+                borderColor={useColorModeValue('gray.700', 'gray.600')}
+              >
                 <MenuItem 
-                  icon={<FiUser />} 
-                  onClick={() => navigate('/settings')}
-                  _hover={{ bg: 'gray.700' }}
-                  color="white"
+                  icon={<FiUser />}
+                  _hover={{
+                    bg: 'gray.700',
+                  }}
                 >
                   Profile
                 </MenuItem>
                 <MenuItem 
-                  icon={<FiSettings />} 
-                  onClick={() => navigate('/settings')}
-                  _hover={{ bg: 'gray.700' }}
-                  color="white"
+                  icon={<FiSettings />}
+                  _hover={{
+                    bg: 'gray.700',
+                  }}
                 >
                   Settings
                 </MenuItem>
-                <Divider borderColor="gray.700" />
+                <MenuDivider />
                 <MenuItem 
-                  icon={<FiLogOut />} 
-                  onClick={handleDisconnect}
-                  _hover={{ bg: 'gray.700' }}
-                  color="white"
+                  icon={<FiLogOut />}
+                  _hover={{
+                    bg: 'gray.700',
+                  }}
                 >
                   Disconnect
                 </MenuItem>
               </MenuList>
             </Menu>
           ) : (
-            <Button 
-              colorScheme="blue" 
-              size="sm" 
-              onClick={handleConnect}
+            <Button
+              size="md"
+              variant="solid"
+              colorScheme="brand"
+              bgGradient="linear(to-r, brand.500, accent.500)"
+              _hover={{
+                bgGradient: "linear(to-r, brand.600, accent.600)",
+                transform: "translateY(-2px)",
+                boxShadow: "lg"
+              }}
+              onClick={connectWallet}
             >
               Connect Wallet
             </Button>
           )}
-          
-          <IconButton
-            icon={<FiBell />}
-            variant="ghost"
-            aria-label="Notifications"
-            color="gray.400"
-            _hover={{ color: 'white', bg: 'gray.700' }}
-          />
-          
-          <Avatar 
-            size="sm" 
-            name="User" 
-            bg="brand.500" 
-            cursor="pointer"
-            onClick={() => navigate('/settings')}
-          />
         </HStack>
       </Flex>
+
+      <Drawer
+        isOpen={isOpen}
+        placement="left"
+        onClose={onClose}
+        returnFocusOnClose={false}
+        onOverlayClick={onClose}
+      >
+        <DrawerOverlay />
+        <DrawerContent bg={useColorModeValue('gray.900', 'gray.900')} color="white">
+          <DrawerCloseButton />
+          <DrawerHeader borderBottomWidth="1px">Menu</DrawerHeader>
+          <DrawerBody>
+            {/* Mobile menu content */}
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
     </Box>
   );
 };

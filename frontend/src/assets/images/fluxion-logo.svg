@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M40 10L60 30L40 50L20 30L40 10Z" fill="#0080FF"/>
+  <path d="M70 10L90 30L70 50L50 30L70 10Z" fill="#00C49F" fill-opacity="0.8"/>
+  <path d="M100 10L120 30L100 50L80 30L100 10Z" fill="#FF8C00" fill-opacity="0.8"/>
+  <text x="130" y="35" font-family="Arial" font-weight="bold" font-size="24" fill="#FFFFFF">FLUXION</text>
+</svg>

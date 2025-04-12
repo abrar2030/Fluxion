@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useWeb3 } from '../lib/web3-config';
+import { useWeb3 } from .../lib/web3-config.jsx';
 import HeatmapChart from './HeatmapChart';
 
 export default function RiskMatrix() {
