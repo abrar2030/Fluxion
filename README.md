@@ -2,7 +2,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
 
 ## 🌀 Overview  
-Fluxion is a next-generation decentralized exchange engine for synthetic assets, combining ZK-Rollup scalability with AI-driven liquidity optimization. Facilitates institutional-grade trading with hybrid AMM models and cross-chain composability.  
+Fluxion is a next-generation decentralized exchange engine for synthetic assets, combining ZK-Rollup scalability with AI-driven liquidity optimization. Facilitates institutional-grade trading with hybrid AMM models and cross-chain composability.
+
+> **Note**: This Project is currently under active development. Features and functionalities are being added and improved continuously to enhance user experience.
 
 ## 🚀 Key Features  
 - Hybrid AMM Design (Curve-style stable swaps + Uniswap V3 concentrated liquidity)  
