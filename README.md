@@ -4,6 +4,10 @@
 ## 🌀 Overview  
 Fluxion is a next-generation decentralized exchange engine for synthetic assets, combining ZK-Rollup scalability with AI-driven liquidity optimization. Facilitates institutional-grade trading with hybrid AMM models and cross-chain composability.
 
+<div align="center">
+  <img src="Fluxion.bmp" alt="Next-Generation Decentralized Exchange Engine" width="100%">
+</div>
+
 > **Note**: This Project is currently under active development. Features and functionalities are being added and improved continuously to enhance user experience.
 
 ## 🚀 Key Features  
