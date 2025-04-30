@@ -1,49 +1,120 @@
 import React from 'react';
-import { NativeBaseProvider, extendTheme } from 'native-base';
 import { NavigationContainer } from '@react-navigation/native';
-import MainNavigator from './src/navigation/MainNavigator';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Provider as PaperProvider, DefaultTheme, useTheme } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// Define the theme
-const theme = extendTheme({
+// Import Screens
+import InputScreen from './src/screens/InputScreen';
+import ResultsScreen from './src/screens/ResultsScreen';
+import AssetsScreen from './src/screens/AssetsScreen';
+import PoolsScreen from './src/screens/PoolsScreen';
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// Define a custom theme
+const theme = {
+  ...DefaultTheme,
   colors: {
-    // Add custom colors if needed
-    primary: {
-      50: '#E3F2F9',
-      100: '#C5E4F3',
-      200: '#A2D4EC',
-      300: '#7AC1E4',
-      400: '#47A9DA',
-      500: '#0088CC',
-      600: '#007AB8',
-      700: '#006BA1',
-      800: '#005885',
-      900: '#003F5E',
-    },
-    // Use a dark theme similar to the web app
-    gray: {
-      950: '#1A202C', // Example dark background
-      900: '#171923',
-      800: '#2D3748',
-      700: '#4A5568',
-      // ... other shades
-    }
+    ...DefaultTheme.colors,
+    primary: '#6200ee',
+    accent: '#03dac4',
+    background: '#f6f6f6',
+    secondaryContainer: '#e0d6ff', // Example for active tab background
+    onSecondaryContainer: '#21005d', // Example for active tab icon/label
+    onSurfaceVariant: '#49454f', // Example for inactive tab icon/label
   },
-  config: {
-    // Changing initialColorMode to 'dark'
-    initialColorMode: 'dark',
-  },
-});
+};
 
+// Stack Navigator for the Prediction Flow
+function PredictionStack() {
+  const { colors } = useTheme(); // Use theme from PaperProvider
+  return (
+    <Stack.Navigator
+      initialRouteName="Input"
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: colors.primary,
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
+      }}
+    >
+      <Stack.Screen
+        name="Input"
+        component={InputScreen}
+        options={{ title: 'Energy Prediction Input' }}
+      />
+      <Stack.Screen
+        name="Results"
+        component={ResultsScreen}
+        options={{ title: 'Prediction Results' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// Main App component with Bottom Tab Navigator
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <NativeBaseProvider theme={theme}>
-        <NavigationContainer>
-          <MainNavigator />
-        </NavigationContainer>
-      </NativeBaseProvider>
-    </SafeAreaProvider>
+    <PaperProvider theme={theme}>
+      <NavigationContainer>
+        <Tab.Navigator
+          screenOptions={({ route }) => ({
+            headerShown: false, // Hide header for tabs, PredictionStack has its own
+            tabBarIcon: ({ focused, color, size }) => {
+              let iconName;
+              if (route.name === 'Predict') {
+                iconName = focused ? 'chart-line' : 'chart-line-variant';
+              } else if (route.name === 'Assets') {
+                iconName = focused ? 'bitcoin' : 'bitcoin'; // Using bitcoin icon for assets
+              } else if (route.name === 'Pools') {
+                iconName = focused ? 'waves' : 'waves-arrow-up'; // Using waves icon for pools
+              }
+              // You can return any component that you like here!
+              return <MaterialCommunityIcons name={iconName} size={size} color={color} />;
+            },
+            tabBarActiveTintColor: theme.colors.primary,
+            tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+            // Optional: Style the tab bar itself
+            // tabBarActiveBackgroundColor: theme.colors.secondaryContainer,
+            // tabBarStyle: { backgroundColor: theme.colors.surfaceVariant }, 
+          })}
+        >
+          <Tab.Screen 
+            name="Predict" 
+            component={PredictionStack} 
+            options={{ title: 'Prediction' }} 
+          />
+          <Tab.Screen 
+            name="Assets" 
+            component={AssetsScreen} 
+            options={{ 
+              title: 'Assets',
+              headerShown: true, // Show header for simple screens if needed
+              headerStyle: { backgroundColor: theme.colors.primary },
+              headerTintColor: '#fff',
+              headerTitleStyle: { fontWeight: 'bold' },
+            }} 
+          />
+          <Tab.Screen 
+            name="Pools" 
+            component={PoolsScreen} 
+            options={{ 
+              title: 'Pools',
+              headerShown: true, // Show header for simple screens if needed
+              headerStyle: { backgroundColor: theme.colors.primary },
+              headerTintColor: '#fff',
+              headerTitleStyle: { fontWeight: 'bold' },
+            }} 
+          />
+        </Tab.Navigator>
+      </NavigationContainer>
+    </PaperProvider>
   );
 }
 

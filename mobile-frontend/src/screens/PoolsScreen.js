@@ -1,88 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Text, VStack, Heading, ScrollView, Card, HStack, Icon, Spinner, FlatList, Button } from 'native-base';
-import { Ionicons } from '@expo/vector-icons';
-import { getPools } from '../services/api'; // Placeholder API call
+import React from 'react';
+import { View, StyleSheet } from 'react-native';
+import { Text, Card, Title, Paragraph, useTheme } from 'react-native-paper';
 
 const PoolsScreen = () => {
-  const [loading, setLoading] = useState(true);
-  const [pools, setPools] = useState([]);
+  const theme = useTheme();
 
-  useEffect(() => {
-    const fetchPools = async () => {
-      try {
-        // Replace with actual API call when available
-        // const response = await getPools();
-        // setPools(response.data);
-
-        // Placeholder data
-        const mockPools = [
-          { id: '1', name: 'ETH/USDC', tvl: '$1.2M', apr: '15.5%' },
-          { id: '2', name: 'WBTC/ETH', tvl: '$800K', apr: '12.1%' },
-          { id: '3', name: 'LINK/USDT', tvl: '$500K', apr: '18.2%' },
-          { id: '4', name: 'MATIC/DAI', tvl: '$350K', apr: '22.0%' },
-        ];
-        setPools(mockPools);
-
-      } catch (error) {
-        console.error('Error fetching pools:', error);
-        // Handle error state appropriately
-      }
-      setLoading(false);
-    };
-
-    // Simulate loading
-    setTimeout(() => {
-      fetchPools();
-    }, 1000);
-
-  }, []);
-
-  const renderPoolItem = ({ item }) => (
-    <Card bg="gray.800" p={4} rounded="lg" mb={3}>
-      <HStack justifyContent="space-between" alignItems="center">
-        <VStack>
-          <Text color="white" fontWeight="bold" fontSize="md">{item.name}</Text>
-          <Text color="gray.400" fontSize="sm">TVL: {item.tvl}</Text>
-        </VStack>
-        <VStack alignItems="flex-end">
-          <Text color="green.400" fontWeight="bold">APR: {item.apr}</Text>
-          <Button size="sm" variant="outline" colorScheme="primary" mt={1} onPress={() => console.log('Manage Pool:', item.id)}>
-            Manage
-          </Button>
-        </VStack>
-      </HStack>
-    </Card>
-  );
+  // Placeholder data - replace with actual API call
+  const pools = [
+    { id: 'pool1', name: 'synBTC/synUSD', tvl: '$10.5M', apr: '12.5%' },
+    { id: 'pool2', name: 'synETH/synUSD', tvl: '$8.2M', apr: '10.8%' },
+    { id: 'pool3', name: 'synETH/synBTC', tvl: '$5.1M', apr: '8.2%' },
+  ];
 
   return (
-    <Box flex={1} bg="gray.950">
-      <VStack space={4} p={4} flex={1}>
-        <HStack justifyContent="space-between" alignItems="center">
-           <Heading color="white">Liquidity Pools</Heading>
-           <Button
-             size="sm"
-             colorScheme="primary"
-             leftIcon={<Icon as={Ionicons} name="add-circle-outline" size="sm" />}
-             onPress={() => console.log('Create New Pool')}
-           >
-             Create Pool
-           </Button>
-        </HStack>
-
-        {loading ? (
-          <Spinner color="primary.500" size="lg" mt={10} />
-        ) : (
-          <FlatList
-            data={pools}
-            renderItem={renderPoolItem}
-            keyExtractor={(item) => item.id}
-            ListEmptyComponent={<Text color="gray.500" textAlign="center" mt={10}>No pools found.</Text>}
-          />
-        )}
-      </VStack>
-    </Box>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Title style={styles.title}>Liquidity Pools</Title>
+      {pools.map(pool => (
+        <Card key={pool.id} style={styles.card}>
+          <Card.Content>
+            <Title>{pool.name}</Title>
+            <Paragraph>Total Value Locked (TVL): {pool.tvl}</Paragraph>
+            <Paragraph>Estimated APR: {pool.apr}</Paragraph>
+          </Card.Content>
+        </Card>
+      ))}
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  title: {
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  card: {
+    marginBottom: 12,
+  },
+});
 
 export default PoolsScreen;
 

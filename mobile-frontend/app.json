@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "mobile-frontend",
-    "slug": "mobile-frontend",
+    "name": "fluxora-mobile",
+    "slug": "fluxora-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
