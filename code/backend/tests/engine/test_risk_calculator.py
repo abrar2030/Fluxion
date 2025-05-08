@@ -38,6 +38,24 @@ class TestAdvancedRiskMetrics:
         with pytest.raises(IndexError): # Or specific error handling if implemented
             arm_instance.calculate_cvar(np.array([]), 0.95)
 
+        # New test cases
+        # Test with large dataset
+        returns_large = np.random.normal(0, 0.02, 10000)
+        cvar_large = arm_instance.calculate_cvar(returns_large, 0.99)
+        assert isinstance(cvar_large, float)
+        assert cvar_large < 0  # Should be negative for normal distribution
+
+        # Test with extreme values
+        returns_extreme = np.array([-0.5, -0.4, -0.3, 0.1, 0.2, 0.3, 0.4, 0.5])
+        cvar_extreme = arm_instance.calculate_cvar(returns_extreme, 0.95)
+        assert cvar_extreme <= -0.5  # Should be at most -0.5
+
+        # Test confidence level boundaries
+        with pytest.raises(ValueError):
+            arm_instance.calculate_cvar(returns_1, 0)  # Invalid confidence level
+        with pytest.raises(ValueError):
+            arm_instance.calculate_cvar(returns_1, 1.1)  # Invalid confidence level
+
     def test_liquidity_at_risk(self, arm_instance):
         volume_history_1 = np.array([1000, 1200, 900, 1500, 1100])
         confidence_1 = 0.99
@@ -60,6 +78,24 @@ class TestAdvancedRiskMetrics:
         with pytest.raises(ValueError): # numpy mean of empty slice raises RuntimeWarning and returns nan
             arm_instance.liquidity_at_risk(np.array([]), 0.99)
 
+        # New test cases
+        # Test with large dataset
+        volume_large = np.random.lognormal(10, 1, 1000)
+        lar_large = arm_instance.liquidity_at_risk(volume_large, 0.99)
+        assert isinstance(lar_large, float)
+        assert lar_large > 0
+
+        # Test with extreme volatility
+        volume_volatile = np.array([100, 1000, 100, 1000, 100])
+        lar_volatile = arm_instance.liquidity_at_risk(volume_volatile, 0.99)
+        assert lar_volatile < np.min(volume_volatile)  # Should be below minimum volume
+
+        # Test confidence level boundaries
+        with pytest.raises(ValueError):
+            arm_instance.liquidity_at_risk(volume_history_1, 0)  # Invalid confidence level
+        with pytest.raises(ValueError):
+            arm_instance.liquidity_at_risk(volume_history_1, 1.1)  # Invalid confidence level
+
     def test_portfolio_skewness(self, arm_instance):
         returns_symmetric = np.array([-2, -1, 0, 1, 2])
         expected_skew_symmetric = skew(returns_symmetric, bias=False)
@@ -70,6 +106,25 @@ class TestAdvancedRiskMetrics:
         expected_skew_positive = skew(returns_positive_skew, bias=False)
         assert arm_instance.portfolio_skewness(returns_positive_skew) == pytest.approx(expected_skew_positive)
         assert expected_skew_positive > 0
+
+        # New test cases
+        # Test with large dataset
+        returns_large = np.random.normal(0, 1, 1000)
+        skew_large = arm_instance.portfolio_skewness(returns_large)
+        assert isinstance(skew_large, float)
+        assert abs(skew_large) < 0.1  # Should be close to 0 for normal distribution
+
+        # Test with extreme skew
+        returns_extreme_skew = np.concatenate([
+            np.random.normal(-1, 0.1, 990),  # Many small negative returns
+            np.random.normal(10, 0.1, 10)    # Few large positive returns
+        ])
+        skew_extreme = arm_instance.portfolio_skewness(returns_extreme_skew)
+        assert skew_extreme > 0  # Should be positively skewed
+
+        # Test with single value
+        with pytest.raises(ValueError):
+            arm_instance.portfolio_skewness(np.array([1.0]))
 
     def test_portfolio_kurtosis(self, arm_instance):
         # Using scipy.stats.kurtosis with fisher=False gives Pearson's kurtosis
@@ -84,4 +139,28 @@ class TestAdvancedRiskMetrics:
         assert arm_instance.portfolio_kurtosis(returns_leptokurtic) == pytest.approx(expected_kurtosis_lepto)
         # Leptokurtic should have kurtosis > 3
         assert arm_instance.portfolio_kurtosis(returns_leptokurtic) > 3
+
+        # New test cases
+        # Test with large dataset
+        returns_large = np.random.normal(0, 1, 1000)
+        kurt_large = arm_instance.portfolio_kurtosis(returns_large)
+        assert isinstance(kurt_large, float)
+        assert abs(kurt_large - 3) < 0.5  # Should be close to 3 for normal distribution
+
+        # Test with platykurtic distribution (less peaked than normal)
+        returns_platykurtic = np.random.uniform(-1, 1, 1000)
+        kurt_platy = arm_instance.portfolio_kurtosis(returns_platykurtic)
+        assert kurt_platy < 3  # Should be less than 3 for uniform distribution
+
+        # Test with extreme kurtosis
+        returns_extreme_kurt = np.concatenate([
+            np.random.normal(0, 0.1, 980),  # Many small returns
+            np.random.normal(0, 10, 20)     # Few extreme returns
+        ])
+        kurt_extreme = arm_instance.portfolio_kurtosis(returns_extreme_kurt)
+        assert kurt_extreme > 3  # Should be leptokurtic
+
+        # Test with single value
+        with pytest.raises(ValueError):
+            arm_instance.portfolio_kurtosis(np.array([1.0]))
 

@@ -38,6 +38,14 @@ def test_404_not_found(client):
     assert response.status_code == 404
     assert response.json == {"error": "Resource not found"}
 
+def test_500_error(client):
+    """Test 500 error handler"""
+    # Force a 500 error by accessing an invalid route with POST
+    response = client.post('/')
+    assert response.status_code == 500
+    data = response.get_json()
+    assert data['error'] == 'Internal server error'
+
 # To test the 500 error handler, we need a way to trigger an internal server error.
 # One way is to add a temporary route that intentionally raises an exception.
 # Or, if you have a specific function that might fail, you can mock it to raise an error.
