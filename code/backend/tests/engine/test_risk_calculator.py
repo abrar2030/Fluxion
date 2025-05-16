@@ -35,7 +35,7 @@ class TestAdvancedRiskMetrics:
         assert arm_instance.calculate_cvar(returns_positive, 0.95) == pytest.approx(expected_cvar_positive)
 
         # Edge case: empty list
-        with pytest.raises(IndexError): # Or specific error handling if implemented
+        with pytest.raises(ValueError):
             arm_instance.calculate_cvar(np.array([]), 0.95)
 
         # New test cases
@@ -163,4 +163,3 @@ class TestAdvancedRiskMetrics:
         # Test with single value
         with pytest.raises(ValueError):
             arm_instance.portfolio_kurtosis(np.array([1.0]))
-
