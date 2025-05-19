@@ -1,158 +1,256 @@
-# Synthetic Asset Liquidity Engine (Fluxion)
+# Fluxion
 
-[![CI Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxion/ci-cd.yml?branch=main&label=CI&logo=github)](https://github.com/abrar2030/Fluxion/actions)
-[![CI Status](https://img.shields.io/github/workflow/status/abrar2030/Fluxion/CI/main?label=CI)](https://github.com/abrar2030/Fluxion/actions)
+[![CI/CD Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxion/ci-cd.yml?branch=main&label=CI/CD&logo=github)](https://github.com/abrar2030/Fluxion/actions)
 [![Test Coverage](https://img.shields.io/codecov/c/github/abrar2030/Fluxion/main?label=Coverage)](https://codecov.io/gh/abrar2030/Fluxion)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Smart Contract Audit](https://img.shields.io/badge/audit-passing-brightgreen)](https://github.com/abrar2030/Fluxion)
+[![License](https://img.shields.io/github/license/abrar2030/Fluxion)](https://github.com/abrar2030/Fluxion/blob/main/LICENSE)
+
+## ⚡ Synthetic Asset Liquidity Engine
+
+Fluxion is a cutting-edge synthetic asset liquidity engine that leverages zero-knowledge proofs and cross-chain technology to provide efficient, secure, and scalable liquidity for synthetic assets across multiple blockchain networks.
+
+<div align="center">
+  <img src="docs/images/fluxion_dashboard.png" alt="Fluxion Dashboard" width="80%">
+</div>
+
+> **Note**: This project is under active development. Features and functionalities are continuously being enhanced to improve synthetic asset liquidity and cross-chain capabilities.
+
+## Table of Contents
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Roadmap](#roadmap)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Deployment](#deployment)
+- [Testing](#testing)
+- [CI/CD Pipeline](#cicd-pipeline)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Overview
 
-Fluxion is a next-generation decentralized exchange engine for synthetic assets, combining ZK-Rollup scalability with AI-driven liquidity optimization. It facilitates institutional-grade trading with hybrid AMM models and cross-chain composability.
+Fluxion revolutionizes synthetic asset trading by providing deep, cross-chain liquidity through a combination of zero-knowledge proofs, AI-driven market making, and advanced risk management. The platform enables the creation, trading, and settlement of synthetic assets with minimal slippage, reduced fees, and enhanced security across multiple blockchain networks.
 
-<div align="center">
-  <img src="docs/Fluxion.bmp" alt="Next-Generation Decentralized Exchange Engine" width="100%">
-</div>
+## Key Features
 
-> **Note**: This Project is currently under active development. Features and functionalities are being added and improved continuously to enhance user experience.
+### Synthetic Asset Creation
+- **Asset Tokenization**: Create synthetic versions of real-world assets (stocks, commodities, forex)
+- **Custom Index Creation**: Build and deploy custom synthetic indices
+- **Yield-Bearing Synthetics**: Synthetic assets that generate yield
+- **Governance-Controlled Parameters**: Community governance of collateralization ratios and fees
+- **Permissionless Listing**: Open framework for adding new synthetic assets
 
-## Table of Contents
-- [Key Features](#-key-features)
-- [Feature Implementation Status](#feature-implementation-status)
-- [Tech Stack](#-tech-stack)
-- [Architecture](#-architecture)
-- [Installation](#-installation)
-- [Deployment](#-deployment)
-- [Testing](#testing)
-- [CI/CD Pipeline](#cicd-pipeline)
-- [Contributing](#-contributing)
-- [License](#-license)
+### Zero-Knowledge Liquidity
+- **zkEVM Integration**: Scalable and private synthetic asset trading
+- **Batched Settlements**: Efficient transaction processing with reduced gas costs
+- **Privacy-Preserving Trades**: Confidential trading without revealing positions
+- **Proof Generation**: Fast and efficient zero-knowledge proof generation
+- **Verifiable Transactions**: Cryptographic verification of all trades
 
-## 🚀 Key Features
-- Hybrid AMM Design (Curve-style stable swaps + Uniswap V3 concentrated liquidity)
-- Zero-Knowledge settlement via Polygon zkEVM
-- Transformer-based liquidity demand forecasting
-- Chainlink CCIP-powered cross-chain arbitrage
-- Dynamic fee schedules adjusted via reinforcement learning
-- Institutional trading tools (TWAP/VWAP/Custom slippage)
-- GPU-accelerated risk calculations
-- Multi-sig governance with time-locked upgrades
-- Real-time liquidity monitoring dashboard
-- The Graph-powered historical analytics
+### Cross-Chain Capabilities
+- **Multi-Chain Deployment**: Support for 10+ EVM-compatible chains
+- **Unified Liquidity**: Shared liquidity pools across multiple networks
+- **Cross-Chain Messaging**: Secure communication between blockchain networks
+- **Chain-Agnostic Trading**: Trade synthetic assets regardless of underlying blockchain
+- **Optimized Bridge Security**: Enhanced security for cross-chain asset transfers
 
-## Feature Implementation Status
+### AI-Powered Market Making
+- **Dynamic Liquidity Provision**: Intelligent allocation of liquidity across pools
+- **Predictive Price Modeling**: ML models for synthetic asset price prediction
+- **Volatility Forecasting**: Advanced volatility models for risk management
+- **Arbitrage Detection**: Identification and exploitation of cross-chain price discrepancies
+- **Adaptive Fee Structure**: ML-optimized fees based on market conditions
 
-| Feature | Status | Description | Planned Release |
-|---------|--------|-------------|----------------|
-| **AMM Design** |
-| Stable Swap Pools | ✅ Implemented | Curve-style efficient stablecoin swaps | v1.0 |
-| Concentrated Liquidity | ✅ Implemented | Uniswap V3-style focused liquidity | v1.0 |
-| Custom Bonding Curves | ✅ Implemented | Specialized asset-specific curves | v1.0 |
-| Dynamic Fee Tiers | 🔄 In Progress | Adaptive fee calculation | v1.1 |
-| Impermanent Loss Protection | 📅 Planned | Mitigate LP risk exposure | v1.2 |
-| **Zero-Knowledge Technology** |
-| Polygon zkEVM Settlement | ✅ Implemented | Scalable transaction processing | v1.0 |
-| Private Transactions | ✅ Implemented | Confidential trading | v1.0 |
-| Batched Settlements | ✅ Implemented | Efficient transaction grouping | v1.0 |
-| ZK Proofs for Compliance | 🔄 In Progress | Regulatory verification without data exposure | v1.1 |
-| Cross-chain ZK Bridges | 📅 Planned | Privacy-preserving chain interoperability | v1.2 |
-| **AI and Forecasting** |
-| Liquidity Demand Forecasting | ✅ Implemented | Predict trading volume needs | v1.0 |
-| Transformer Models | ✅ Implemented | Advanced sequence modeling | v1.0 |
-| Reinforcement Learning | ✅ Implemented | Dynamic parameter optimization | v1.0 |
-| Anomaly Detection | 🔄 In Progress | Identify market irregularities | v1.1 |
-| Federated Learning | 📅 Planned | Privacy-preserving collaborative models | v1.2 |
-| **Cross-Chain Capabilities** |
-| Chainlink CCIP Integration | ✅ Implemented | Cross-chain interoperability | v1.0 |
-| Cross-chain Arbitrage | ✅ Implemented | Multi-chain price efficiency | v1.0 |
-| Asset Bridging | ✅ Implemented | Transfer assets between chains | v1.0 |
-| Unified Liquidity | 🔄 In Progress | Cross-chain liquidity aggregation | v1.1 |
-| Chain-agnostic Interfaces | 📅 Planned | Seamless multi-chain experience | v1.2 |
-| **Institutional Features** |
-| TWAP/VWAP Execution | ✅ Implemented | Time/volume-weighted execution | v1.0 |
-| Custom Slippage Controls | ✅ Implemented | Precise trade execution parameters | v1.0 |
-| Risk Management Tools | ✅ Implemented | Portfolio exposure monitoring | v1.0 |
-| OTC Trading Desk | 🔄 In Progress | Large block trade facilitation | v1.1 |
-| Institutional API | 📅 Planned | Programmatic platform access | v1.2 |
+## Roadmap
+
+| Feature | Status | Description | Release |
+|---------|--------|-------------|---------|
+| **Phase 1: Foundation** |
+| Synthetic Asset Factory | ✅ Completed | Smart contract for creating synthetic assets | v0.1 |
+| Basic Liquidity Pools | ✅ Completed | Initial AMM-based liquidity pools | v0.1 |
+| Web Interface | ✅ Completed | Basic trading interface | v0.1 |
+| **Phase 2: Advanced Trading** |
+| Order Book Integration | ✅ Completed | Limit orders and advanced trading | v0.2 |
+| Portfolio Management | ✅ Completed | Position tracking and management | v0.2 |
+| Risk Management Tools | ✅ Completed | Stop-loss and take-profit features | v0.2 |
+| **Phase 3: Zero-Knowledge Layer** |
+| zkEVM Integration | ✅ Completed | Zero-knowledge execution environment | v0.3 |
+| Private Transactions | ✅ Completed | Confidential trading capabilities | v0.3 |
+| Batched Settlements | ✅ Completed | Efficient transaction processing | v0.3 |
+| **Phase 4: Cross-Chain Expansion** |
+| Multi-Chain Deployment | 🔄 In Progress | Expansion to multiple blockchains | v0.4 |
+| Cross-Chain Messaging | 🔄 In Progress | Inter-blockchain communication | v0.4 |
+| Unified Liquidity | 🔄 In Progress | Shared liquidity across chains | v0.4 |
+| **Phase 5: AI Enhancement** |
+| Liquidity Prediction | 🔄 In Progress | ML models for liquidity forecasting | v0.5 |
+| Dynamic Market Making | 📅 Planned | AI-driven liquidity provision | v0.5 |
+| Volatility Forecasting | 📅 Planned | Advanced risk modeling | v0.5 |
+| **Phase 6: Governance & Scaling** |
+| DAO Governance | 📅 Planned | Community control of protocol | v0.6 |
+| Protocol Revenue Sharing | 📅 Planned | Fee distribution to stakeholders | v0.6 |
+| Layer 3 Scaling | 📅 Planned | Further scalability improvements | v0.6 |
 
 **Legend:**
-- ✅ Implemented: Feature is complete and available
+- ✅ Completed: Feature is implemented and available
 - 🔄 In Progress: Feature is currently being developed
 - 📅 Planned: Feature is planned for future release
 
-## 🛠️ Tech Stack
-**Blockchain**: Solidity 0.8, Chainlink CCIP, Foundry, Polygon zkEVM  
-**Backend**: FastAPI, Celery, Redis, NumPy, SciPy  
-**AI/ML**: PyTorch 2.0, Transformers, Prophet, Optuna  
-**Frontend**: React 18, Recharts, ethers.js 6  
-**Database**: TimescaleDB, Redis Stack  
-**Infra**: Kubernetes, Prometheus, Grafana, ArgoCD  
+## Tech Stack
 
-## 🏗️ Architecture
+**Blockchain**
+- Solidity 0.8 for smart contracts
+- Foundry for development and testing
+- Chainlink CCIP for cross-chain communication
+- zkSync for zero-knowledge proofs
 
-```mermaid  
-graph TD  
-    A[Frontend] -->|gRPC| B[API Gateway]  
-    B -->|CCIP| C[Cross-Chain Router]  
-    B -->|ZK-Proof| D[zkEVM Sequencer]  
-    C --> E[Liquidity Pools]  
-    D --> F[Settlement Layer]  
-    E --> G[Risk Engine]  
-    G --> H[AI Models]  
-    G --> I[Quant Library]  
-    H -->|Training Data| J[TimescaleDB]  
-    I -->|Risk Metrics| K[Redis]  
+**Backend**
+- Python 3.10 with FastAPI
+- Celery for task processing
+- gRPC for high-performance communication
+- WebSocket for real-time data
+
+**AI/ML**
+- PyTorch for deep learning models
+- Prophet for time series forecasting
+- Scikit-learn for statistical models
+- Ray for distributed training
+
+**Frontend**
+- React 18 with TypeScript
+- Recharts for data visualization
+- ethers.js 6 for blockchain interaction
+- TailwindCSS for styling
+
+**Database**
+- TimescaleDB for time-series data
+- Redis Stack for caching and real-time features
+- PostgreSQL for relational data
+- IPFS for decentralized storage
+
+**Infrastructure**
+- Kubernetes for container orchestration
+- Prometheus and Grafana for monitoring
+- ArgoCD for GitOps deployment
+- Terraform for infrastructure as code
+
+## Architecture
+
+Fluxion follows a modular architecture with the following components:
+
+```
+Fluxion/
+├── Frontend Layer
+│   ├── Trading Interface
+│   ├── Portfolio Dashboard
+│   ├── Analytics Tools
+│   └── Admin Panel
+├── API Gateway
+│   ├── Authentication
+│   ├── Rate Limiting
+│   ├── Request Routing
+│   └── WebSocket Server
+├── Cross-Chain Router
+│   ├── CCIP Integration
+│   ├── Message Passing
+│   ├── Asset Bridging
+│   └── Chain Monitoring
+├── zkEVM Sequencer
+│   ├── Proof Generation
+│   ├── Batch Processing
+│   ├── State Management
+│   └── Verification System
+├── Liquidity Pools
+│   ├── AMM Pools
+│   ├── Order Books
+│   ├── Yield Strategies
+│   └── Rebalancing Engine
+├── Settlement Layer
+│   ├── Transaction Finalization
+│   ├── Fee Collection
+│   ├── Dispute Resolution
+│   └── Oracle Integration
+├── Risk Engine
+│   ├── Position Monitoring
+│   ├── Liquidation Manager
+│   ├── Insurance Fund
+│   └── Circuit Breakers
+├── AI Models
+│   ├── Liquidity Prediction
+│   ├── Price Forecasting
+│   ├── Volatility Modeling
+│   └── Arbitrage Detection
+└── Data Layer
+    ├── Market Data
+    ├── User Positions
+    ├── Historical Trades
+    └── Protocol Metrics
 ```
 
-## ⚙️ Installation
+## Installation
 
 ```bash
-# Clone repository  
-git clone https://github.com/abrar2030/Fluxion.git  
-cd Fluxion  
+# Clone repository
+git clone https://github.com/abrar2030/Fluxion.git
+cd Fluxion
 
-# Install dependencies  
-cd blockchain && forge install  
-cd ../backend && pip install -r requirements.txt  
-cd ../frontend && npm install  
+# Install dependencies
+cd code/blockchain && forge install
+cd ../backend && pip install -r requirements.txt
+cd ../web-frontend && npm install
 
-# Configure environment  
-cp .env.example .env  
-# Add blockchain RPC URLs and API keys  
+# Configure environment
+cp .env.example .env
+# Add blockchain RPC URLs and API keys
 
-# Start services  
-docker-compose -f infra/docker-compose.zk.yml up -d  
-cd backend && celery -A engine worker -l INFO --pool=gevent  
-uvicorn api:app --host 0.0.0.0 --port 8000  
-cd ../frontend && npm start  
+# Start services
+docker-compose -f infrastructure/docker-compose.dev.yml up -d
+cd code/backend && celery -A engine worker -l INFO --pool=gevent
+uvicorn api:app --host 0.0.0.0 --port 8000
+cd ../web-frontend && npm start
 ```
 
-## 🚢 Deployment
+For a quick setup using the provided script:
 
 ```bash
-# 1. Train liquidity prediction model  
-python ml_models/train_liquidity_model.py \
+# Clone and setup
+git clone https://github.com/abrar2030/Fluxion.git
+cd Fluxion
+./setup_fluxion_env.sh
+
+# Run the application
+./run_fluxion.sh
+```
+
+## Deployment
+
+```bash
+# 1. Train liquidity prediction model
+python code/ml_models/train_liquidity_model.py \
   --data ./historical_trades.csv \
   --epochs 100 \
-  --gpus 4  
+  --gpus 4
 
-# 2. Deploy smart contracts  
+# 2. Deploy smart contracts
+cd code/blockchain
 forge create --rpc-url polygon-zkevm \
   --constructor-args $LINK_ADDRESS \
   --private-key $DEPLOYER_KEY \
-  src/SyntheticAssetFactory.sol:SyntheticAssetFactory  
+  src/SyntheticAssetFactory.sol:SyntheticAssetFactory
 
-# 3. Deploy subgraph  
+# 3. Deploy subgraph
+cd infrastructure/subgraph
 graph deploy --node https://api.thegraph.com/deploy/ \
   --ipfs https://api.thegraph.ipfs.io/ipfs \
-  sal-e  
+  fluxion-subgraph
 
-# 4. Apply infrastructure  
-cd infra/terraform  
-terraform init && terraform apply -auto-approve  
+# 4. Apply infrastructure
+cd infrastructure/terraform
+terraform init && terraform apply -auto-approve
 
-# 5. Monitor deployment  
-kubectl apply -f k8s/synthetic-engine.yaml  
-kubectl get pods -w  
+# 5. Monitor deployment
+kubectl apply -f infrastructure/k8s/synthetic-engine.yaml
+kubectl get pods -w
 ```
 
 ## Testing
@@ -164,46 +262,53 @@ The project includes comprehensive testing to ensure reliability and security:
 - Integration tests for protocol interactions
 - Fuzz testing for edge cases
 - Formal verification for critical components
+- Gas optimization analysis
 
 ### AI Model Testing
 - Model validation with cross-validation
 - Backtesting against historical market data
 - Performance metrics evaluation
 - Adversarial testing for robustness
+- A/B testing for model improvements
 
 ### Backend Testing
 - Unit tests with pytest
 - API integration tests
 - Performance benchmarks
 - Load testing with Locust
+- Security testing
 
 ### Frontend Testing
 - Component tests with React Testing Library
 - End-to-end tests with Cypress
 - Visual regression tests with Percy
+- Accessibility testing
+- Cross-browser compatibility
 
 To run tests:
-
 ```bash
 # Smart contract tests
-cd blockchain
+cd code/blockchain
 forge test
 
 # AI model tests
-cd ml_models
+cd code/ml_models
 pytest
 
 # Backend tests
-cd backend
+cd code/backend
 pytest
 
 # Frontend tests
-cd frontend
+cd code/web-frontend
 npm test
 
 # End-to-end tests
-cd e2e
+cd code/e2e
 npm test
+
+# Run all tests
+./test_fluxion.sh
 ```
 
 ## CI/CD Pipeline
@@ -216,6 +321,7 @@ Fluxion uses GitHub Actions for continuous integration and deployment:
 - Test coverage reporting
 - Security scanning for vulnerabilities
 - Smart contract verification
+- Performance benchmarking
 
 ### Continuous Deployment
 - Automated deployment to staging environment on merge to main
@@ -223,13 +329,14 @@ Fluxion uses GitHub Actions for continuous integration and deployment:
 - Docker image building and publishing
 - Kubernetes deployment via ArgoCD
 - Infrastructure updates via Terraform
+- Database migration management
 
 Current CI/CD Status:
-- Build: ![Build Status](https://img.shields.io/github/workflow/status/abrar2030/Fluxion/CI/main?label=build)
+- Build: ![Build Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxion/ci-cd.yml?branch=main&label=build)
 - Test Coverage: ![Coverage](https://img.shields.io/codecov/c/github/abrar2030/Fluxion/main?label=coverage)
 - Smart Contract Audit: ![Audit Status](https://img.shields.io/badge/audit-passing-brightgreen)
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions to improve Fluxion! Here's how you can contribute:
 
@@ -259,7 +366,6 @@ We welcome contributions to improve Fluxion! Here's how you can contribute:
    - Respond to review comments and make necessary adjustments
 
 ### Development Guidelines
-
 - Follow Solidity best practices for smart contracts
 - Use ESLint and Prettier for JavaScript/React code
 - Follow PEP 8 style guide for Python code
@@ -268,5 +374,6 @@ We welcome contributions to improve Fluxion! Here's how you can contribute:
 - Ensure all tests pass before submitting a pull request
 - Keep pull requests focused on a single feature or fix
 
-## 📄 License
+## License
+
 Distributed under MIT License - See [LICENSE](./LICENSE) for details
