@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # Backend API service
+  api:
+    build:
+      context: ./code/backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - PORT=5000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BLOCKCHAIN_RPC_URL=http://blockchain:8545
+    volumes:
+      - ./code/backend:/app
+    depends_on:
+      - redis
+      - blockchain
+    networks:
+      - fluxion-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Redis for caching and message queue
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - fluxion-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Web frontend
+  web-frontend:
+    build:
+      context: ./web-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - fluxion-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Blockchain node (for development and testing)
+  blockchain:
+    image: trufflesuite/ganache-cli:latest
+    ports:
+      - "8545:8545"
+    command: >
+      --deterministic
+      --mnemonic "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
+      --accounts 10
+      --networkId 1337
+      --chainId 1337
+      --db /data
+    volumes:
+      - blockchain-data:/data
+    networks:
+      - fluxion-network
+    restart: unless-stopped
+
+  # ML model service
+  ml-service:
+    build:
+      context: ./code/ml_models
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./code/ml_models:/app
+      - ml-models-data:/app/models
+    networks:
+      - fluxion-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring with Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - fluxion-network
+    restart: unless-stopped
+
+  # Visualization with Grafana
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=fluxion
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - fluxion-network
+    restart: unless-stopped
+
+networks:
+  fluxion-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+  blockchain-data:
+  ml-models-data:
+  prometheus-data:
+  grafana-data:
