@@ -2,10 +2,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.appName }}-backend
+  namespace: {{ .Values.namespace | default "default" }}
   labels:
     app: {{ .Values.appName }}-backend
+    version: {{ .Values.backend.version | default "latest" }}
+    component: backend
+    tier: application
 spec:
-  replicas: {{ .Values.backend.replicas }}
+  replicas: {{ .Values.backend.replicas | default 2 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: {{ .Values.appName }}-backend
@@ -13,44 +22,157 @@ spec:
     metadata:
       labels:
         app: {{ .Values.appName }}-backend
+        version: {{ .Values.backend.version | default "latest" }}
+        component: backend
+        tier: application
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.backend.metricsPort | default "9090" }}"
+        prometheus.io/path: "/metrics"
+        # Force pod restart on config changes
+        checksum/config: {{ include (print $.Template.BasePath "/app-configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/app-secrets.yaml") . | sha256sum }}
     spec:
+      serviceAccountName: {{ .Values.appName }}-backend-sa
+      automountServiceAccountToken: true
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
-      - name: {{ .Values.appName }}-backend
+      - name: backend
         image: {{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
         imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
         ports:
-        - containerPort: {{ .Values.backend.containerPort }}
-        resources:
-          limits:
-            cpu: {{ .Values.backend.resources.limits.cpu }}
-            memory: {{ .Values.backend.resources.limits.memory }}
-          requests:
-            cpu: {{ .Values.backend.resources.requests.cpu }}
-            memory: {{ .Values.backend.resources.requests.memory }}
+        - name: http
+          containerPort: {{ .Values.backend.containerPort }}
+          protocol: TCP
+        - name: metrics
+          containerPort: {{ .Values.backend.metricsPort | default 9090 }}
+          protocol: TCP
         env:
+        - name: PORT
+          value: "{{ .Values.backend.containerPort }}"
+        - name: METRICS_PORT
+          value: "{{ .Values.backend.metricsPort | default 9090 }}"
         - name: NODE_ENV
           value: {{ .Values.environment }}
+        - name: LOG_LEVEL
+          value: {{ .Values.backend.logLevel | default "info" }}
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.appName }}-secrets
+              name: {{ .Values.appName }}-database-secrets
               key: database-url
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
-              name: {{ .Values.appName }}-secrets
+              name: {{ .Values.appName }}-app-secrets
               key: jwt-secret
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-app-secrets
+              key: api-key
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.appName }}-app-secrets
+              key: encryption-key
+        - name: REDIS_URL
+          value: "redis://{{ .Values.appName }}-redis:6379"
+        envFrom:
+        - configMapRef:
+            name: {{ .Values.appName }}-config
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: var-cache
+          mountPath: /var/cache
+        - name: var-log
+          mountPath: /var/log
+        - name: app-data
+          mountPath: /app/data
         livenessProbe:
           httpGet:
-            path: /health
-            port: {{ .Values.backend.containerPort }}
-          initialDelaySeconds: 30
-          periodSeconds: 10
+            path: {{ .Values.backend.healthCheck.liveness.path | default "/health" }}
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.backend.healthCheck.liveness.initialDelaySeconds | default 30 }}
+          periodSeconds: {{ .Values.backend.healthCheck.liveness.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.backend.healthCheck.liveness.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.backend.healthCheck.liveness.failureThreshold | default 3 }}
         readinessProbe:
           httpGet:
-            path: /health
-            port: {{ .Values.backend.containerPort }}
-          initialDelaySeconds: 5
-          periodSeconds: 5
+            path: {{ .Values.backend.healthCheck.readiness.path | default "/ready" }}
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.backend.healthCheck.readiness.initialDelaySeconds | default 5 }}
+          periodSeconds: {{ .Values.backend.healthCheck.readiness.periodSeconds | default 5 }}
+          timeoutSeconds: {{ .Values.backend.healthCheck.readiness.timeoutSeconds | default 3 }}
+          failureThreshold: {{ .Values.backend.healthCheck.readiness.failureThreshold | default 3 }}
+        startupProbe:
+          httpGet:
+            path: {{ .Values.backend.healthCheck.startup.path | default "/health" }}
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.backend.healthCheck.startup.initialDelaySeconds | default 10 }}
+          periodSeconds: {{ .Values.backend.healthCheck.startup.periodSeconds | default 5 }}
+          timeoutSeconds: {{ .Values.backend.healthCheck.startup.timeoutSeconds | default 3 }}
+          failureThreshold: {{ .Values.backend.healthCheck.startup.failureThreshold | default 30 }}
+        resources:
+          requests:
+            memory: {{ .Values.backend.resources.requests.memory }}
+            cpu: {{ .Values.backend.resources.requests.cpu }}
+          limits:
+            memory: {{ .Values.backend.resources.limits.memory }}
+            cpu: {{ .Values.backend.resources.limits.cpu }}
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: var-cache
+        emptyDir: {}
+      - name: var-log
+        emptyDir: {}
+      - name: app-data
+        emptyDir: {}
       imagePullSecrets:
       - name: {{ .Values.imagePullSecrets }}
+      nodeSelector:
+        kubernetes.io/os: linux
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ .Values.appName }}-backend
+              topologyKey: kubernetes.io/hostname
+

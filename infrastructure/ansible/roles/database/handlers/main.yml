@@ -1,5 +1,15 @@
 ---
 # roles/database/handlers/main.yml
+- name: restart mariadb
+  systemd:
+    name: mariadb
+    state: restarted
+
+- name: reload mariadb
+  systemd:
+    name: mariadb
+    state: reloaded
+
 - name: Restart MariaDB
   systemd:
     name: mariadb

@@ -1,142 +1,585 @@
 version: '3.8'
 
+# Fluxion Production Environment - Enhanced for Financial Security Standards
+# This Docker Compose configuration provides a complete production-ready environment
+# with security hardening, monitoring, compliance, and high availability features
+
+networks:
+  fluxion-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: fluxion-br0
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+  monitoring-network:
+    driver: bridge
+    internal: true
+  logging-network:
+    driver: bridge
+    internal: true
+
+volumes:
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/redis
+  blockchain-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/blockchain
+  ml-models-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/ml-models
+  prometheus-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/prometheus
+  grafana-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/grafana
+  elasticsearch-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/elasticsearch
+  vault-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data/vault
+  app-logs:
+    driver: local
+  audit-logs:
+    driver: local
+
 services:
-  # Backend API service
+  # HashiCorp Vault for secrets management
+  vault:
+    image: vault:1.14.0
+    container_name: fluxion-vault
+    restart: unless-stopped
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN:-fluxion-root-token}
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_ADDR: http://0.0.0.0:8200
+      VAULT_LOG_LEVEL: ${VAULT_LOG_LEVEL:-info}
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - vault-data:/vault/data
+      - ./config/vault:/vault/config:ro
+      - audit-logs:/vault/logs
+    command: vault server -dev -dev-root-token-id=${VAULT_ROOT_TOKEN:-fluxion-root-token}
+    networks:
+      - fluxion-network
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    labels:
+      - "fluxion.service=vault"
+      - "fluxion.security.level=critical"
+
+  # Backend API service with enhanced security
   api:
     build:
       context: ./code/backend
       dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: fluxion-api
+    restart: unless-stopped
     ports:
       - "5000:5000"
+      - "9090:9090"  # Metrics port
     environment:
-      - FLASK_ENV=production
-      - PORT=5000
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - BLOCKCHAIN_RPC_URL=http://blockchain:8545
+      FLASK_ENV: production
+      PORT: 5000
+      METRICS_PORT: 9090
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-secure_redis_password}
+      BLOCKCHAIN_RPC_URL: http://blockchain:8545
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: ${VAULT_ROOT_TOKEN:-fluxion-root-token}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENABLE_AUDIT_LOGGING: "true"
+      ENABLE_SECURITY_HEADERS: "true"
+      ENABLE_RATE_LIMITING: "true"
+      ENABLE_ENCRYPTION: "true"
+      JWT_SECRET_PATH: vault:secret/data/jwt#secret
+      API_KEY_PATH: vault:secret/data/api#key
+      ENCRYPTION_KEY_PATH: vault:secret/data/encryption#key
+      SESSION_TIMEOUT: 1800  # 30 minutes
+      MAX_LOGIN_ATTEMPTS: 5
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     volumes:
-      - ./code/backend:/app
+      - ./code/backend:/app:ro
+      - app-logs:/app/logs
+      - audit-logs:/app/audit
+      - /app/node_modules
     depends_on:
-      - redis
-      - blockchain
+      redis:
+        condition: service_healthy
+      blockchain:
+        condition: service_started
+      vault:
+        condition: service_healthy
     networks:
       - fluxion-network
-    restart: unless-stopped
+      - monitoring-network
+      - logging-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    user: node
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    labels:
+      - "fluxion.service=api"
+      - "fluxion.security.level=high"
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9090"
 
-  # Redis for caching and message queue
+  # Redis with security hardening
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
+    container_name: fluxion-redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-secure_redis_password}
     volumes:
       - redis-data:/data
+      - ./config/redis/redis.conf:/etc/redis/redis.conf:ro
+      - app-logs:/var/log/redis
+    command: >
+      redis-server /etc/redis/redis.conf
+      --requirepass ${REDIS_PASSWORD:-secure_redis_password}
+      --appendonly yes
+      --appendfsync everysec
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --logfile /var/log/redis/redis.log
+      --loglevel notice
+      --protected-mode yes
+      --port 6379
+      --tcp-backlog 511
+      --timeout 300
+      --tcp-keepalive 300
+      --databases 16
+      --stop-writes-on-bgsave-error yes
+      --rdbcompression yes
+      --rdbchecksum yes
     networks:
       - fluxion-network
-    restart: unless-stopped
-    command: redis-server --appendonly yes
+      - monitoring-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
+    security_opt:
+      - no-new-privileges:true
+    user: redis
+    labels:
+      - "fluxion.service=redis"
+      - "fluxion.security.level=medium"
 
-  # Web frontend
+  # Web frontend with security headers
   web-frontend:
     build:
       context: ./web-frontend
       dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: fluxion-frontend
+    restart: unless-stopped
     ports:
       - "3000:80"
+    environment:
+      NODE_ENV: production
+      REACT_APP_API_URL: ${API_URL:-http://localhost:5000}
+      REACT_APP_ENVIRONMENT: production
+      GENERATE_SOURCEMAP: "false"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     networks:
       - fluxion-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+    security_opt:
+      - no-new-privileges:true
+    user: nginx
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /var/cache/nginx:noexec,nosuid,size=100m
+    labels:
+      - "fluxion.service=frontend"
+      - "fluxion.security.level=medium"
 
-  # Blockchain node (for development and testing)
+  # Blockchain node with monitoring
   blockchain:
     image: trufflesuite/ganache-cli:latest
+    container_name: fluxion-blockchain
+    restart: unless-stopped
     ports:
       - "8545:8545"
+    environment:
+      GANACHE_MNEMONIC: ${GANACHE_MNEMONIC:-candy maple cake sugar pudding cream honey rich smooth crumble sweet treat}
+      GANACHE_NETWORK_ID: ${GANACHE_NETWORK_ID:-1337}
+      GANACHE_CHAIN_ID: ${GANACHE_CHAIN_ID:-1337}
+      GANACHE_ACCOUNTS: ${GANACHE_ACCOUNTS:-10}
+      GANACHE_DEFAULT_BALANCE: ${GANACHE_DEFAULT_BALANCE:-100}
     command: >
       --deterministic
-      --mnemonic "candy maple cake sugar pudding cream honey rich smooth crumble sweet treat"
-      --accounts 10
-      --networkId 1337
-      --chainId 1337
+      --mnemonic "${GANACHE_MNEMONIC:-candy maple cake sugar pudding cream honey rich smooth crumble sweet treat}"
+      --accounts ${GANACHE_ACCOUNTS:-10}
+      --networkId ${GANACHE_NETWORK_ID:-1337}
+      --chainId ${GANACHE_CHAIN_ID:-1337}
+      --defaultBalanceEther ${GANACHE_DEFAULT_BALANCE:-100}
       --db /data
+      --host 0.0.0.0
+      --port 8545
+      --gasLimit 0x1fffffffffffff
+      --gasPrice 0x01
+      --blockTime 2
     volumes:
       - blockchain-data:/data
+      - app-logs:/var/log/ganache
     networks:
       - fluxion-network
-    restart: unless-stopped
+      - monitoring-network
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "fluxion.service=blockchain"
+      - "fluxion.security.level=medium"
 
-  # ML model service
+  # ML model service with security
   ml-service:
     build:
       context: ./code/ml_models
       dockerfile: Dockerfile
+      args:
+        PYTHON_ENV: production
+    container_name: fluxion-ml
+    restart: unless-stopped
     ports:
       - "8000:8000"
+      - "9091:9091"  # Metrics port
+    environment:
+      PYTHON_ENV: production
+      PORT: 8000
+      METRICS_PORT: 9091
+      MODEL_PATH: /app/models
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      ENABLE_MODEL_ENCRYPTION: "true"
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: ${VAULT_ROOT_TOKEN:-fluxion-root-token}
+      MODEL_ENCRYPTION_KEY_PATH: vault:secret/data/ml#encryption_key
     volumes:
-      - ./code/ml_models:/app
+      - ./code/ml_models:/app:ro
       - ml-models-data:/app/models
+      - app-logs:/app/logs
+      - /app/__pycache__
     networks:
       - fluxion-network
-    restart: unless-stopped
+      - monitoring-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    user: python
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=200m
+    labels:
+      - "fluxion.service=ml"
+      - "fluxion.security.level=high"
+      - "prometheus.io/scrape=true"
+      - "prometheus.io/port=9091"
 
-  # Monitoring with Prometheus
+  # Enhanced Prometheus with security
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v2.45.0
+    container_name: fluxion-prometheus
+    restart: unless-stopped
     ports:
       - "9090:9090"
+    environment:
+      PROMETHEUS_RETENTION_TIME: ${PROMETHEUS_RETENTION:-30d}
+      PROMETHEUS_STORAGE_PATH: /prometheus
     volumes:
-      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infrastructure/prometheus/rules:/etc/prometheus/rules:ro
       - prometheus-data:/prometheus
+      - app-logs:/var/log/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-30d}'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--web.external-url=http://localhost:9090'
+      - '--storage.tsdb.max-block-duration=2h'
+      - '--storage.tsdb.min-block-duration=2h'
+      - '--log.level=info'
     networks:
+      - monitoring-network
       - fluxion-network
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    user: nobody
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+    labels:
+      - "fluxion.service=prometheus"
+      - "fluxion.security.level=medium"
 
-  # Visualization with Grafana
+  # Enhanced Grafana with security
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.0.0
+    container_name: fluxion-grafana
+    restart: unless-stopped
     ports:
       - "3001:3000"
-    volumes:
-      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
-      - grafana-data:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=fluxion
-      - GF_USERS_ALLOW_SIGN_UP=false
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-secure_admin_password}
+      GF_SECURITY_SECRET_KEY: ${GRAFANA_SECRET_KEY:-grafana_secret_key_32_chars_long}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_SECURITY_COOKIE_SECURE: "true"
+      GF_SECURITY_COOKIE_SAMESITE: "strict"
+      GF_SECURITY_CONTENT_TYPE_PROTECTION: "true"
+      GF_SECURITY_X_CONTENT_TYPE_OPTIONS: "true"
+      GF_SECURITY_X_XSS_PROTECTION: "true"
+      GF_SECURITY_STRICT_TRANSPORT_SECURITY: "true"
+      GF_LOG_LEVEL: info
+      GF_LOG_MODE: console
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_INSTALL_PLUGINS: grafana-piechart-panel,grafana-worldmap-panel
+    volumes:
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+      - app-logs:/var/log/grafana
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_healthy
+    networks:
+      - monitoring-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    user: grafana
+    labels:
+      - "fluxion.service=grafana"
+      - "fluxion.security.level=medium"
+
+  # Elasticsearch for centralized logging
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: fluxion-elasticsearch
+    restart: unless-stopped
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms1g -Xmx1g"
+      ELASTIC_PASSWORD: ${ELASTIC_PASSWORD:-elastic_secure_password}
+      xpack.security.enabled: "true"
+      xpack.security.http.ssl.enabled: "false"
+      xpack.security.transport.ssl.enabled: "false"
+      xpack.security.audit.enabled: "true"
+      xpack.monitoring.enabled: "true"
+      cluster.name: fluxion-logs
+      node.name: fluxion-es-node
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+      - app-logs:/var/log/elasticsearch
+      - audit-logs:/usr/share/elasticsearch/audit
+    networks:
+      - logging-network
+      - monitoring-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -u elastic:${ELASTIC_PASSWORD:-elastic_secure_password} -f http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    labels:
+      - "fluxion.service=elasticsearch"
+      - "fluxion.security.level=high"
+
+  # Kibana for log visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: fluxion-kibana
+    restart: unless-stopped
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: ${ELASTIC_PASSWORD:-elastic_secure_password}
+      KIBANA_ENCRYPTION_KEY: ${KIBANA_ENCRYPTION_KEY:-32_char_kibana_encryption_key_here}
+      SERVER_NAME: fluxion-kibana
+      SERVER_HOST: 0.0.0.0
+      LOGGING_DEST: stdout
+      XPACK_SECURITY_ENABLED: "true"
+      XPACK_MONITORING_ENABLED: "true"
+    volumes:
+      - ./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+      - app-logs:/var/log/kibana
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - logging-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    security_opt:
+      - no-new-privileges:true
+    user: kibana
+    labels:
+      - "fluxion.service=kibana"
+      - "fluxion.security.level=medium"
+
+  # Filebeat for log shipping
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.8.0
+    container_name: fluxion-filebeat
+    restart: unless-stopped
+    user: root
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: ${ELASTIC_PASSWORD:-elastic_secure_password}
+    volumes:
+      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - app-logs:/var/log/app:ro
+      - audit-logs:/var/log/audit:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: filebeat -e -strict.perms=false
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - logging-network
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      - "fluxion.service=filebeat"
+      - "fluxion.security.level=medium"
+
+  # Nginx reverse proxy with security headers
+  nginx:
+    image: nginx:1.24-alpine
+    container_name: fluxion-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./config/nginx/ssl:/etc/nginx/ssl:ro
+      - app-logs:/var/log/nginx
+    depends_on:
+      - web-frontend
+      - api
     networks:
       - fluxion-network
-    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    user: nginx
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,size=100m
+      - /var/cache/nginx:noexec,nosuid,size=100m
+    labels:
+      - "fluxion.service=nginx"
+      - "fluxion.security.level=high"
 
-networks:
-  fluxion-network:
-    driver: bridge
-
-volumes:
-  redis-data:
-  blockchain-data:
-  ml-models-data:
-  prometheus-data:
-  grafana-data:

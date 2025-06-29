@@ -1,0 +1,35 @@
+# Fluxion application logging configuration
+
+# Create separate log files for different log levels
+$template FluxionLogFormat,"%timegenerated% %HOSTNAME% %syslogtag%%msg%\n"
+
+# Application logs
+if $programname == 'fluxion' then {
+    /var/log/fluxion/application.log;FluxionLogFormat
+    stop
+}
+
+# API logs
+if $programname == 'fluxion-api' then {
+    /var/log/fluxion/api.log;FluxionLogFormat
+    stop
+}
+
+# Database logs
+if $programname == 'fluxion-db' then {
+    /var/log/fluxion/database.log;FluxionLogFormat
+    stop
+}
+
+# Security logs
+if $programname == 'fluxion-security' then {
+    /var/log/fluxion/security.log;FluxionLogFormat
+    stop
+}
+
+# Audit logs
+if $programname == 'fluxion-audit' then {
+    /var/log/fluxion/audit.log;FluxionLogFormat
+    stop
+}
+

@@ -1,0 +1,51 @@
+# MariaDB Security Configuration
+[mysqld]
+
+# Security Settings
+local-infile = 0
+skip-symbolic-links = 1
+secure-file-priv = "/var/lib/mysql-files/"
+
+# SSL/TLS Configuration
+ssl-ca = {{ db_ssl_ca | default('/etc/mysql/ssl/ca-cert.pem') }}
+ssl-cert = {{ db_ssl_cert | default('/etc/mysql/ssl/server-cert.pem') }}
+ssl-key = {{ db_ssl_key | default('/etc/mysql/ssl/server-key.pem') }}
+require_secure_transport = {{ db_require_ssl | default('OFF') }}
+
+# Audit Plugin (if available)
+{% if db_enable_audit | default(false) %}
+plugin-load-add = server_audit.so
+server_audit_logging = ON
+server_audit_events = CONNECT,QUERY,TABLE
+server_audit_output_type = file
+server_audit_file_path = /var/log/mysql/audit.log
+server_audit_file_rotate_size = 1000000
+server_audit_file_rotations = 9
+{% endif %}
+
+# Password Validation Plugin
+{% if db_enable_password_validation | default(true) %}
+plugin-load-add = simple_password_check.so
+simple_password_check_digits = 1
+simple_password_check_letters_same_case = 1
+simple_password_check_minimal_length = 8
+simple_password_check_other_characters = 1
+{% endif %}
+
+# Connection Control Plugin (to prevent brute force attacks)
+{% if db_enable_connection_control | default(true) %}
+plugin-load-add = connection_control.so
+connection_control_failed_connections_threshold = 3
+connection_control_min_connection_delay = 1000
+connection_control_max_connection_delay = 86400000
+{% endif %}
+
+# Disable dangerous functions
+{% if db_disable_dangerous_functions | default(true) %}
+# Disable LOAD DATA LOCAL INFILE
+local-infile = 0
+
+# Disable file operations
+secure-file-priv = "/var/lib/mysql-files/"
+{% endif %}
+

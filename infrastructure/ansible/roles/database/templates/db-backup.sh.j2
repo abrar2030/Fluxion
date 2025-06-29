@@ -1,0 +1,134 @@
+#!/bin/bash
+# Database Backup Script for Fluxion
+# This script creates encrypted backups of the database
+
+set -euo pipefail
+
+# Configuration
+BACKUP_DIR="/opt/fluxion/backups/database"
+DB_NAME="{{ db_name }}"
+DB_USER="{{ db_backup_user | default('backup') }}"
+DB_PASS="{{ db_backup_password }}"
+RETENTION_DAYS="{{ db_backup_retention_days | default('30') }}"
+ENCRYPTION_KEY="{{ db_backup_encryption_key | default('') }}"
+
+# Create backup directory if it doesn't exist
+mkdir -p "$BACKUP_DIR"
+
+# Generate timestamp
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_backup_$TIMESTAMP.sql"
+COMPRESSED_FILE="$BACKUP_FILE.gz"
+ENCRYPTED_FILE="$COMPRESSED_FILE.enc"
+
+# Log function
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | logger -t fluxion-backup
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
+
+# Error handling
+cleanup() {
+    local exit_code=$?
+    if [ $exit_code -ne 0 ]; then
+        log "ERROR: Backup failed with exit code $exit_code"
+        # Clean up partial files
+        rm -f "$BACKUP_FILE" "$COMPRESSED_FILE" "$ENCRYPTED_FILE"
+    fi
+    exit $exit_code
+}
+
+trap cleanup EXIT
+
+log "Starting database backup for $DB_NAME"
+
+# Create database dump
+log "Creating database dump..."
+mysqldump \
+    --user="$DB_USER" \
+    --password="$DB_PASS" \
+    --single-transaction \
+    --routines \
+    --triggers \
+    --events \
+    --hex-blob \
+    --opt \
+    --lock-tables=false \
+    "$DB_NAME" > "$BACKUP_FILE"
+
+if [ ! -s "$BACKUP_FILE" ]; then
+    log "ERROR: Backup file is empty or was not created"
+    exit 1
+fi
+
+log "Database dump created: $BACKUP_FILE"
+
+# Compress the backup
+log "Compressing backup..."
+gzip "$BACKUP_FILE"
+
+if [ ! -s "$COMPRESSED_FILE" ]; then
+    log "ERROR: Compressed file is empty or was not created"
+    exit 1
+fi
+
+log "Backup compressed: $COMPRESSED_FILE"
+
+# Encrypt the backup if encryption key is provided
+if [ -n "$ENCRYPTION_KEY" ]; then
+    log "Encrypting backup..."
+    openssl enc -aes-256-cbc -salt -in "$COMPRESSED_FILE" -out "$ENCRYPTED_FILE" -k "$ENCRYPTION_KEY"
+    
+    if [ ! -s "$ENCRYPTED_FILE" ]; then
+        log "ERROR: Encrypted file is empty or was not created"
+        exit 1
+    fi
+    
+    # Remove unencrypted compressed file
+    rm -f "$COMPRESSED_FILE"
+    FINAL_FILE="$ENCRYPTED_FILE"
+    log "Backup encrypted: $ENCRYPTED_FILE"
+else
+    FINAL_FILE="$COMPRESSED_FILE"
+    log "WARNING: Backup is not encrypted. Consider setting db_backup_encryption_key."
+fi
+
+# Set appropriate permissions
+chmod 600 "$FINAL_FILE"
+
+# Calculate file size
+FILE_SIZE=$(du -h "$FINAL_FILE" | cut -f1)
+log "Backup completed successfully: $FINAL_FILE (Size: $FILE_SIZE)"
+
+# Clean up old backups
+log "Cleaning up backups older than $RETENTION_DAYS days..."
+find "$BACKUP_DIR" -name "${DB_NAME}_backup_*.sql.gz*" -type f -mtime +$RETENTION_DAYS -delete
+
+# Count remaining backups
+BACKUP_COUNT=$(find "$BACKUP_DIR" -name "${DB_NAME}_backup_*.sql.gz*" -type f | wc -l)
+log "Cleanup completed. $BACKUP_COUNT backup(s) remaining."
+
+# Verify backup integrity
+log "Verifying backup integrity..."
+if [ -n "$ENCRYPTION_KEY" ]; then
+    # Test decryption
+    openssl enc -aes-256-cbc -d -in "$FINAL_FILE" -k "$ENCRYPTION_KEY" | gzip -t
+    if [ $? -eq 0 ]; then
+        log "Backup integrity verification passed"
+    else
+        log "ERROR: Backup integrity verification failed"
+        exit 1
+    fi
+else
+    # Test compression
+    gzip -t "$FINAL_FILE"
+    if [ $? -eq 0 ]; then
+        log "Backup integrity verification passed"
+    else
+        log "ERROR: Backup integrity verification failed"
+        exit 1
+    fi
+fi
+
+log "Database backup process completed successfully"
+

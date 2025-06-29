@@ -1,16 +1,97 @@
+# MariaDB Server Configuration - Enhanced for Security and Performance
 [mysqld]
-datadir=/var/lib/mysql
-socket=/var/lib/mysql/mysql.sock
-symbolic-links=0
 
-max_connections = {{ db_max_connections | default(100) }}
-max_allowed_packet = {{ db_max_allowed_packet | default('64M') }}
-innodb_buffer_pool_size = {{ db_innodb_buffer_pool_size | default('256M') }}
+# Basic Settings
+user = mysql
+pid-file = /var/run/mysqld/mysqld.pid
+socket = /var/run/mysqld/mysqld.sock
+port = 3306
+basedir = /usr
+datadir = /var/lib/mysql
+tmpdir = /tmp
+lc-messages-dir = /usr/share/mysql
+
+# Network and Security
+bind-address = {{ db_bind_address | default('127.0.0.1') }}
+skip-networking = {{ 'ON' if db_bind_address | default('127.0.0.1') == '127.0.0.1' else 'OFF' }}
+skip-name-resolve = ON
+skip-show-database = ON
+
+# Connection Limits
+max_connections = {{ db_max_connections | default('100') }}
+max_user_connections = {{ db_max_user_connections | default('50') }}
+max_connect_errors = {{ db_max_connect_errors | default('10') }}
+connect_timeout = {{ db_connect_timeout | default('10') }}
+wait_timeout = {{ db_wait_timeout | default('600') }}
+interactive_timeout = {{ db_interactive_timeout | default('600') }}
+
+# Buffer Pool and Memory
+innodb_buffer_pool_size = {{ db_innodb_buffer_pool_size | default('128M') }}
+innodb_buffer_pool_instances = {{ db_innodb_buffer_pool_instances | default('1') }}
 innodb_log_file_size = {{ db_innodb_log_file_size | default('64M') }}
+innodb_log_buffer_size = {{ db_innodb_log_buffer_size | default('16M') }}
 
+# Query Cache (disabled for better performance in modern versions)
+query_cache_type = 0
+query_cache_size = 0
+
+# Logging
+log_error = /var/log/mysql/error.log
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/slow.log
+long_query_time = {{ db_long_query_time | default('2') }}
+log_queries_not_using_indexes = {{ db_log_queries_not_using_indexes | default('OFF') }}
+
+# Binary Logging (for replication and point-in-time recovery)
+log_bin = /var/log/mysql/mysql-bin.log
+binlog_format = ROW
+expire_logs_days = {{ db_expire_logs_days | default('7') }}
+max_binlog_size = {{ db_max_binlog_size | default('100M') }}
+
+# InnoDB Settings
+innodb_file_per_table = 1
+innodb_flush_log_at_trx_commit = {{ db_innodb_flush_log_at_trx_commit | default('1') }}
+innodb_flush_method = O_DIRECT
+innodb_lock_wait_timeout = {{ db_innodb_lock_wait_timeout | default('50') }}
+
+# Character Set
 character-set-server = utf8mb4
 collation-server = utf8mb4_unicode_ci
 
-[mysqld_safe]
-log-error=/var/log/mariadb/mariadb.log
-pid-file=/var/run/mariadb/mariadb.pid
+# SQL Mode (strict mode for data integrity)
+sql_mode = STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION
+
+# Table and Index Settings
+table_open_cache = {{ db_table_open_cache | default('2000') }}
+table_definition_cache = {{ db_table_definition_cache | default('1400') }}
+
+# MyISAM Settings (if used)
+key_buffer_size = {{ db_key_buffer_size | default('16M') }}
+myisam_sort_buffer_size = {{ db_myisam_sort_buffer_size | default('8M') }}
+
+# Thread Settings
+thread_cache_size = {{ db_thread_cache_size | default('8') }}
+thread_stack = {{ db_thread_stack | default('256K') }}
+
+# Temporary Tables
+tmp_table_size = {{ db_tmp_table_size | default('32M') }}
+max_heap_table_size = {{ db_max_heap_table_size | default('32M') }}
+
+# Sort and Group Settings
+sort_buffer_size = {{ db_sort_buffer_size | default('2M') }}
+read_buffer_size = {{ db_read_buffer_size | default('128K') }}
+read_rnd_buffer_size = {{ db_read_rnd_buffer_size | default('256K') }}
+join_buffer_size = {{ db_join_buffer_size | default('128K') }}
+
+[mysql]
+default-character-set = utf8mb4
+
+[client]
+default-character-set = utf8mb4
+socket = /var/run/mysqld/mysqld.sock
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet = {{ db_max_allowed_packet | default('16M') }}
+
