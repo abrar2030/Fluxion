@@ -1,892 +1,933 @@
 """
-Comprehensive KYC (Know Your Customer) Service for Fluxion Backend
-Implements advanced customer verification, identity validation, and compliance
-monitoring for financial services regulatory requirements.
+Enhanced KYC (Know Your Customer) Service for Fluxion Backend
+Implements comprehensive identity verification, document processing,
+and compliance monitoring following global regulatory standards.
 """
 
-import asyncio
-import json
 import logging
-from typing import Dict, Any, Optional, List, Tuple
-from datetime import datetime, timezone, timedelta
+import asyncio
+import base64
+import hashlib
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any, Tuple
 from enum import Enum
 from dataclasses import dataclass, asdict
-import re
-import hashlib
-from pathlib import Path
+from uuid import UUID, uuid4
+import json
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_, func, desc
+from sqlalchemy.orm import selectinload
+
+from models.user import User
+from models.compliance import (
+    KYCRecord, KYCStatus, KYCLevel, DocumentType,
+    IdentityVerification, BiometricData, ComplianceAlert
+)
 from config.settings import settings
 from services.security.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)
 
 
-class KYCStatus(Enum):
-    """KYC verification status"""
+class KYCTier(Enum):
+    """KYC verification tiers"""
+    BASIC = "basic"          # Email + Phone verification
+    STANDARD = "standard"    # + Government ID
+    ENHANCED = "enhanced"    # + Proof of address + Selfie
+    PREMIUM = "premium"      # + Enhanced due diligence + Source of funds
+
+
+class DocumentStatus(Enum):
+    """Document verification status"""
     PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    VERIFIED = "verified"
+    PROCESSING = "processing"
+    APPROVED = "approved"
     REJECTED = "rejected"
     EXPIRED = "expired"
-    REQUIRES_UPDATE = "requires_update"
+    REQUIRES_REVIEW = "requires_review"
 
 
-class DocumentType(Enum):
-    """Types of identity documents"""
-    PASSPORT = "passport"
-    DRIVERS_LICENSE = "drivers_license"
-    NATIONAL_ID = "national_id"
-    UTILITY_BILL = "utility_bill"
-    BANK_STATEMENT = "bank_statement"
-    TAX_DOCUMENT = "tax_document"
-    BUSINESS_LICENSE = "business_license"
-    ARTICLES_OF_INCORPORATION = "articles_of_incorporation"
-
-
-class RiskLevel(Enum):
-    """Customer risk levels"""
+class RiskRating(Enum):
+    """Customer risk rating"""
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     PROHIBITED = "prohibited"
 
 
-class VerificationMethod(Enum):
-    """Identity verification methods"""
-    DOCUMENT_UPLOAD = "document_upload"
-    BIOMETRIC = "biometric"
-    VIDEO_CALL = "video_call"
-    THIRD_PARTY_VERIFICATION = "third_party_verification"
-    BANK_VERIFICATION = "bank_verification"
-
-
 @dataclass
-class PersonalInfo:
-    """Personal information structure"""
-    first_name: str
-    last_name: str
-    middle_name: Optional[str]
-    date_of_birth: str
-    nationality: str
-    country_of_residence: str
-    address_line1: str
-    address_line2: Optional[str]
-    city: str
-    state_province: str
-    postal_code: str
-    phone_number: str
-    email: str
-    occupation: str
-    employer: Optional[str]
-    annual_income: Optional[float]
-    source_of_funds: str
-
-
-@dataclass
-class BusinessInfo:
-    """Business information structure"""
-    business_name: str
-    business_type: str
-    registration_number: str
-    tax_id: str
-    incorporation_date: str
-    country_of_incorporation: str
-    business_address: str
-    industry: str
-    annual_revenue: Optional[float]
-    number_of_employees: Optional[int]
-    beneficial_owners: List[Dict[str, Any]]
-    authorized_representatives: List[Dict[str, Any]]
-
-
-@dataclass
-class Document:
-    """Document information structure"""
+class DocumentVerificationResult:
+    """Document verification result"""
     document_id: str
     document_type: DocumentType
-    file_path: str
-    file_hash: str
-    upload_timestamp: datetime
-    expiry_date: Optional[datetime]
-    verification_status: str
-    extracted_data: Dict[str, Any]
+    status: DocumentStatus
     confidence_score: float
+    extracted_data: Dict[str, Any]
+    verification_checks: Dict[str, bool]
+    risk_indicators: List[str]
+    processing_time: float
+    verified_at: datetime
+    expires_at: Optional[datetime]
 
 
 @dataclass
-class KYCRecord:
-    """Complete KYC record"""
+class BiometricVerificationResult:
+    """Biometric verification result"""
+    verification_id: str
+    match_score: float
+    liveness_score: float
+    quality_score: float
+    is_match: bool
+    risk_indicators: List[str]
+    verified_at: datetime
+
+
+@dataclass
+class KYCAssessment:
+    """Comprehensive KYC assessment"""
     user_id: str
-    customer_type: str  # individual or business
-    status: KYCStatus
-    risk_level: RiskLevel
-    personal_info: Optional[PersonalInfo]
-    business_info: Optional[BusinessInfo]
-    documents: List[Document]
-    verification_methods: List[VerificationMethod]
-    verification_date: Optional[datetime]
-    expiry_date: Optional[datetime]
-    last_updated: datetime
-    compliance_notes: List[str]
-    sanctions_check_result: Dict[str, Any]
-    pep_check_result: Dict[str, Any]
+    kyc_level: KYCTier
+    overall_status: KYCStatus
+    risk_rating: RiskRating
+    compliance_score: float
+    document_verifications: List[DocumentVerificationResult]
+    biometric_verification: Optional[BiometricVerificationResult]
+    sanctions_check: Dict[str, Any]
+    pep_check: Dict[str, Any]
     adverse_media_check: Dict[str, Any]
-    verification_history: List[Dict[str, Any]]
+    address_verification: Dict[str, Any]
+    source_of_funds_verification: Dict[str, Any]
+    ongoing_monitoring: Dict[str, Any]
+    recommendations: List[str]
+    next_review_date: datetime
+    assessed_at: datetime
 
 
-class KYCService:
+class EnhancedKYCService:
     """
-    Comprehensive KYC service providing:
-    - Customer identity verification
-    - Document validation and OCR
-    - Risk assessment and scoring
+    Enhanced KYC service providing:
+    - Multi-tier identity verification
+    - Document authentication and OCR
+    - Biometric verification (facial recognition, liveness detection)
     - Sanctions and PEP screening
-    - Ongoing monitoring and updates
-    - Regulatory compliance reporting
+    - Adverse media monitoring
+    - Address verification
+    - Source of funds verification
+    - Ongoing monitoring and periodic reviews
+    - Risk-based approach to customer due diligence
     """
     
     def __init__(self):
         self.encryption_service = EncryptionService()
         
         # KYC configuration
-        self.verification_expiry_days = 365
-        self.document_retention_days = 2555  # 7 years
-        self.risk_score_threshold = {
-            RiskLevel.LOW: 30,
-            RiskLevel.MEDIUM: 70,
-            RiskLevel.HIGH: 90
+        self.tier_requirements = {
+            KYCTier.BASIC: {
+                'required_documents': [],
+                'required_verifications': ['email', 'phone'],
+                'transaction_limits': {'daily': 1000, 'monthly': 5000},
+                'review_frequency_days': 365
+            },
+            KYCTier.STANDARD: {
+                'required_documents': [DocumentType.GOVERNMENT_ID],
+                'required_verifications': ['email', 'phone', 'identity'],
+                'transaction_limits': {'daily': 10000, 'monthly': 50000},
+                'review_frequency_days': 180
+            },
+            KYCTier.ENHANCED: {
+                'required_documents': [DocumentType.GOVERNMENT_ID, DocumentType.PROOF_OF_ADDRESS],
+                'required_verifications': ['email', 'phone', 'identity', 'address', 'biometric'],
+                'transaction_limits': {'daily': 50000, 'monthly': 250000},
+                'review_frequency_days': 90
+            },
+            KYCTier.PREMIUM: {
+                'required_documents': [
+                    DocumentType.GOVERNMENT_ID, 
+                    DocumentType.PROOF_OF_ADDRESS,
+                    DocumentType.PROOF_OF_INCOME
+                ],
+                'required_verifications': [
+                    'email', 'phone', 'identity', 'address', 'biometric', 'source_of_funds'
+                ],
+                'transaction_limits': {'daily': 100000, 'monthly': 1000000},
+                'review_frequency_days': 30
+            }
         }
         
-        # Document validation patterns
-        self.document_patterns = {
-            'passport': r'^[A-Z]{1,2}[0-9]{6,9}$',
-            'ssn': r'^\d{3}-\d{2}-\d{4}$',
-            'ein': r'^\d{2}-\d{7}$',
-            'phone': r'^\+?1?[2-9]\d{2}[2-9]\d{2}\d{4}$',
-            'email': r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        # Risk scoring weights
+        self.risk_weights = {
+            'sanctions_match': 100,
+            'pep_match': 80,
+            'adverse_media': 60,
+            'high_risk_country': 40,
+            'document_quality': 30,
+            'biometric_quality': 25,
+            'address_verification': 20,
+            'source_of_funds': 35
         }
         
-        # Sanctions lists (in production, integrate with OFAC, UN, EU lists)
-        self.sanctions_lists = {
-            'OFAC_SDN': [],
-            'UN_SANCTIONS': [],
-            'EU_SANCTIONS': [],
-            'PEP_LIST': []
-        }
+        # High-risk countries (example list)
+        self.high_risk_countries = [
+            'AF', 'IR', 'KP', 'SY', 'MM', 'BY', 'CU', 'IQ', 'LB', 'LY', 'SO', 'SS', 'SD', 'YE', 'ZW'
+        ]
         
-        # High-risk countries (FATF list)
-        self.high_risk_countries = {
-            'AF', 'IR', 'KP', 'MM', 'PK', 'UG', 'YE'  # Example codes
+        # Document expiry periods
+        self.document_validity_periods = {
+            DocumentType.GOVERNMENT_ID: timedelta(days=1825),  # 5 years
+            DocumentType.PASSPORT: timedelta(days=3650),       # 10 years
+            DocumentType.PROOF_OF_ADDRESS: timedelta(days=90), # 3 months
+            DocumentType.PROOF_OF_INCOME: timedelta(days=365)  # 1 year
         }
-        
-        # In-memory storage (in production, use database)
-        self.kyc_records: Dict[str, KYCRecord] = {}
-        self.document_storage: Dict[str, bytes] = {}
     
-    async def initiate_kyc(self, user_id: str, customer_type: str = 'individual') -> str:
+    async def initiate_kyc_process(
+        self,
+        db: AsyncSession,
+        user_id: UUID,
+        target_tier: KYCTier = KYCTier.STANDARD
+    ) -> Dict[str, Any]:
         """Initiate KYC process for a user"""
-        if user_id in self.kyc_records:
-            existing_record = self.kyc_records[user_id]
-            if existing_record.status in [KYCStatus.VERIFIED, KYCStatus.IN_PROGRESS]:
-                return f"KYC already {existing_record.status.value} for user {user_id}"
-        
-        # Create new KYC record
-        kyc_record = KYCRecord(
-            user_id=user_id,
-            customer_type=customer_type,
-            status=KYCStatus.PENDING,
-            risk_level=RiskLevel.MEDIUM,  # Default until assessment
-            personal_info=None,
-            business_info=None,
-            documents=[],
-            verification_methods=[],
-            verification_date=None,
-            expiry_date=None,
-            last_updated=datetime.now(timezone.utc),
-            compliance_notes=[],
-            sanctions_check_result={},
-            pep_check_result={},
-            adverse_media_check={},
-            verification_history=[]
-        )
-        
-        self.kyc_records[user_id] = kyc_record
-        
-        logger.info(f"Initiated KYC process for user {user_id} as {customer_type}")
-        return f"KYC process initiated for user {user_id}"
-    
-    async def submit_personal_info(self, user_id: str, personal_info: PersonalInfo) -> Dict[str, Any]:
-        """Submit personal information for KYC verification"""
-        if user_id not in self.kyc_records:
-            raise ValueError(f"KYC process not initiated for user {user_id}")
-        
-        kyc_record = self.kyc_records[user_id]
-        
-        # Validate personal information
-        validation_result = await self._validate_personal_info(personal_info)
-        if not validation_result['valid']:
-            return {
-                'success': False,
-                'errors': validation_result['errors'],
-                'status': kyc_record.status.value
-            }
-        
-        # Encrypt and store personal information
-        encrypted_info = await self._encrypt_personal_info(personal_info)
-        kyc_record.personal_info = encrypted_info
-        kyc_record.status = KYCStatus.IN_PROGRESS
-        kyc_record.last_updated = datetime.now(timezone.utc)
-        
-        # Perform initial risk assessment
-        risk_assessment = await self._assess_personal_info_risk(personal_info)
-        kyc_record.risk_level = risk_assessment['risk_level']
-        kyc_record.compliance_notes.extend(risk_assessment['notes'])
-        
-        # Add to verification history
-        kyc_record.verification_history.append({
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'action': 'personal_info_submitted',
-            'details': 'Personal information submitted and validated'
-        })
-        
-        logger.info(f"Personal information submitted for user {user_id}")
-        
-        return {
-            'success': True,
-            'status': kyc_record.status.value,
-            'risk_level': kyc_record.risk_level.value,
-            'next_steps': await self._get_next_steps(kyc_record)
-        }
-    
-    async def submit_business_info(self, user_id: str, business_info: BusinessInfo) -> Dict[str, Any]:
-        """Submit business information for KYC verification"""
-        if user_id not in self.kyc_records:
-            raise ValueError(f"KYC process not initiated for user {user_id}")
-        
-        kyc_record = self.kyc_records[user_id]
-        
-        if kyc_record.customer_type != 'business':
-            raise ValueError("Business information can only be submitted for business customers")
-        
-        # Validate business information
-        validation_result = await self._validate_business_info(business_info)
-        if not validation_result['valid']:
-            return {
-                'success': False,
-                'errors': validation_result['errors'],
-                'status': kyc_record.status.value
-            }
-        
-        # Encrypt and store business information
-        encrypted_info = await self._encrypt_business_info(business_info)
-        kyc_record.business_info = encrypted_info
-        kyc_record.status = KYCStatus.IN_PROGRESS
-        kyc_record.last_updated = datetime.now(timezone.utc)
-        
-        # Perform business risk assessment
-        risk_assessment = await self._assess_business_info_risk(business_info)
-        kyc_record.risk_level = risk_assessment['risk_level']
-        kyc_record.compliance_notes.extend(risk_assessment['notes'])
-        
-        # Add to verification history
-        kyc_record.verification_history.append({
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'action': 'business_info_submitted',
-            'details': 'Business information submitted and validated'
-        })
-        
-        logger.info(f"Business information submitted for user {user_id}")
-        
-        return {
-            'success': True,
-            'status': kyc_record.status.value,
-            'risk_level': kyc_record.risk_level.value,
-            'next_steps': await self._get_next_steps(kyc_record)
-        }
-    
-    async def upload_document(self, user_id: str, document_type: DocumentType,
-                            file_content: bytes, filename: str) -> Dict[str, Any]:
-        """Upload and process identity document"""
-        if user_id not in self.kyc_records:
-            raise ValueError(f"KYC process not initiated for user {user_id}")
-        
-        kyc_record = self.kyc_records[user_id]
-        
-        # Generate document ID
-        document_id = self._generate_document_id(user_id, document_type)
-        
-        # Calculate file hash
-        file_hash = hashlib.sha256(file_content).hexdigest()
-        
-        # Check for duplicate documents
-        for existing_doc in kyc_record.documents:
-            if existing_doc.file_hash == file_hash:
-                return {
-                    'success': False,
-                    'error': 'Document already uploaded',
-                    'document_id': existing_doc.document_id
-                }
-        
-        # Encrypt and store document
-        encrypted_content = self.encryption_service.encrypt_field(
-            file_content.hex(), 'sensitive'
-        )
-        file_path = f"documents/{user_id}/{document_id}"
-        self.document_storage[file_path] = encrypted_content
-        
-        # Process document (OCR, validation)
-        processing_result = await self._process_document(
-            file_content, document_type, filename
-        )
-        
-        # Create document record
-        document = Document(
-            document_id=document_id,
-            document_type=document_type,
-            file_path=file_path,
-            file_hash=file_hash,
-            upload_timestamp=datetime.now(timezone.utc),
-            expiry_date=processing_result.get('expiry_date'),
-            verification_status=processing_result['status'],
-            extracted_data=processing_result['extracted_data'],
-            confidence_score=processing_result['confidence_score']
-        )
-        
-        kyc_record.documents.append(document)
-        kyc_record.verification_methods.append(VerificationMethod.DOCUMENT_UPLOAD)
-        kyc_record.last_updated = datetime.now(timezone.utc)
-        
-        # Update verification status if document is valid
-        if processing_result['status'] == 'verified':
-            await self._update_verification_progress(kyc_record)
-        
-        # Add to verification history
-        kyc_record.verification_history.append({
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'action': 'document_uploaded',
-            'details': f'{document_type.value} document uploaded and processed',
-            'document_id': document_id,
-            'verification_status': processing_result['status']
-        })
-        
-        logger.info(f"Document {document_type.value} uploaded for user {user_id}")
-        
-        return {
-            'success': True,
-            'document_id': document_id,
-            'verification_status': processing_result['status'],
-            'confidence_score': processing_result['confidence_score'],
-            'extracted_data': processing_result['extracted_data'],
-            'next_steps': await self._get_next_steps(kyc_record)
-        }
-    
-    async def perform_sanctions_screening(self, user_id: str) -> Dict[str, Any]:
-        """Perform sanctions and PEP screening"""
-        if user_id not in self.kyc_records:
-            raise ValueError(f"KYC record not found for user {user_id}")
-        
-        kyc_record = self.kyc_records[user_id]
-        
-        if not kyc_record.personal_info and not kyc_record.business_info:
-            raise ValueError("Personal or business information required for screening")
-        
-        screening_results = {
-            'sanctions_match': False,
-            'pep_match': False,
-            'adverse_media_match': False,
-            'matches': [],
-            'risk_score': 0
-        }
-        
-        # Perform sanctions screening
-        if kyc_record.personal_info:
-            personal_info = await self._decrypt_personal_info(kyc_record.personal_info)
-            sanctions_result = await self._screen_sanctions_individual(personal_info)
-            screening_results.update(sanctions_result)
-        
-        if kyc_record.business_info:
-            business_info = await self._decrypt_business_info(kyc_record.business_info)
-            business_sanctions_result = await self._screen_sanctions_business(business_info)
-            # Merge results
-            screening_results['sanctions_match'] = (
-                screening_results['sanctions_match'] or 
-                business_sanctions_result['sanctions_match']
+        try:
+            # Check if user exists
+            user_result = await db.execute(
+                select(User).where(User.id == user_id)
             )
-            screening_results['matches'].extend(business_sanctions_result['matches'])
-            screening_results['risk_score'] = max(
-                screening_results['risk_score'],
-                business_sanctions_result['risk_score']
+            user = user_result.scalar_one_or_none()
+            
+            if not user:
+                raise ValueError(f"User {user_id} not found")
+            
+            # Check existing KYC records
+            existing_kyc = await db.execute(
+                select(KYCRecord)
+                .where(KYCRecord.user_id == user_id)
+                .order_by(desc(KYCRecord.created_at))
+                .limit(1)
             )
-        
-        # Store screening results
-        kyc_record.sanctions_check_result = screening_results
-        kyc_record.last_updated = datetime.now(timezone.utc)
-        
-        # Update risk level based on screening
-        if screening_results['sanctions_match']:
-            kyc_record.risk_level = RiskLevel.PROHIBITED
-            kyc_record.status = KYCStatus.REJECTED
-            kyc_record.compliance_notes.append("Sanctions match detected")
-        elif screening_results['pep_match']:
-            kyc_record.risk_level = RiskLevel.HIGH
-            kyc_record.compliance_notes.append("PEP match detected - enhanced due diligence required")
-        
-        # Add to verification history
-        kyc_record.verification_history.append({
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'action': 'sanctions_screening',
-            'details': f'Sanctions screening completed - Risk score: {screening_results["risk_score"]}',
-            'results': screening_results
-        })
-        
-        logger.info(f"Sanctions screening completed for user {user_id}")
-        
-        return screening_results
-    
-    async def complete_verification(self, user_id: str, manual_review: bool = False) -> Dict[str, Any]:
-        """Complete KYC verification process"""
-        if user_id not in self.kyc_records:
-            raise ValueError(f"KYC record not found for user {user_id}")
-        
-        kyc_record = self.kyc_records[user_id]
-        
-        # Check if all required information is provided
-        verification_check = await self._check_verification_completeness(kyc_record)
-        if not verification_check['complete']:
-            return {
-                'success': False,
-                'status': kyc_record.status.value,
-                'missing_requirements': verification_check['missing'],
-                'next_steps': await self._get_next_steps(kyc_record)
+            current_kyc = existing_kyc.scalar_one_or_none()
+            
+            # Determine required steps based on target tier
+            tier_config = self.tier_requirements[target_tier]
+            required_steps = []
+            
+            # Check what's already completed
+            completed_verifications = set()
+            if current_kyc:
+                if current_kyc.email_verified:
+                    completed_verifications.add('email')
+                if current_kyc.phone_verified:
+                    completed_verifications.add('phone')
+                if current_kyc.identity_verified:
+                    completed_verifications.add('identity')
+                if current_kyc.address_verified:
+                    completed_verifications.add('address')
+                if current_kyc.biometric_verified:
+                    completed_verifications.add('biometric')
+                if current_kyc.source_of_funds_verified:
+                    completed_verifications.add('source_of_funds')
+            
+            # Determine missing steps
+            missing_verifications = set(tier_config['required_verifications']) - completed_verifications
+            
+            for verification in missing_verifications:
+                if verification == 'email':
+                    required_steps.append({
+                        'step': 'email_verification',
+                        'title': 'Email Verification',
+                        'description': 'Verify your email address',
+                        'status': 'pending'
+                    })
+                elif verification == 'phone':
+                    required_steps.append({
+                        'step': 'phone_verification',
+                        'title': 'Phone Verification',
+                        'description': 'Verify your phone number via SMS',
+                        'status': 'pending'
+                    })
+                elif verification == 'identity':
+                    required_steps.append({
+                        'step': 'document_upload',
+                        'title': 'Identity Document Upload',
+                        'description': 'Upload government-issued ID (passport, driver\'s license, etc.)',
+                        'status': 'pending',
+                        'accepted_documents': ['passport', 'drivers_license', 'national_id']
+                    })
+                elif verification == 'address':
+                    required_steps.append({
+                        'step': 'address_verification',
+                        'title': 'Address Verification',
+                        'description': 'Upload proof of address (utility bill, bank statement, etc.)',
+                        'status': 'pending',
+                        'accepted_documents': ['utility_bill', 'bank_statement', 'rental_agreement']
+                    })
+                elif verification == 'biometric':
+                    required_steps.append({
+                        'step': 'biometric_verification',
+                        'title': 'Biometric Verification',
+                        'description': 'Take a selfie for facial recognition verification',
+                        'status': 'pending'
+                    })
+                elif verification == 'source_of_funds':
+                    required_steps.append({
+                        'step': 'source_of_funds',
+                        'title': 'Source of Funds Verification',
+                        'description': 'Provide documentation for source of funds',
+                        'status': 'pending'
+                    })
+            
+            # Create or update KYC record
+            if not current_kyc:
+                kyc_record = KYCRecord(
+                    id=uuid4(),
+                    user_id=user_id,
+                    target_level=target_tier.value,
+                    status=KYCStatus.PENDING,
+                    created_at=datetime.utcnow()
+                )
+                db.add(kyc_record)
+            else:
+                current_kyc.target_level = target_tier.value
+                current_kyc.updated_at = datetime.utcnow()
+            
+            await db.commit()
+            
+            kyc_process = {
+                'kyc_id': str(current_kyc.id if current_kyc else kyc_record.id),
+                'user_id': str(user_id),
+                'target_tier': target_tier.value,
+                'current_status': current_kyc.status.value if current_kyc else KYCStatus.PENDING.value,
+                'required_steps': required_steps,
+                'completed_steps': list(completed_verifications),
+                'estimated_completion_time': len(required_steps) * 5,  # 5 minutes per step
+                'transaction_limits': tier_config['transaction_limits'],
+                'initiated_at': datetime.utcnow().isoformat()
             }
-        
-        # Perform final risk assessment
-        final_risk_assessment = await self._perform_final_risk_assessment(kyc_record)
-        kyc_record.risk_level = final_risk_assessment['risk_level']
-        kyc_record.compliance_notes.extend(final_risk_assessment['notes'])
-        
-        # Determine verification outcome
-        if kyc_record.risk_level == RiskLevel.PROHIBITED:
-            kyc_record.status = KYCStatus.REJECTED
-            outcome = 'rejected'
-        elif manual_review or kyc_record.risk_level == RiskLevel.HIGH:
-            # High-risk customers require manual review
-            outcome = 'manual_review_required'
-            kyc_record.compliance_notes.append("Manual review required due to high risk level")
-        else:
-            kyc_record.status = KYCStatus.VERIFIED
-            kyc_record.verification_date = datetime.now(timezone.utc)
-            kyc_record.expiry_date = datetime.now(timezone.utc) + timedelta(days=self.verification_expiry_days)
-            outcome = 'verified'
-        
-        kyc_record.last_updated = datetime.now(timezone.utc)
-        
-        # Add to verification history
-        kyc_record.verification_history.append({
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'action': 'verification_completed',
-            'details': f'KYC verification completed with outcome: {outcome}',
-            'risk_level': kyc_record.risk_level.value,
-            'final_status': kyc_record.status.value
-        })
-        
-        logger.info(f"KYC verification completed for user {user_id} with outcome: {outcome}")
-        
-        return {
-            'success': True,
-            'outcome': outcome,
-            'status': kyc_record.status.value,
-            'risk_level': kyc_record.risk_level.value,
-            'verification_date': kyc_record.verification_date.isoformat() if kyc_record.verification_date else None,
-            'expiry_date': kyc_record.expiry_date.isoformat() if kyc_record.expiry_date else None,
-            'compliance_notes': kyc_record.compliance_notes
-        }
+            
+            logger.info(f"KYC process initiated for user {user_id}, target tier: {target_tier.value}")
+            return kyc_process
+            
+        except Exception as e:
+            logger.error(f"KYC process initiation failed for user {user_id}: {str(e)}")
+            raise
     
-    async def get_kyc_status(self, user_id: str) -> Dict[str, Any]:
-        """Get current KYC status for a user"""
-        if user_id not in self.kyc_records:
-            return {
-                'user_id': user_id,
-                'status': 'not_initiated',
-                'verified': False
-            }
-        
-        kyc_record = self.kyc_records[user_id]
-        
-        # Check if verification has expired
-        if (kyc_record.status == KYCStatus.VERIFIED and 
-            kyc_record.expiry_date and 
-            datetime.now(timezone.utc) > kyc_record.expiry_date):
-            kyc_record.status = KYCStatus.EXPIRED
-            kyc_record.last_updated = datetime.now(timezone.utc)
-        
-        return {
-            'user_id': user_id,
-            'status': kyc_record.status.value,
-            'verified': kyc_record.status == KYCStatus.VERIFIED,
-            'risk_level': kyc_record.risk_level.value,
-            'verification_date': kyc_record.verification_date.isoformat() if kyc_record.verification_date else None,
-            'expiry_date': kyc_record.expiry_date.isoformat() if kyc_record.expiry_date else None,
-            'last_updated': kyc_record.last_updated.isoformat(),
-            'documents_count': len(kyc_record.documents),
-            'verification_methods': [method.value for method in kyc_record.verification_methods],
-            'next_steps': await self._get_next_steps(kyc_record)
-        }
+    async def verify_document(
+        self,
+        db: AsyncSession,
+        user_id: UUID,
+        document_type: DocumentType,
+        document_data: bytes,
+        document_metadata: Dict[str, Any]
+    ) -> DocumentVerificationResult:
+        """Verify uploaded document using OCR and validation"""
+        try:
+            start_time = datetime.utcnow()
+            
+            # Generate document ID
+            document_id = str(uuid4())
+            
+            # Encrypt and store document
+            encrypted_document = await self.encryption_service.encrypt_data(document_data)
+            
+            # Simulate document processing (in real implementation, use OCR service)
+            extracted_data = await self._extract_document_data(document_data, document_type)
+            
+            # Perform verification checks
+            verification_checks = await self._perform_document_checks(
+                extracted_data, document_type, document_metadata
+            )
+            
+            # Calculate confidence score
+            confidence_score = self._calculate_document_confidence(verification_checks, extracted_data)
+            
+            # Identify risk indicators
+            risk_indicators = await self._identify_document_risks(extracted_data, verification_checks)
+            
+            # Determine status
+            if confidence_score >= 0.9 and all(verification_checks.values()):
+                status = DocumentStatus.APPROVED
+            elif confidence_score >= 0.7:
+                status = DocumentStatus.REQUIRES_REVIEW
+            else:
+                status = DocumentStatus.REJECTED
+            
+            # Calculate expiry date
+            expires_at = None
+            if document_type in self.document_validity_periods:
+                expires_at = datetime.utcnow() + self.document_validity_periods[document_type]
+            
+            processing_time = (datetime.utcnow() - start_time).total_seconds()
+            
+            # Create verification result
+            verification_result = DocumentVerificationResult(
+                document_id=document_id,
+                document_type=document_type,
+                status=status,
+                confidence_score=confidence_score,
+                extracted_data=extracted_data,
+                verification_checks=verification_checks,
+                risk_indicators=risk_indicators,
+                processing_time=processing_time,
+                verified_at=datetime.utcnow(),
+                expires_at=expires_at
+            )
+            
+            # Store verification result
+            await self._store_document_verification(db, user_id, verification_result, encrypted_document)
+            
+            # Update KYC record
+            await self._update_kyc_progress(db, user_id, document_type, status)
+            
+            logger.info(f"Document verification completed for user {user_id}: "
+                       f"Type: {document_type.value}, Status: {status.value}, "
+                       f"Confidence: {confidence_score:.2f}")
+            
+            return verification_result
+            
+        except Exception as e:
+            logger.error(f"Document verification failed for user {user_id}: {str(e)}")
+            raise
+    
+    async def verify_biometric(
+        self,
+        db: AsyncSession,
+        user_id: UUID,
+        selfie_data: bytes,
+        reference_document_id: Optional[str] = None
+    ) -> BiometricVerificationResult:
+        """Verify biometric data (facial recognition and liveness detection)"""
+        try:
+            verification_id = str(uuid4())
+            
+            # Simulate biometric processing (in real implementation, use biometric service)
+            biometric_analysis = await self._analyze_biometric_data(selfie_data)
+            
+            # Perform liveness detection
+            liveness_score = await self._detect_liveness(selfie_data)
+            
+            # Calculate quality score
+            quality_score = await self._assess_image_quality(selfie_data)
+            
+            # Compare with reference document if provided
+            match_score = 0.0
+            if reference_document_id:
+                match_score = await self._compare_with_reference(
+                    selfie_data, reference_document_id, db
+                )
+            else:
+                match_score = 0.85  # Simulate high match for demo
+            
+            # Determine if it's a match
+            is_match = (match_score >= 0.8 and 
+                       liveness_score >= 0.7 and 
+                       quality_score >= 0.6)
+            
+            # Identify risk indicators
+            risk_indicators = []
+            if liveness_score < 0.7:
+                risk_indicators.append("Low liveness score - possible spoof attempt")
+            if quality_score < 0.6:
+                risk_indicators.append("Poor image quality")
+            if match_score < 0.8:
+                risk_indicators.append("Low facial match confidence")
+            
+            # Create verification result
+            verification_result = BiometricVerificationResult(
+                verification_id=verification_id,
+                match_score=match_score,
+                liveness_score=liveness_score,
+                quality_score=quality_score,
+                is_match=is_match,
+                risk_indicators=risk_indicators,
+                verified_at=datetime.utcnow()
+            )
+            
+            # Store biometric verification
+            await self._store_biometric_verification(db, user_id, verification_result, selfie_data)
+            
+            # Update KYC record
+            await self._update_kyc_biometric_status(db, user_id, is_match)
+            
+            logger.info(f"Biometric verification completed for user {user_id}: "
+                       f"Match: {is_match}, Score: {match_score:.2f}")
+            
+            return verification_result
+            
+        except Exception as e:
+            logger.error(f"Biometric verification failed for user {user_id}: {str(e)}")
+            raise
+    
+    async def perform_comprehensive_assessment(
+        self,
+        db: AsyncSession,
+        user_id: UUID
+    ) -> KYCAssessment:
+        """Perform comprehensive KYC assessment"""
+        try:
+            # Get user and KYC records
+            user_result = await db.execute(
+                select(User).where(User.id == user_id)
+            )
+            user = user_result.scalar_one_or_none()
+            
+            if not user:
+                raise ValueError(f"User {user_id} not found")
+            
+            kyc_result = await db.execute(
+                select(KYCRecord)
+                .where(KYCRecord.user_id == user_id)
+                .order_by(desc(KYCRecord.created_at))
+                .limit(1)
+            )
+            kyc_record = kyc_result.scalar_one_or_none()
+            
+            # Perform various checks
+            sanctions_check = await self._perform_sanctions_screening(user)
+            pep_check = await self._perform_pep_screening(user)
+            adverse_media_check = await self._perform_adverse_media_check(user)
+            address_verification = await self._verify_address(db, user_id)
+            source_of_funds_verification = await self._verify_source_of_funds(db, user_id)
+            
+            # Get document verifications
+            document_verifications = await self._get_document_verifications(db, user_id)
+            
+            # Get biometric verification
+            biometric_verification = await self._get_biometric_verification(db, user_id)
+            
+            # Calculate risk rating and compliance score
+            risk_rating, compliance_score = await self._calculate_risk_assessment(
+                user, sanctions_check, pep_check, adverse_media_check,
+                document_verifications, biometric_verification
+            )
+            
+            # Determine KYC level and status
+            kyc_level = await self._determine_kyc_level(
+                document_verifications, biometric_verification, compliance_score
+            )
+            
+            overall_status = await self._determine_overall_status(
+                kyc_record, risk_rating, compliance_score
+            )
+            
+            # Generate recommendations
+            recommendations = await self._generate_kyc_recommendations(
+                risk_rating, compliance_score, document_verifications, biometric_verification
+            )
+            
+            # Calculate next review date
+            tier_config = self.tier_requirements.get(kyc_level, self.tier_requirements[KYCTier.BASIC])
+            next_review_date = datetime.utcnow() + timedelta(days=tier_config['review_frequency_days'])
+            
+            # Create ongoing monitoring plan
+            ongoing_monitoring = await self._create_monitoring_plan(user, risk_rating, kyc_level)
+            
+            # Create comprehensive assessment
+            assessment = KYCAssessment(
+                user_id=str(user_id),
+                kyc_level=kyc_level,
+                overall_status=overall_status,
+                risk_rating=risk_rating,
+                compliance_score=compliance_score,
+                document_verifications=document_verifications,
+                biometric_verification=biometric_verification,
+                sanctions_check=sanctions_check,
+                pep_check=pep_check,
+                adverse_media_check=adverse_media_check,
+                address_verification=address_verification,
+                source_of_funds_verification=source_of_funds_verification,
+                ongoing_monitoring=ongoing_monitoring,
+                recommendations=recommendations,
+                next_review_date=next_review_date,
+                assessed_at=datetime.utcnow()
+            )
+            
+            # Store assessment
+            await self._store_kyc_assessment(db, assessment)
+            
+            # Update KYC record with final status
+            if kyc_record:
+                kyc_record.status = overall_status
+                kyc_record.risk_level = risk_rating.value
+                kyc_record.compliance_score = compliance_score
+                kyc_record.next_review_date = next_review_date
+                kyc_record.updated_at = datetime.utcnow()
+                await db.commit()
+            
+            logger.info(f"Comprehensive KYC assessment completed for user {user_id}: "
+                       f"Level: {kyc_level.value}, Status: {overall_status.value}, "
+                       f"Risk: {risk_rating.value}, Score: {compliance_score:.2f}")
+            
+            return assessment
+            
+        except Exception as e:
+            logger.error(f"Comprehensive KYC assessment failed for user {user_id}: {str(e)}")
+            raise
     
     # Private helper methods
     
-    async def _validate_personal_info(self, personal_info: PersonalInfo) -> Dict[str, Any]:
-        """Validate personal information"""
-        errors = []
+    async def _extract_document_data(self, document_data: bytes, document_type: DocumentType) -> Dict[str, Any]:
+        """Extract data from document using OCR"""
+        # In a real implementation, this would use OCR services like AWS Textract, Google Vision, etc.
+        # For now, simulate extracted data
         
-        # Required field validation
-        required_fields = ['first_name', 'last_name', 'date_of_birth', 'nationality',
-                          'country_of_residence', 'address_line1', 'city', 'postal_code',
-                          'phone_number', 'email']
+        extracted_data = {
+            'document_number': 'A12345678',
+            'full_name': 'John Doe',
+            'date_of_birth': '1990-01-01',
+            'nationality': 'US',
+            'issue_date': '2020-01-01',
+            'expiry_date': '2030-01-01',
+            'issuing_authority': 'Department of Motor Vehicles'
+        }
         
-        for field in required_fields:
-            if not getattr(personal_info, field):
-                errors.append(f"{field} is required")
+        if document_type == DocumentType.PROOF_OF_ADDRESS:
+            extracted_data.update({
+                'address': '123 Main St, Anytown, ST 12345',
+                'document_date': '2024-01-01',
+                'account_holder': 'John Doe'
+            })
         
-        # Format validation
-        if personal_info.email and not re.match(self.document_patterns['email'], personal_info.email):
-            errors.append("Invalid email format")
+        return extracted_data
+    
+    async def _perform_document_checks(
+        self,
+        extracted_data: Dict[str, Any],
+        document_type: DocumentType,
+        metadata: Dict[str, Any]
+    ) -> Dict[str, bool]:
+        """Perform various document verification checks"""
+        checks = {
+            'format_valid': True,
+            'not_expired': True,
+            'authentic_features': True,
+            'readable_text': True,
+            'consistent_data': True,
+            'security_features': True
+        }
         
-        if personal_info.phone_number and not re.match(self.document_patterns['phone'], personal_info.phone_number):
-            errors.append("Invalid phone number format")
+        # Simulate some checks based on extracted data
+        if 'expiry_date' in extracted_data:
+            try:
+                expiry_date = datetime.strptime(extracted_data['expiry_date'], '%Y-%m-%d')
+                checks['not_expired'] = expiry_date > datetime.utcnow()
+            except:
+                checks['not_expired'] = False
         
-        # Date validation
-        try:
-            birth_date = datetime.fromisoformat(personal_info.date_of_birth)
-            age = (datetime.now() - birth_date).days / 365.25
-            if age < 18:
-                errors.append("Customer must be at least 18 years old")
-            elif age > 120:
-                errors.append("Invalid date of birth")
-        except ValueError:
-            errors.append("Invalid date of birth format")
+        # Simulate quality checks based on metadata
+        if metadata.get('image_quality', 1.0) < 0.7:
+            checks['readable_text'] = False
         
+        return checks
+    
+    def _calculate_document_confidence(
+        self,
+        verification_checks: Dict[str, bool],
+        extracted_data: Dict[str, Any]
+    ) -> float:
+        """Calculate document verification confidence score"""
+        # Base score from verification checks
+        passed_checks = sum(verification_checks.values())
+        total_checks = len(verification_checks)
+        base_score = passed_checks / total_checks if total_checks > 0 else 0.0
+        
+        # Adjust based on data completeness
+        required_fields = ['document_number', 'full_name', 'date_of_birth']
+        present_fields = sum(1 for field in required_fields if field in extracted_data and extracted_data[field])
+        completeness_score = present_fields / len(required_fields)
+        
+        # Weighted average
+        confidence_score = (base_score * 0.7) + (completeness_score * 0.3)
+        
+        return min(confidence_score, 1.0)
+    
+    async def _identify_document_risks(
+        self,
+        extracted_data: Dict[str, Any],
+        verification_checks: Dict[str, bool]
+    ) -> List[str]:
+        """Identify potential risks in document"""
+        risks = []
+        
+        if not verification_checks.get('not_expired', True):
+            risks.append("Document has expired")
+        
+        if not verification_checks.get('authentic_features', True):
+            risks.append("Suspicious document features detected")
+        
+        if not verification_checks.get('readable_text', True):
+            risks.append("Poor document quality or readability")
+        
+        # Check for high-risk countries
+        nationality = extracted_data.get('nationality', '').upper()
+        if nationality in self.high_risk_countries:
+            risks.append(f"High-risk jurisdiction: {nationality}")
+        
+        return risks
+    
+    async def _analyze_biometric_data(self, biometric_data: bytes) -> Dict[str, Any]:
+        """Analyze biometric data for facial features"""
+        # In a real implementation, this would use facial recognition services
         return {
-            'valid': len(errors) == 0,
-            'errors': errors
+            'face_detected': True,
+            'face_count': 1,
+            'face_quality': 0.85,
+            'facial_landmarks': True,
+            'age_estimate': 30,
+            'gender_estimate': 'male'
         }
     
-    async def _validate_business_info(self, business_info: BusinessInfo) -> Dict[str, Any]:
-        """Validate business information"""
-        errors = []
-        
-        # Required field validation
-        required_fields = ['business_name', 'business_type', 'registration_number',
-                          'tax_id', 'incorporation_date', 'country_of_incorporation',
-                          'business_address', 'industry']
-        
-        for field in required_fields:
-            if not getattr(business_info, field):
-                errors.append(f"{field} is required")
-        
-        # Beneficial owners validation
-        if not business_info.beneficial_owners:
-            errors.append("At least one beneficial owner is required")
-        else:
-            for i, owner in enumerate(business_info.beneficial_owners):
-                if not owner.get('name') or not owner.get('ownership_percentage'):
-                    errors.append(f"Beneficial owner {i+1} missing required information")
-        
+    async def _detect_liveness(self, image_data: bytes) -> float:
+        """Detect if the image shows a live person"""
+        # In a real implementation, this would use liveness detection algorithms
+        return 0.92  # Simulate high liveness score
+    
+    async def _assess_image_quality(self, image_data: bytes) -> float:
+        """Assess the quality of the biometric image"""
+        # In a real implementation, this would analyze image quality metrics
+        return 0.88  # Simulate good quality
+    
+    async def _compare_with_reference(
+        self,
+        selfie_data: bytes,
+        reference_document_id: str,
+        db: AsyncSession
+    ) -> float:
+        """Compare selfie with reference document photo"""
+        # In a real implementation, this would perform facial comparison
+        return 0.91  # Simulate high match score
+    
+    async def _perform_sanctions_screening(self, user: User) -> Dict[str, Any]:
+        """Perform sanctions screening"""
+        # In a real implementation, this would check against sanctions lists
         return {
-            'valid': len(errors) == 0,
-            'errors': errors
+            'checked': True,
+            'match_found': False,
+            'lists_checked': ['OFAC', 'UN', 'EU', 'HMT'],
+            'last_checked': datetime.utcnow().isoformat(),
+            'confidence': 0.99
         }
     
-    async def _encrypt_personal_info(self, personal_info: PersonalInfo) -> PersonalInfo:
-        """Encrypt sensitive personal information"""
-        # In production, encrypt PII fields
-        return personal_info
-    
-    async def _decrypt_personal_info(self, encrypted_info: PersonalInfo) -> PersonalInfo:
-        """Decrypt personal information"""
-        # In production, decrypt PII fields
-        return encrypted_info
-    
-    async def _encrypt_business_info(self, business_info: BusinessInfo) -> BusinessInfo:
-        """Encrypt sensitive business information"""
-        # In production, encrypt sensitive business fields
-        return business_info
-    
-    async def _decrypt_business_info(self, encrypted_info: BusinessInfo) -> BusinessInfo:
-        """Decrypt business information"""
-        # In production, decrypt business fields
-        return encrypted_info
-    
-    async def _assess_personal_info_risk(self, personal_info: PersonalInfo) -> Dict[str, Any]:
-        """Assess risk based on personal information"""
-        risk_score = 0
-        notes = []
-        
-        # Country risk assessment
-        if personal_info.country_of_residence in self.high_risk_countries:
-            risk_score += 30
-            notes.append(f"High-risk country of residence: {personal_info.country_of_residence}")
-        
-        if personal_info.nationality in self.high_risk_countries:
-            risk_score += 20
-            notes.append(f"High-risk nationality: {personal_info.nationality}")
-        
-        # Age-based risk
-        try:
-            birth_date = datetime.fromisoformat(personal_info.date_of_birth)
-            age = (datetime.now() - birth_date).days / 365.25
-            if age < 25:
-                risk_score += 10
-                notes.append("Young customer - increased monitoring")
-        except ValueError:
-            pass
-        
-        # Determine risk level
-        if risk_score >= self.risk_score_threshold[RiskLevel.HIGH]:
-            risk_level = RiskLevel.HIGH
-        elif risk_score >= self.risk_score_threshold[RiskLevel.MEDIUM]:
-            risk_level = RiskLevel.MEDIUM
-        else:
-            risk_level = RiskLevel.LOW
-        
+    async def _perform_pep_screening(self, user: User) -> Dict[str, Any]:
+        """Perform Politically Exposed Person screening"""
+        # In a real implementation, this would check PEP databases
         return {
-            'risk_level': risk_level,
-            'risk_score': risk_score,
-            'notes': notes
+            'checked': True,
+            'is_pep': False,
+            'pep_category': None,
+            'last_checked': datetime.utcnow().isoformat(),
+            'confidence': 0.95
         }
     
-    async def _assess_business_info_risk(self, business_info: BusinessInfo) -> Dict[str, Any]:
-        """Assess risk based on business information"""
-        risk_score = 0
-        notes = []
+    async def _perform_adverse_media_check(self, user: User) -> Dict[str, Any]:
+        """Perform adverse media screening"""
+        # In a real implementation, this would search news and media sources
+        return {
+            'checked': True,
+            'adverse_findings': False,
+            'sources_checked': 50,
+            'last_checked': datetime.utcnow().isoformat(),
+            'confidence': 0.90
+        }
+    
+    async def _verify_address(self, db: AsyncSession, user_id: UUID) -> Dict[str, Any]:
+        """Verify user's address"""
+        # In a real implementation, this would use address verification services
+        return {
+            'verified': True,
+            'verification_method': 'document_upload',
+            'confidence': 0.88,
+            'last_verified': datetime.utcnow().isoformat()
+        }
+    
+    async def _verify_source_of_funds(self, db: AsyncSession, user_id: UUID) -> Dict[str, Any]:
+        """Verify source of funds"""
+        # In a real implementation, this would analyze financial documents
+        return {
+            'verified': False,
+            'documentation_provided': False,
+            'risk_assessment': 'medium',
+            'last_checked': datetime.utcnow().isoformat()
+        }
+    
+    async def _get_document_verifications(self, db: AsyncSession, user_id: UUID) -> List[DocumentVerificationResult]:
+        """Get all document verifications for user"""
+        # In a real implementation, this would query the database
+        return []
+    
+    async def _get_biometric_verification(self, db: AsyncSession, user_id: UUID) -> Optional[BiometricVerificationResult]:
+        """Get biometric verification for user"""
+        # In a real implementation, this would query the database
+        return None
+    
+    async def _calculate_risk_assessment(
+        self,
+        user: User,
+        sanctions_check: Dict[str, Any],
+        pep_check: Dict[str, Any],
+        adverse_media_check: Dict[str, Any],
+        document_verifications: List[DocumentVerificationResult],
+        biometric_verification: Optional[BiometricVerificationResult]
+    ) -> Tuple[RiskRating, float]:
+        """Calculate overall risk rating and compliance score"""
+        risk_score = 0.0
+        
+        # Sanctions and PEP checks
+        if sanctions_check.get('match_found', False):
+            risk_score += self.risk_weights['sanctions_match']
+        
+        if pep_check.get('is_pep', False):
+            risk_score += self.risk_weights['pep_match']
+        
+        if adverse_media_check.get('adverse_findings', False):
+            risk_score += self.risk_weights['adverse_media']
         
         # Country risk
-        if business_info.country_of_incorporation in self.high_risk_countries:
-            risk_score += 40
-            notes.append(f"High-risk incorporation country: {business_info.country_of_incorporation}")
+        if user.country and user.country.upper() in self.high_risk_countries:
+            risk_score += self.risk_weights['high_risk_country']
         
-        # Industry risk
-        high_risk_industries = ['money_services', 'gambling', 'adult_entertainment', 'cryptocurrency']
-        if business_info.industry.lower() in high_risk_industries:
-            risk_score += 25
-            notes.append(f"High-risk industry: {business_info.industry}")
+        # Document quality
+        if document_verifications:
+            avg_doc_confidence = sum(doc.confidence_score for doc in document_verifications) / len(document_verifications)
+            if avg_doc_confidence < 0.8:
+                risk_score += self.risk_weights['document_quality']
         
-        # Business age
-        try:
-            incorporation_date = datetime.fromisoformat(business_info.incorporation_date)
-            business_age = (datetime.now() - incorporation_date).days / 365.25
-            if business_age < 2:
-                risk_score += 15
-                notes.append("New business - increased monitoring")
-        except ValueError:
-            pass
+        # Biometric quality
+        if biometric_verification and biometric_verification.match_score < 0.8:
+            risk_score += self.risk_weights['biometric_quality']
         
-        # Determine risk level
-        if risk_score >= self.risk_score_threshold[RiskLevel.HIGH]:
-            risk_level = RiskLevel.HIGH
-        elif risk_score >= self.risk_score_threshold[RiskLevel.MEDIUM]:
-            risk_level = RiskLevel.MEDIUM
+        # Determine risk rating
+        if risk_score >= 100:
+            risk_rating = RiskRating.PROHIBITED
+        elif risk_score >= 60:
+            risk_rating = RiskRating.HIGH
+        elif risk_score >= 30:
+            risk_rating = RiskRating.MEDIUM
         else:
-            risk_level = RiskLevel.LOW
+            risk_rating = RiskRating.LOW
         
-        return {
-            'risk_level': risk_level,
-            'risk_score': risk_score,
-            'notes': notes
-        }
+        # Calculate compliance score (inverse of risk)
+        compliance_score = max(0.0, 100.0 - risk_score) / 100.0
+        
+        return risk_rating, compliance_score
     
-    def _generate_document_id(self, user_id: str, document_type: DocumentType) -> str:
-        """Generate unique document ID"""
-        timestamp = int(datetime.now().timestamp())
-        return f"doc_{user_id}_{document_type.value}_{timestamp}"
-    
-    async def _process_document(self, file_content: bytes, document_type: DocumentType,
-                              filename: str) -> Dict[str, Any]:
-        """Process uploaded document (OCR, validation)"""
-        # Simulated document processing
-        # In production, integrate with OCR services like AWS Textract, Google Vision API
+    async def _determine_kyc_level(
+        self,
+        document_verifications: List[DocumentVerificationResult],
+        biometric_verification: Optional[BiometricVerificationResult],
+        compliance_score: float
+    ) -> KYCTier:
+        """Determine achieved KYC level"""
+        if compliance_score < 0.5:
+            return KYCTier.BASIC
         
-        processing_result = {
-            'status': 'verified',
-            'confidence_score': 0.95,
-            'extracted_data': {
-                'document_number': 'SIMULATED123456',
-                'expiry_date': '2025-12-31',
-                'name': 'John Doe',
-                'date_of_birth': '1990-01-01'
-            },
-            'expiry_date': datetime(2025, 12, 31)
-        }
+        has_id_document = any(
+            doc.document_type == DocumentType.GOVERNMENT_ID and doc.status == DocumentStatus.APPROVED
+            for doc in document_verifications
+        )
         
-        # Basic file validation
-        if len(file_content) > 10 * 1024 * 1024:  # 10MB limit
-            processing_result['status'] = 'rejected'
-            processing_result['confidence_score'] = 0.0
-            processing_result['error'] = 'File size too large'
+        has_address_proof = any(
+            doc.document_type == DocumentType.PROOF_OF_ADDRESS and doc.status == DocumentStatus.APPROVED
+            for doc in document_verifications
+        )
         
-        return processing_result
-    
-    async def _screen_sanctions_individual(self, personal_info: PersonalInfo) -> Dict[str, Any]:
-        """Screen individual against sanctions lists"""
-        # Simulated sanctions screening
-        # In production, integrate with OFAC, UN, EU sanctions APIs
+        has_biometric = biometric_verification and biometric_verification.is_match
         
-        full_name = f"{personal_info.first_name} {personal_info.last_name}".lower()
-        
-        # Check against simulated sanctions list
-        sanctions_matches = []
-        for sanctions_name in ['john terrorist', 'jane criminal']:  # Simulated list
-            if sanctions_name in full_name:
-                sanctions_matches.append({
-                    'list': 'OFAC_SDN',
-                    'name': sanctions_name,
-                    'match_score': 0.95
-                })
-        
-        return {
-            'sanctions_match': len(sanctions_matches) > 0,
-            'pep_match': False,  # Simulated
-            'adverse_media_match': False,  # Simulated
-            'matches': sanctions_matches,
-            'risk_score': 100 if sanctions_matches else 0
-        }
-    
-    async def _screen_sanctions_business(self, business_info: BusinessInfo) -> Dict[str, Any]:
-        """Screen business against sanctions lists"""
-        # Simulated business sanctions screening
-        return {
-            'sanctions_match': False,
-            'matches': [],
-            'risk_score': 0
-        }
-    
-    async def _update_verification_progress(self, kyc_record: KYCRecord):
-        """Update verification progress based on completed steps"""
-        # Check if all required documents are uploaded and verified
-        required_docs = self._get_required_documents(kyc_record.customer_type)
-        verified_docs = [doc for doc in kyc_record.documents if doc.verification_status == 'verified']
-        
-        if len(verified_docs) >= len(required_docs):
-            # All documents verified, ready for final review
-            pass
-    
-    def _get_required_documents(self, customer_type: str) -> List[DocumentType]:
-        """Get required documents for customer type"""
-        if customer_type == 'individual':
-            return [DocumentType.PASSPORT, DocumentType.UTILITY_BILL]
-        elif customer_type == 'business':
-            return [DocumentType.BUSINESS_LICENSE, DocumentType.ARTICLES_OF_INCORPORATION]
+        if has_id_document and has_address_proof and has_biometric and compliance_score >= 0.8:
+            return KYCTier.ENHANCED
+        elif has_id_document and compliance_score >= 0.7:
+            return KYCTier.STANDARD
         else:
-            return []
+            return KYCTier.BASIC
     
-    async def _check_verification_completeness(self, kyc_record: KYCRecord) -> Dict[str, Any]:
-        """Check if KYC verification is complete"""
-        missing = []
-        
-        # Check personal/business info
-        if kyc_record.customer_type == 'individual' and not kyc_record.personal_info:
-            missing.append('personal_information')
-        elif kyc_record.customer_type == 'business' and not kyc_record.business_info:
-            missing.append('business_information')
-        
-        # Check required documents
-        required_docs = self._get_required_documents(kyc_record.customer_type)
-        verified_docs = [doc.document_type for doc in kyc_record.documents 
-                        if doc.verification_status == 'verified']
-        
-        for required_doc in required_docs:
-            if required_doc not in verified_docs:
-                missing.append(f'{required_doc.value}_document')
-        
-        # Check sanctions screening
-        if not kyc_record.sanctions_check_result:
-            missing.append('sanctions_screening')
-        
-        return {
-            'complete': len(missing) == 0,
-            'missing': missing
-        }
-    
-    async def _perform_final_risk_assessment(self, kyc_record: KYCRecord) -> Dict[str, Any]:
-        """Perform final comprehensive risk assessment"""
-        total_risk_score = 0
-        notes = []
-        
-        # Sanctions screening risk
-        if kyc_record.sanctions_check_result.get('sanctions_match'):
-            return {
-                'risk_level': RiskLevel.PROHIBITED,
-                'risk_score': 100,
-                'notes': ['Sanctions match - customer prohibited']
-            }
-        
-        # Document verification risk
-        verified_docs = [doc for doc in kyc_record.documents if doc.verification_status == 'verified']
-        if len(verified_docs) < len(self._get_required_documents(kyc_record.customer_type)):
-            total_risk_score += 20
-            notes.append('Incomplete document verification')
-        
-        # PEP risk
-        if kyc_record.sanctions_check_result.get('pep_match'):
-            total_risk_score += 30
-            notes.append('PEP match detected')
-        
-        # Determine final risk level
-        if total_risk_score >= self.risk_score_threshold[RiskLevel.HIGH]:
-            risk_level = RiskLevel.HIGH
-        elif total_risk_score >= self.risk_score_threshold[RiskLevel.MEDIUM]:
-            risk_level = RiskLevel.MEDIUM
+    async def _determine_overall_status(
+        self,
+        kyc_record: Optional[KYCRecord],
+        risk_rating: RiskRating,
+        compliance_score: float
+    ) -> KYCStatus:
+        """Determine overall KYC status"""
+        if risk_rating == RiskRating.PROHIBITED:
+            return KYCStatus.REJECTED
+        elif risk_rating == RiskRating.HIGH or compliance_score < 0.6:
+            return KYCStatus.UNDER_REVIEW
+        elif compliance_score >= 0.8:
+            return KYCStatus.APPROVED
         else:
-            risk_level = RiskLevel.LOW
+            return KYCStatus.PENDING
+    
+    async def _generate_kyc_recommendations(
+        self,
+        risk_rating: RiskRating,
+        compliance_score: float,
+        document_verifications: List[DocumentVerificationResult],
+        biometric_verification: Optional[BiometricVerificationResult]
+    ) -> List[str]:
+        """Generate KYC recommendations"""
+        recommendations = []
+        
+        if compliance_score < 0.7:
+            recommendations.append("Enhanced due diligence required")
+        
+        if risk_rating in [RiskRating.HIGH, RiskRating.PROHIBITED]:
+            recommendations.append("Manual review by compliance team required")
+        
+        if not document_verifications:
+            recommendations.append("Identity document verification required")
+        
+        if not biometric_verification:
+            recommendations.append("Biometric verification recommended for enhanced security")
+        
+        if risk_rating == RiskRating.MEDIUM:
+            recommendations.append("Ongoing monitoring recommended")
+        
+        return recommendations
+    
+    async def _create_monitoring_plan(self, user: User, risk_rating: RiskRating, kyc_level: KYCTier) -> Dict[str, Any]:
+        """Create ongoing monitoring plan"""
+        tier_config = self.tier_requirements[kyc_level]
         
         return {
-            'risk_level': risk_level,
-            'risk_score': total_risk_score,
-            'notes': notes
+            'monitoring_frequency': f"Every {tier_config['review_frequency_days']} days",
+            'transaction_monitoring': True,
+            'sanctions_screening_frequency': 'daily' if risk_rating == RiskRating.HIGH else 'weekly',
+            'document_renewal_alerts': True,
+            'behavioral_analysis': risk_rating in [RiskRating.MEDIUM, RiskRating.HIGH],
+            'enhanced_monitoring': risk_rating == RiskRating.HIGH
         }
     
-    async def _get_next_steps(self, kyc_record: KYCRecord) -> List[str]:
-        """Get next steps for KYC completion"""
-        next_steps = []
-        
-        if kyc_record.status == KYCStatus.PENDING:
-            if kyc_record.customer_type == 'individual' and not kyc_record.personal_info:
-                next_steps.append('Submit personal information')
-            elif kyc_record.customer_type == 'business' and not kyc_record.business_info:
-                next_steps.append('Submit business information')
-        
-        if kyc_record.status == KYCStatus.IN_PROGRESS:
-            # Check for missing documents
-            required_docs = self._get_required_documents(kyc_record.customer_type)
-            uploaded_doc_types = [doc.document_type for doc in kyc_record.documents]
-            
-            for required_doc in required_docs:
-                if required_doc not in uploaded_doc_types:
-                    next_steps.append(f'Upload {required_doc.value} document')
-            
-            # Check for sanctions screening
-            if not kyc_record.sanctions_check_result:
-                next_steps.append('Complete sanctions screening')
-            
-            # If all requirements met, ready for completion
-            if not next_steps:
-                next_steps.append('Ready for verification completion')
-        
-        return next_steps
+    async def _store_document_verification(
+        self,
+        db: AsyncSession,
+        user_id: UUID,
+        verification_result: DocumentVerificationResult,
+        encrypted_document: bytes
+    ):
+        """Store document verification result"""
+        # In a real implementation, this would store in the database
+        logger.info(f"Storing document verification for user {user_id}")
     
-    def get_kyc_statistics(self) -> Dict[str, Any]:
-        """Get KYC service statistics"""
-        status_counts = {}
-        risk_level_counts = {}
-        
-        for record in self.kyc_records.values():
-            status_counts[record.status.value] = status_counts.get(record.status.value, 0) + 1
-            risk_level_counts[record.risk_level.value] = risk_level_counts.get(record.risk_level.value, 0) + 1
-        
-        return {
-            'total_records': len(self.kyc_records),
-            'status_distribution': status_counts,
-            'risk_level_distribution': risk_level_counts,
-            'documents_stored': len(self.document_storage)
-        }
+    async def _store_biometric_verification(
+        self,
+        db: AsyncSession,
+        user_id: UUID,
+        verification_result: BiometricVerificationResult,
+        biometric_data: bytes
+    ):
+        """Store biometric verification result"""
+        # In a real implementation, this would store in the database
+        logger.info(f"Storing biometric verification for user {user_id}")
+    
+    async def _store_kyc_assessment(self, db: AsyncSession, assessment: KYCAssessment):
+        """Store comprehensive KYC assessment"""
+        # In a real implementation, this would store in the database
+        logger.info(f"Storing KYC assessment for user {assessment.user_id}")
+    
+    async def _update_kyc_progress(self, db: AsyncSession, user_id: UUID, document_type: DocumentType, status: DocumentStatus):
+        """Update KYC progress based on document verification"""
+        # In a real implementation, this would update the KYC record
+        logger.info(f"Updating KYC progress for user {user_id}: {document_type.value} -> {status.value}")
+    
+    async def _update_kyc_biometric_status(self, db: AsyncSession, user_id: UUID, is_verified: bool):
+        """Update KYC biometric verification status"""
+        # In a real implementation, this would update the KYC record
+        logger.info(f"Updating biometric status for user {user_id}: {is_verified}")
 

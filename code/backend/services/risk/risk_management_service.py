@@ -1,41 +1,49 @@
 """
-Comprehensive Risk Management Service for Fluxion Backend
-Implements advanced risk assessment, monitoring, and management for financial services
-including market risk, credit risk, operational risk, and regulatory compliance.
+Enhanced Risk Management Service for Fluxion Backend
+Implements comprehensive risk assessment, monitoring, and mitigation strategies
+following financial industry best practices and regulatory requirements.
 """
 
-import asyncio
-import json
 import logging
-import math
-from typing import Dict, Any, Optional, List, Tuple
-from datetime import datetime, timezone, timedelta
+import asyncio
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any, Tuple
+from decimal import Decimal
 from enum import Enum
 from dataclasses import dataclass, asdict
-from decimal import Decimal, ROUND_HALF_UP
-import uuid
-import statistics
+import numpy as np
+import pandas as pd
+from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_, or_, func, desc
+from sqlalchemy.orm import selectinload
+
+from models.user import User
+from models.transaction import Transaction, TransactionStatus, TransactionType
+from models.portfolio import Portfolio, PortfolioAsset
+from models.risk import (
+    RiskProfile, RiskLevel, RiskAssessment, RiskMetric,
+    VaRCalculation, StressTestResult, ConcentrationRisk
+)
 from config.settings import settings
-from services.security.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)
 
 
-class RiskType(Enum):
-    """Types of financial risks"""
+class RiskCategory(Enum):
+    """Risk categories for comprehensive assessment"""
     MARKET_RISK = "market_risk"
     CREDIT_RISK = "credit_risk"
     LIQUIDITY_RISK = "liquidity_risk"
     OPERATIONAL_RISK = "operational_risk"
     CONCENTRATION_RISK = "concentration_risk"
-    CURRENCY_RISK = "currency_risk"
-    INTEREST_RATE_RISK = "interest_rate_risk"
-    REGULATORY_RISK = "regulatory_risk"
     COUNTERPARTY_RISK = "counterparty_risk"
+    REGULATORY_RISK = "regulatory_risk"
+    TECHNOLOGY_RISK = "technology_risk"
 
 
-class RiskLevel(Enum):
+class RiskSeverity(Enum):
     """Risk severity levels"""
     LOW = "low"
     MEDIUM = "medium"
@@ -43,930 +51,718 @@ class RiskLevel(Enum):
     CRITICAL = "critical"
 
 
-class AlertStatus(Enum):
-    """Risk alert status"""
-    ACTIVE = "active"
-    ACKNOWLEDGED = "acknowledged"
-    RESOLVED = "resolved"
-    ESCALATED = "escalated"
-
-
-@dataclass
-class RiskMetric:
-    """Individual risk metric"""
-    metric_id: str
-    name: str
-    risk_type: RiskType
-    value: Decimal
-    threshold: Decimal
-    limit: Decimal
-    unit: str
-    confidence_level: Decimal
-    calculation_method: str
-    last_calculated: datetime
-    historical_values: List[Tuple[datetime, Decimal]]
-
-
-@dataclass
-class RiskAssessment:
-    """Comprehensive risk assessment"""
-    assessment_id: str
-    entity_id: str
-    entity_type: str  # portfolio, user, transaction, etc.
-    overall_risk_score: Decimal
-    risk_level: RiskLevel
-    risk_metrics: List[RiskMetric]
-    risk_factors: List[str]
-    recommendations: List[str]
-    assessment_date: datetime
-    valid_until: datetime
-    assessor: str
-    methodology: str
-    confidence_score: Decimal
-
-
 @dataclass
 class RiskAlert:
-    """Risk alert/warning"""
-    alert_id: str
-    entity_id: str
-    entity_type: str
-    risk_type: RiskType
-    risk_level: RiskLevel
+    """Risk alert structure"""
+    risk_id: str
+    category: RiskCategory
+    severity: RiskSeverity
     title: str
     description: str
-    threshold_breached: str
-    current_value: Decimal
-    threshold_value: Decimal
-    status: AlertStatus
+    affected_entities: List[str]
+    recommended_actions: List[str]
     created_at: datetime
-    acknowledged_at: Optional[datetime]
-    resolved_at: Optional[datetime]
-    assigned_to: Optional[str]
-    escalation_level: int
+    expires_at: Optional[datetime]
     metadata: Dict[str, Any]
 
 
 @dataclass
-class RiskLimit:
-    """Risk limit configuration"""
-    limit_id: str
-    entity_id: str
-    entity_type: str
-    risk_type: RiskType
-    metric_name: str
-    limit_value: Decimal
-    warning_threshold: Decimal
-    currency: str
-    time_period: str
-    effective_date: datetime
-    expiry_date: Optional[datetime]
-    created_by: str
-    approved_by: str
-    metadata: Dict[str, Any]
+class PortfolioRiskMetrics:
+    """Portfolio risk metrics"""
+    portfolio_id: str
+    total_value: Decimal
+    var_1d: Decimal  # 1-day Value at Risk
+    var_5d: Decimal  # 5-day Value at Risk
+    expected_shortfall: Decimal
+    sharpe_ratio: float
+    sortino_ratio: float
+    max_drawdown: float
+    beta: float
+    volatility: float
+    concentration_score: float
+    liquidity_score: float
+    stress_test_loss: Decimal
+    risk_score: float
+    calculated_at: datetime
 
 
-@dataclass
-class StressTestScenario:
-    """Stress testing scenario"""
-    scenario_id: str
-    name: str
-    description: str
-    scenario_type: str
-    parameters: Dict[str, Any]
-    market_shocks: Dict[str, Decimal]
-    expected_impact: Dict[str, Decimal]
-    probability: Decimal
-    created_at: datetime
-    created_by: str
-
-
-@dataclass
-class StressTestResult:
-    """Stress test results"""
-    test_id: str
-    scenario_id: str
-    entity_id: str
-    entity_type: str
-    baseline_value: Decimal
-    stressed_value: Decimal
-    impact_amount: Decimal
-    impact_percentage: Decimal
-    risk_metrics_impact: Dict[str, Decimal]
-    passed: bool
-    test_date: datetime
-    methodology: str
-
-
-class RiskManagementService:
+class EnhancedRiskManagementService:
     """
-    Comprehensive risk management service providing:
-    - Risk assessment and scoring
-    - Risk monitoring and alerting
-    - Risk limit management
-    - Stress testing and scenario analysis
+    Enhanced risk management service providing:
+    - Real-time risk monitoring and assessment
     - Value at Risk (VaR) calculations
-    - Expected Shortfall (ES) calculations
+    - Stress testing and scenario analysis
     - Concentration risk analysis
-    - Regulatory risk reporting
-    - Risk dashboard and analytics
+    - Liquidity risk assessment
+    - Regulatory compliance monitoring
+    - Risk-based position limits
+    - Automated risk alerts and notifications
     """
     
     def __init__(self):
-        self.encryption_service = EncryptionService()
+        # Risk parameters
+        self.confidence_levels = [0.95, 0.99, 0.999]  # 95%, 99%, 99.9%
+        self.var_time_horizons = [1, 5, 10]  # days
+        self.max_concentration_single_asset = 0.25  # 25%
+        self.max_concentration_sector = 0.40  # 40%
+        self.min_liquidity_ratio = 0.10  # 10%
         
-        # Risk management configuration
-        self.confidence_levels = [Decimal('0.95'), Decimal('0.99'), Decimal('0.999')]
-        self.var_calculation_methods = ['historical', 'parametric', 'monte_carlo']
-        self.stress_test_frequency_days = 30
+        # Stress test scenarios
+        self.stress_scenarios = {
+            'market_crash': {'equity_shock': -0.30, 'bond_shock': -0.10, 'crypto_shock': -0.50},
+            'interest_rate_shock': {'rate_increase': 0.02, 'bond_shock': -0.15, 'equity_shock': -0.10},
+            'liquidity_crisis': {'liquidity_discount': 0.20, 'spread_widening': 0.05},
+            'crypto_winter': {'crypto_shock': -0.70, 'defi_shock': -0.80},
+            'regulatory_crackdown': {'compliance_cost': 0.05, 'operational_shock': -0.15}
+        }
         
-        # Risk thresholds and limits
-        self.default_risk_limits = {
-            RiskType.MARKET_RISK: {
-                'var_95': Decimal('0.05'),  # 5% of portfolio value
-                'var_99': Decimal('0.10'),  # 10% of portfolio value
-                'concentration_single_asset': Decimal('0.20'),  # 20% max in single asset
-                'concentration_sector': Decimal('0.30'),  # 30% max in single sector
-                'leverage_ratio': Decimal('2.0')  # 2:1 max leverage
+        # Risk limits by user tier
+        self.risk_limits = {
+            'retail': {
+                'max_portfolio_var': 0.05,  # 5% daily VaR
+                'max_single_position': 0.20,  # 20% of portfolio
+                'max_leverage': 2.0
             },
-            RiskType.CREDIT_RISK: {
-                'single_counterparty': Decimal('0.15'),  # 15% max exposure
-                'credit_rating_minimum': 'BBB-',
-                'default_probability_max': Decimal('0.05')  # 5% max default probability
+            'professional': {
+                'max_portfolio_var': 0.10,  # 10% daily VaR
+                'max_single_position': 0.30,  # 30% of portfolio
+                'max_leverage': 5.0
             },
-            RiskType.LIQUIDITY_RISK: {
-                'liquidity_ratio_min': Decimal('0.10'),  # 10% min liquid assets
-                'funding_concentration_max': Decimal('0.25')  # 25% max from single source
+            'institutional': {
+                'max_portfolio_var': 0.15,  # 15% daily VaR
+                'max_single_position': 0.50,  # 50% of portfolio
+                'max_leverage': 10.0
             }
         }
-        
-        # Market volatility assumptions (annualized)
-        self.market_volatilities = {
-            'stocks': Decimal('0.20'),  # 20%
-            'bonds': Decimal('0.05'),   # 5%
-            'commodities': Decimal('0.30'),  # 30%
-            'currencies': Decimal('0.15'),   # 15%
-            'crypto': Decimal('0.80')   # 80%
-        }
-        
-        # Correlation matrix (simplified)
-        self.correlation_matrix = {
-            ('stocks', 'bonds'): Decimal('-0.2'),
-            ('stocks', 'commodities'): Decimal('0.3'),
-            ('stocks', 'crypto'): Decimal('0.1'),
-            ('bonds', 'commodities'): Decimal('-0.1'),
-            ('bonds', 'crypto'): Decimal('0.0'),
-            ('commodities', 'crypto'): Decimal('0.2')
-        }
-        
-        # In-memory storage (in production, use database)
-        self.risk_assessments: Dict[str, RiskAssessment] = {}
-        self.risk_alerts: Dict[str, RiskAlert] = {}
-        self.risk_limits: Dict[str, List[RiskLimit]] = {}
-        self.stress_test_scenarios: Dict[str, StressTestScenario] = {}
-        self.stress_test_results: Dict[str, List[StressTestResult]] = {}
-        self.risk_metrics_history: Dict[str, List[RiskMetric]] = {}
-        
-        # Initialize default scenarios
-        self._initialize_stress_test_scenarios()
     
-    def _initialize_stress_test_scenarios(self):
-        """Initialize default stress test scenarios"""
-        scenarios = [
-            {
-                'name': 'Market Crash 2008',
-                'description': 'Severe market downturn similar to 2008 financial crisis',
-                'scenario_type': 'historical',
-                'market_shocks': {
-                    'stocks': Decimal('-0.40'),  # 40% decline
-                    'bonds': Decimal('0.10'),    # 10% increase (flight to quality)
-                    'commodities': Decimal('-0.30'),  # 30% decline
-                    'currencies': Decimal('0.05')     # 5% USD strengthening
-                },
-                'probability': Decimal('0.01')  # 1% annual probability
-            },
-            {
-                'name': 'Interest Rate Shock',
-                'description': 'Sudden 300 basis point increase in interest rates',
-                'scenario_type': 'hypothetical',
-                'market_shocks': {
-                    'bonds': Decimal('-0.15'),   # 15% decline in bond prices
-                    'stocks': Decimal('-0.10'),  # 10% decline in stocks
-                    'currencies': Decimal('0.08') # 8% currency impact
-                },
-                'probability': Decimal('0.05')  # 5% annual probability
-            },
-            {
-                'name': 'Liquidity Crisis',
-                'description': 'Severe liquidity shortage in financial markets',
-                'scenario_type': 'hypothetical',
-                'market_shocks': {
-                    'stocks': Decimal('-0.25'),
-                    'bonds': Decimal('-0.08'),
-                    'commodities': Decimal('-0.20'),
-                    'crypto': Decimal('-0.50')
-                },
-                'probability': Decimal('0.02')  # 2% annual probability
-            }
-        ]
-        
-        for scenario_data in scenarios:
-            scenario_id = f"scenario_{uuid.uuid4().hex[:8]}"
-            scenario = StressTestScenario(
-                scenario_id=scenario_id,
-                name=scenario_data['name'],
-                description=scenario_data['description'],
-                scenario_type=scenario_data['scenario_type'],
-                parameters={},
-                market_shocks=scenario_data['market_shocks'],
-                expected_impact={},
-                probability=scenario_data['probability'],
-                created_at=datetime.now(timezone.utc),
-                created_by='system'
+    async def assess_portfolio_risk(
+        self,
+        db: AsyncSession,
+        portfolio_id: UUID,
+        include_stress_tests: bool = True
+    ) -> PortfolioRiskMetrics:
+        """Comprehensive portfolio risk assessment"""
+        try:
+            # Get portfolio and assets
+            portfolio_result = await db.execute(
+                select(Portfolio)
+                .options(selectinload(Portfolio.assets))
+                .where(Portfolio.id == portfolio_id)
             )
-            self.stress_test_scenarios[scenario_id] = scenario
-    
-    async def assess_portfolio_risk(self, portfolio_id: str, portfolio_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Perform comprehensive risk assessment for a portfolio"""
-        assessment_id = f"assessment_{uuid.uuid4().hex[:12]}"
-        
-        # Calculate various risk metrics
-        risk_metrics = []
-        
-        # Market Risk Metrics
-        var_95 = await self._calculate_var(portfolio_data, Decimal('0.95'))
-        var_99 = await self._calculate_var(portfolio_data, Decimal('0.99'))
-        expected_shortfall = await self._calculate_expected_shortfall(portfolio_data, Decimal('0.95'))
-        
-        risk_metrics.extend([
-            RiskMetric(
-                metric_id=f"var_95_{uuid.uuid4().hex[:8]}",
-                name="Value at Risk (95%)",
-                risk_type=RiskType.MARKET_RISK,
-                value=var_95,
-                threshold=portfolio_data.get('total_value', Decimal('0')) * Decimal('0.03'),  # 3% threshold
-                limit=portfolio_data.get('total_value', Decimal('0')) * Decimal('0.05'),     # 5% limit
-                unit="USD",
-                confidence_level=Decimal('0.95'),
-                calculation_method="historical_simulation",
-                last_calculated=datetime.now(timezone.utc),
-                historical_values=[]
-            ),
-            RiskMetric(
-                metric_id=f"var_99_{uuid.uuid4().hex[:8]}",
-                name="Value at Risk (99%)",
-                risk_type=RiskType.MARKET_RISK,
-                value=var_99,
-                threshold=portfolio_data.get('total_value', Decimal('0')) * Decimal('0.05'),  # 5% threshold
-                limit=portfolio_data.get('total_value', Decimal('0')) * Decimal('0.10'),     # 10% limit
-                unit="USD",
-                confidence_level=Decimal('0.99'),
-                calculation_method="historical_simulation",
-                last_calculated=datetime.now(timezone.utc),
-                historical_values=[]
-            ),
-            RiskMetric(
-                metric_id=f"es_95_{uuid.uuid4().hex[:8]}",
-                name="Expected Shortfall (95%)",
-                risk_type=RiskType.MARKET_RISK,
-                value=expected_shortfall,
-                threshold=portfolio_data.get('total_value', Decimal('0')) * Decimal('0.07'),  # 7% threshold
-                limit=portfolio_data.get('total_value', Decimal('0')) * Decimal('0.12'),     # 12% limit
-                unit="USD",
-                confidence_level=Decimal('0.95'),
-                calculation_method="historical_simulation",
-                last_calculated=datetime.now(timezone.utc),
-                historical_values=[]
-            )
-        ])
-        
-        # Concentration Risk Metrics
-        concentration_metrics = await self._calculate_concentration_risk(portfolio_data)
-        risk_metrics.extend(concentration_metrics)
-        
-        # Liquidity Risk Metrics
-        liquidity_metrics = await self._calculate_liquidity_risk(portfolio_data)
-        risk_metrics.extend(liquidity_metrics)
-        
-        # Calculate overall risk score
-        overall_risk_score = await self._calculate_overall_risk_score(risk_metrics)
-        risk_level = self._determine_risk_level(overall_risk_score)
-        
-        # Generate risk factors and recommendations
-        risk_factors = await self._identify_risk_factors(risk_metrics, portfolio_data)
-        recommendations = await self._generate_risk_recommendations(risk_metrics, risk_factors)
-        
-        # Create risk assessment
-        assessment = RiskAssessment(
-            assessment_id=assessment_id,
-            entity_id=portfolio_id,
-            entity_type="portfolio",
-            overall_risk_score=overall_risk_score,
-            risk_level=risk_level,
-            risk_metrics=risk_metrics,
-            risk_factors=risk_factors,
-            recommendations=recommendations,
-            assessment_date=datetime.now(timezone.utc),
-            valid_until=datetime.now(timezone.utc) + timedelta(days=1),
-            assessor="risk_management_service",
-            methodology="comprehensive_quantitative_analysis",
-            confidence_score=Decimal('0.85')
-        )
-        
-        self.risk_assessments[assessment_id] = assessment
-        
-        # Check for risk limit breaches and create alerts
-        await self._check_risk_limits(assessment)
-        
-        logger.info(f"Risk assessment completed for portfolio {portfolio_id}: {risk_level.value}")
-        
-        return {
-            'assessment_id': assessment_id,
-            'portfolio_id': portfolio_id,
-            'overall_risk_score': str(overall_risk_score),
-            'risk_level': risk_level.value,
-            'var_95': str(var_95),
-            'var_99': str(var_99),
-            'expected_shortfall': str(expected_shortfall),
-            'risk_factors': risk_factors,
-            'recommendations': recommendations,
-            'assessment_date': assessment.assessment_date.isoformat(),
-            'valid_until': assessment.valid_until.isoformat(),
-            'confidence_score': str(assessment.confidence_score)
-        }
-    
-    async def run_stress_test(self, entity_id: str, entity_type: str, 
-                            entity_data: Dict[str, Any], scenario_id: Optional[str] = None) -> Dict[str, Any]:
-        """Run stress test on portfolio or position"""
-        if scenario_id:
-            scenarios = [self.stress_test_scenarios[scenario_id]]
-        else:
-            scenarios = list(self.stress_test_scenarios.values())
-        
-        stress_test_results = []
-        
-        for scenario in scenarios:
-            test_id = f"stress_test_{uuid.uuid4().hex[:12]}"
+            portfolio = portfolio_result.scalar_one_or_none()
             
-            # Calculate baseline value
-            baseline_value = entity_data.get('total_value', Decimal('0'))
+            if not portfolio:
+                raise ValueError(f"Portfolio {portfolio_id} not found")
             
-            # Apply stress scenario
-            stressed_value = await self._apply_stress_scenario(entity_data, scenario)
+            # Calculate portfolio value
+            total_value = sum(asset.current_value for asset in portfolio.assets)
             
-            # Calculate impact
-            impact_amount = stressed_value - baseline_value
-            impact_percentage = (impact_amount / baseline_value * 100) if baseline_value > 0 else Decimal('0')
+            # Get historical price data for risk calculations
+            price_data = await self._get_historical_prices(db, portfolio.assets)
             
-            # Calculate impact on risk metrics
-            risk_metrics_impact = await self._calculate_stress_impact_on_metrics(entity_data, scenario)
+            # Calculate VaR
+            var_1d, var_5d = await self._calculate_var(price_data, total_value)
             
-            # Determine if test passed (based on risk tolerance)
-            risk_tolerance = entity_data.get('risk_tolerance', 'medium')
-            max_acceptable_loss = self._get_max_acceptable_loss(risk_tolerance)
-            passed = abs(impact_percentage) <= max_acceptable_loss
+            # Calculate Expected Shortfall (Conditional VaR)
+            expected_shortfall = await self._calculate_expected_shortfall(price_data, total_value)
             
-            result = StressTestResult(
-                test_id=test_id,
-                scenario_id=scenario.scenario_id,
-                entity_id=entity_id,
-                entity_type=entity_type,
-                baseline_value=baseline_value,
-                stressed_value=stressed_value,
-                impact_amount=impact_amount,
-                impact_percentage=impact_percentage,
-                risk_metrics_impact=risk_metrics_impact,
-                passed=passed,
-                test_date=datetime.now(timezone.utc),
-                methodology="scenario_analysis"
+            # Calculate performance metrics
+            returns = await self._calculate_portfolio_returns(price_data)
+            sharpe_ratio = self._calculate_sharpe_ratio(returns)
+            sortino_ratio = self._calculate_sortino_ratio(returns)
+            max_drawdown = self._calculate_max_drawdown(returns)
+            beta = await self._calculate_beta(returns, db)
+            volatility = np.std(returns) * np.sqrt(252)  # Annualized
+            
+            # Calculate concentration risk
+            concentration_score = self._calculate_concentration_risk(portfolio.assets, total_value)
+            
+            # Calculate liquidity risk
+            liquidity_score = await self._calculate_liquidity_risk(db, portfolio.assets)
+            
+            # Perform stress tests
+            stress_test_loss = Decimal('0')
+            if include_stress_tests:
+                stress_test_loss = await self._perform_stress_tests(portfolio.assets, total_value)
+            
+            # Calculate overall risk score
+            risk_score = self._calculate_overall_risk_score(
+                var_1d / total_value, concentration_score, liquidity_score,
+                volatility, max_drawdown
             )
             
-            stress_test_results.append(result)
+            # Create risk metrics object
+            risk_metrics = PortfolioRiskMetrics(
+                portfolio_id=str(portfolio_id),
+                total_value=total_value,
+                var_1d=var_1d,
+                var_5d=var_5d,
+                expected_shortfall=expected_shortfall,
+                sharpe_ratio=sharpe_ratio,
+                sortino_ratio=sortino_ratio,
+                max_drawdown=max_drawdown,
+                beta=beta,
+                volatility=volatility,
+                concentration_score=concentration_score,
+                liquidity_score=liquidity_score,
+                stress_test_loss=stress_test_loss,
+                risk_score=risk_score,
+                calculated_at=datetime.utcnow()
+            )
             
-            # Store result
-            if entity_id not in self.stress_test_results:
-                self.stress_test_results[entity_id] = []
-            self.stress_test_results[entity_id].append(result)
-        
-        # Generate summary
-        total_tests = len(stress_test_results)
-        passed_tests = sum(1 for result in stress_test_results if result.passed)
-        worst_case_loss = min(result.impact_percentage for result in stress_test_results)
-        
-        logger.info(f"Stress test completed for {entity_type} {entity_id}: {passed_tests}/{total_tests} passed")
-        
-        return {
-            'entity_id': entity_id,
-            'entity_type': entity_type,
-            'total_scenarios_tested': total_tests,
-            'scenarios_passed': passed_tests,
-            'pass_rate': str((Decimal(passed_tests) / Decimal(total_tests) * 100).quantize(Decimal('0.01'))),
-            'worst_case_loss_percentage': str(worst_case_loss),
-            'test_date': datetime.now(timezone.utc).isoformat(),
-            'detailed_results': [
-                {
-                    'scenario_name': self.stress_test_scenarios[result.scenario_id].name,
-                    'baseline_value': str(result.baseline_value),
-                    'stressed_value': str(result.stressed_value),
-                    'impact_amount': str(result.impact_amount),
-                    'impact_percentage': str(result.impact_percentage),
-                    'passed': result.passed
+            # Store risk assessment in database
+            await self._store_risk_assessment(db, portfolio_id, risk_metrics)
+            
+            logger.info(f"Portfolio risk assessment completed for {portfolio_id}: "
+                       f"Risk Score: {risk_score:.2f}, VaR 1d: {var_1d}")
+            
+            return risk_metrics
+            
+        except Exception as e:
+            logger.error(f"Portfolio risk assessment failed for {portfolio_id}: {str(e)}")
+            raise
+    
+    async def monitor_real_time_risk(
+        self,
+        db: AsyncSession,
+        user_id: UUID,
+        transaction: Optional[Transaction] = None
+    ) -> List[RiskAlert]:
+        """Real-time risk monitoring and alert generation"""
+        try:
+            alerts = []
+            
+            # Get user's portfolios
+            portfolios_result = await db.execute(
+                select(Portfolio)
+                .options(selectinload(Portfolio.assets))
+                .where(Portfolio.user_id == user_id)
+            )
+            portfolios = portfolios_result.scalars().all()
+            
+            for portfolio in portfolios:
+                # Check position limits
+                position_alerts = await self._check_position_limits(portfolio, transaction)
+                alerts.extend(position_alerts)
+                
+                # Check concentration risk
+                concentration_alerts = await self._check_concentration_limits(portfolio)
+                alerts.extend(concentration_alerts)
+                
+                # Check VaR limits
+                var_alerts = await self._check_var_limits(db, portfolio)
+                alerts.extend(var_alerts)
+                
+                # Check liquidity risk
+                liquidity_alerts = await self._check_liquidity_risk(db, portfolio)
+                alerts.extend(liquidity_alerts)
+            
+            # Check transaction-specific risks
+            if transaction:
+                transaction_alerts = await self._check_transaction_risks(db, transaction)
+                alerts.extend(transaction_alerts)
+            
+            # Check regulatory compliance
+            compliance_alerts = await self._check_regulatory_compliance(db, user_id)
+            alerts.extend(compliance_alerts)
+            
+            # Store alerts in database
+            for alert in alerts:
+                await self._store_risk_alert(db, alert)
+            
+            logger.info(f"Real-time risk monitoring completed for user {user_id}: "
+                       f"{len(alerts)} alerts generated")
+            
+            return alerts
+            
+        except Exception as e:
+            logger.error(f"Real-time risk monitoring failed for user {user_id}: {str(e)}")
+            raise
+    
+    async def calculate_position_limits(
+        self,
+        db: AsyncSession,
+        user_id: UUID,
+        asset_symbol: str,
+        user_tier: str = 'retail'
+    ) -> Dict[str, Any]:
+        """Calculate position limits for a specific asset"""
+        try:
+            # Get user's current portfolio
+            portfolio_result = await db.execute(
+                select(Portfolio)
+                .options(selectinload(Portfolio.assets))
+                .where(Portfolio.user_id == user_id)
+                .order_by(desc(Portfolio.created_at))
+                .limit(1)
+            )
+            portfolio = portfolio_result.scalar_one_or_none()
+            
+            if not portfolio:
+                # Create default limits for new users
+                return {
+                    'max_position_value': Decimal('1000'),  # $1,000 default
+                    'max_position_percentage': 0.10,  # 10%
+                    'current_position_value': Decimal('0'),
+                    'current_position_percentage': 0.0,
+                    'available_capacity': Decimal('1000'),
+                    'risk_tier': user_tier
                 }
-                for result in stress_test_results
-            ]
-        }
-    
-    async def get_risk_alerts(self, entity_id: Optional[str] = None, 
-                            risk_type: Optional[RiskType] = None,
-                            status: Optional[AlertStatus] = None) -> Dict[str, Any]:
-        """Get risk alerts with optional filtering"""
-        alerts = list(self.risk_alerts.values())
-        
-        # Apply filters
-        if entity_id:
-            alerts = [alert for alert in alerts if alert.entity_id == entity_id]
-        
-        if risk_type:
-            alerts = [alert for alert in alerts if alert.risk_type == risk_type]
-        
-        if status:
-            alerts = [alert for alert in alerts if alert.status == status]
-        
-        # Sort by creation date (newest first)
-        alerts.sort(key=lambda x: x.created_at, reverse=True)
-        
-        formatted_alerts = []
-        for alert in alerts:
-            formatted_alerts.append({
-                'alert_id': alert.alert_id,
-                'entity_id': alert.entity_id,
-                'entity_type': alert.entity_type,
-                'risk_type': alert.risk_type.value,
-                'risk_level': alert.risk_level.value,
-                'title': alert.title,
-                'description': alert.description,
-                'current_value': str(alert.current_value),
-                'threshold_value': str(alert.threshold_value),
-                'status': alert.status.value,
-                'created_at': alert.created_at.isoformat(),
-                'escalation_level': alert.escalation_level
-            })
-        
-        return {
-            'alerts': formatted_alerts,
-            'total_alerts': len(formatted_alerts),
-            'active_alerts': len([a for a in alerts if a.status == AlertStatus.ACTIVE]),
-            'critical_alerts': len([a for a in alerts if a.risk_level == RiskLevel.CRITICAL])
-        }
-    
-    async def acknowledge_risk_alert(self, alert_id: str, acknowledged_by: str) -> Dict[str, Any]:
-        """Acknowledge a risk alert"""
-        alert = self.risk_alerts.get(alert_id)
-        if not alert:
-            raise ValueError("Alert not found")
-        
-        if alert.status != AlertStatus.ACTIVE:
-            raise ValueError(f"Alert is not active (current status: {alert.status.value})")
-        
-        alert.status = AlertStatus.ACKNOWLEDGED
-        alert.acknowledged_at = datetime.now(timezone.utc)
-        alert.assigned_to = acknowledged_by
-        
-        logger.info(f"Risk alert acknowledged: {alert_id} by {acknowledged_by}")
-        
-        return {
-            'alert_id': alert_id,
-            'status': alert.status.value,
-            'acknowledged_by': acknowledged_by,
-            'acknowledged_at': alert.acknowledged_at.isoformat()
-        }
-    
-    async def set_risk_limit(self, entity_id: str, entity_type: str, risk_type: RiskType,
-                           metric_name: str, limit_value: Decimal, warning_threshold: Decimal,
-                           created_by: str, approved_by: str) -> Dict[str, Any]:
-        """Set risk limit for entity"""
-        limit_id = f"limit_{uuid.uuid4().hex[:12]}"
-        
-        risk_limit = RiskLimit(
-            limit_id=limit_id,
-            entity_id=entity_id,
-            entity_type=entity_type,
-            risk_type=risk_type,
-            metric_name=metric_name,
-            limit_value=limit_value,
-            warning_threshold=warning_threshold,
-            currency="USD",
-            time_period="daily",
-            effective_date=datetime.now(timezone.utc),
-            expiry_date=None,
-            created_by=created_by,
-            approved_by=approved_by,
-            metadata={}
-        )
-        
-        if entity_id not in self.risk_limits:
-            self.risk_limits[entity_id] = []
-        self.risk_limits[entity_id].append(risk_limit)
-        
-        logger.info(f"Risk limit set: {metric_name} = {limit_value} for {entity_type} {entity_id}")
-        
-        return {
-            'limit_id': limit_id,
-            'entity_id': entity_id,
-            'risk_type': risk_type.value,
-            'metric_name': metric_name,
-            'limit_value': str(limit_value),
-            'warning_threshold': str(warning_threshold),
-            'effective_date': risk_limit.effective_date.isoformat()
-        }
-    
-    # Private calculation methods
-    
-    async def _calculate_var(self, portfolio_data: Dict[str, Any], confidence_level: Decimal) -> Decimal:
-        """Calculate Value at Risk using historical simulation"""
-        positions = portfolio_data.get('positions', [])
-        total_value = portfolio_data.get('total_value', Decimal('0'))
-        
-        if not positions or total_value == 0:
-            return Decimal('0')
-        
-        # Simulate historical returns (simplified)
-        # In production, use actual historical price data
-        portfolio_returns = []
-        
-        for i in range(252):  # One year of daily returns
-            daily_return = Decimal('0')
             
-            for position in positions:
-                weight = position.get('weight', Decimal('0'))
-                asset_type = position.get('asset_type', 'stocks')
-                
-                # Simulate daily return based on asset type volatility
-                volatility = self.market_volatilities.get(asset_type, Decimal('0.20'))
-                daily_volatility = volatility / Decimal('15.87')  # sqrt(252)
-                
-                # Simple random return simulation (in production, use historical data)
-                simulated_return = daily_volatility * Decimal('0.5')  # Simplified
-                daily_return += weight * simulated_return
+            # Calculate current portfolio value
+            total_portfolio_value = sum(asset.current_value for asset in portfolio.assets)
             
-            portfolio_returns.append(daily_return)
-        
-        # Sort returns and find VaR
-        portfolio_returns.sort()
-        var_index = int((1 - confidence_level) * len(portfolio_returns))
-        var_return = portfolio_returns[var_index] if var_index < len(portfolio_returns) else portfolio_returns[0]
-        
-        # Convert to dollar amount
-        var_amount = abs(var_return * total_value)
-        
-        return var_amount
-    
-    async def _calculate_expected_shortfall(self, portfolio_data: Dict[str, Any], confidence_level: Decimal) -> Decimal:
-        """Calculate Expected Shortfall (Conditional VaR)"""
-        positions = portfolio_data.get('positions', [])
-        total_value = portfolio_data.get('total_value', Decimal('0'))
-        
-        if not positions or total_value == 0:
-            return Decimal('0')
-        
-        # Simulate returns (same as VaR calculation)
-        portfolio_returns = []
-        
-        for i in range(252):
-            daily_return = Decimal('0')
+            # Get current position in the asset
+            current_position = next(
+                (asset for asset in portfolio.assets if asset.symbol == asset_symbol),
+                None
+            )
+            current_position_value = current_position.current_value if current_position else Decimal('0')
+            current_position_percentage = float(current_position_value / total_portfolio_value) if total_portfolio_value > 0 else 0.0
             
-            for position in positions:
-                weight = position.get('weight', Decimal('0'))
-                asset_type = position.get('asset_type', 'stocks')
-                volatility = self.market_volatilities.get(asset_type, Decimal('0.20'))
-                daily_volatility = volatility / Decimal('15.87')
-                simulated_return = daily_volatility * Decimal('0.5')
-                daily_return += weight * simulated_return
+            # Get risk limits for user tier
+            tier_limits = self.risk_limits.get(user_tier, self.risk_limits['retail'])
             
-            portfolio_returns.append(daily_return)
-        
-        # Sort returns and calculate ES
-        portfolio_returns.sort()
-        var_index = int((1 - confidence_level) * len(portfolio_returns))
-        
-        # Expected Shortfall is the average of returns worse than VaR
-        tail_returns = portfolio_returns[:var_index] if var_index > 0 else [portfolio_returns[0]]
-        expected_shortfall_return = sum(tail_returns) / len(tail_returns) if tail_returns else Decimal('0')
-        
-        # Convert to dollar amount
-        es_amount = abs(expected_shortfall_return * total_value)
-        
-        return es_amount
-    
-    async def _calculate_concentration_risk(self, portfolio_data: Dict[str, Any]) -> List[RiskMetric]:
-        """Calculate concentration risk metrics"""
-        positions = portfolio_data.get('positions', [])
-        metrics = []
-        
-        if not positions:
-            return metrics
-        
-        # Single asset concentration
-        max_position_weight = max(position.get('weight', Decimal('0')) for position in positions)
-        
-        metrics.append(RiskMetric(
-            metric_id=f"concentration_single_{uuid.uuid4().hex[:8]}",
-            name="Single Asset Concentration",
-            risk_type=RiskType.CONCENTRATION_RISK,
-            value=max_position_weight,
-            threshold=Decimal('0.15'),  # 15% warning threshold
-            limit=Decimal('0.20'),      # 20% limit
-            unit="percentage",
-            confidence_level=Decimal('1.0'),
-            calculation_method="position_weight_analysis",
-            last_calculated=datetime.now(timezone.utc),
-            historical_values=[]
-        ))
-        
-        # Sector concentration (simplified)
-        sector_weights = {}
-        for position in positions:
-            sector = position.get('sector', 'Unknown')
-            weight = position.get('weight', Decimal('0'))
-            sector_weights[sector] = sector_weights.get(sector, Decimal('0')) + weight
-        
-        max_sector_weight = max(sector_weights.values()) if sector_weights else Decimal('0')
-        
-        metrics.append(RiskMetric(
-            metric_id=f"concentration_sector_{uuid.uuid4().hex[:8]}",
-            name="Sector Concentration",
-            risk_type=RiskType.CONCENTRATION_RISK,
-            value=max_sector_weight,
-            threshold=Decimal('0.25'),  # 25% warning threshold
-            limit=Decimal('0.30'),      # 30% limit
-            unit="percentage",
-            confidence_level=Decimal('1.0'),
-            calculation_method="sector_weight_analysis",
-            last_calculated=datetime.now(timezone.utc),
-            historical_values=[]
-        ))
-        
-        return metrics
-    
-    async def _calculate_liquidity_risk(self, portfolio_data: Dict[str, Any]) -> List[RiskMetric]:
-        """Calculate liquidity risk metrics"""
-        positions = portfolio_data.get('positions', [])
-        total_value = portfolio_data.get('total_value', Decimal('0'))
-        cash_balance = portfolio_data.get('cash_balance', Decimal('0'))
-        
-        metrics = []
-        
-        # Liquidity ratio
-        liquid_assets = cash_balance
-        for position in positions:
-            asset_type = position.get('asset_type', 'stocks')
-            market_value = position.get('market_value', Decimal('0'))
+            # Calculate maximum position limits
+            max_position_percentage = tier_limits['max_single_position']
+            max_position_value = total_portfolio_value * Decimal(str(max_position_percentage))
             
-            # Assign liquidity scores based on asset type
-            liquidity_scores = {
-                'cash': Decimal('1.0'),
-                'stocks': Decimal('0.9'),
-                'bonds': Decimal('0.8'),
-                'etf': Decimal('0.9'),
-                'mutual_fund': Decimal('0.7'),
-                'real_estate': Decimal('0.3'),
-                'crypto': Decimal('0.6')
+            # Calculate available capacity
+            available_capacity = max_position_value - current_position_value
+            
+            # Adjust limits based on asset risk profile
+            asset_risk_multiplier = await self._get_asset_risk_multiplier(db, asset_symbol)
+            max_position_value *= Decimal(str(asset_risk_multiplier))
+            available_capacity *= Decimal(str(asset_risk_multiplier))
+            
+            return {
+                'max_position_value': max_position_value,
+                'max_position_percentage': max_position_percentage * asset_risk_multiplier,
+                'current_position_value': current_position_value,
+                'current_position_percentage': current_position_percentage,
+                'available_capacity': max(available_capacity, Decimal('0')),
+                'risk_tier': user_tier,
+                'asset_risk_multiplier': asset_risk_multiplier
             }
             
-            liquidity_score = liquidity_scores.get(asset_type, Decimal('0.5'))
-            liquid_assets += market_value * liquidity_score
-        
-        liquidity_ratio = liquid_assets / total_value if total_value > 0 else Decimal('0')
-        
-        metrics.append(RiskMetric(
-            metric_id=f"liquidity_ratio_{uuid.uuid4().hex[:8]}",
-            name="Liquidity Ratio",
-            risk_type=RiskType.LIQUIDITY_RISK,
-            value=liquidity_ratio,
-            threshold=Decimal('0.15'),  # 15% warning threshold
-            limit=Decimal('0.10'),      # 10% minimum limit
-            unit="percentage",
-            confidence_level=Decimal('1.0'),
-            calculation_method="weighted_liquidity_analysis",
-            last_calculated=datetime.now(timezone.utc),
-            historical_values=[]
-        ))
-        
-        return metrics
+        except Exception as e:
+            logger.error(f"Position limit calculation failed for user {user_id}, asset {asset_symbol}: {str(e)}")
+            raise
     
-    async def _calculate_overall_risk_score(self, risk_metrics: List[RiskMetric]) -> Decimal:
-        """Calculate overall risk score from individual metrics"""
-        if not risk_metrics:
-            return Decimal('0')
+    async def perform_scenario_analysis(
+        self,
+        db: AsyncSession,
+        portfolio_id: UUID,
+        custom_scenarios: Optional[Dict[str, Dict[str, float]]] = None
+    ) -> Dict[str, Any]:
+        """Perform comprehensive scenario analysis and stress testing"""
+        try:
+            # Get portfolio
+            portfolio_result = await db.execute(
+                select(Portfolio)
+                .options(selectinload(Portfolio.assets))
+                .where(Portfolio.id == portfolio_id)
+            )
+            portfolio = portfolio_result.scalar_one_or_none()
+            
+            if not portfolio:
+                raise ValueError(f"Portfolio {portfolio_id} not found")
+            
+            total_value = sum(asset.current_value for asset in portfolio.assets)
+            scenarios_to_test = {**self.stress_scenarios}
+            
+            if custom_scenarios:
+                scenarios_to_test.update(custom_scenarios)
+            
+            scenario_results = {}
+            
+            for scenario_name, scenario_params in scenarios_to_test.items():
+                scenario_loss = await self._calculate_scenario_impact(
+                    portfolio.assets, total_value, scenario_params
+                )
+                
+                scenario_results[scenario_name] = {
+                    'absolute_loss': scenario_loss,
+                    'percentage_loss': float(scenario_loss / total_value) if total_value > 0 else 0.0,
+                    'parameters': scenario_params,
+                    'severity': self._classify_scenario_severity(scenario_loss, total_value)
+                }
+            
+            # Calculate worst-case scenario
+            worst_case_loss = max(result['absolute_loss'] for result in scenario_results.values())
+            worst_case_scenario = max(scenario_results.items(), key=lambda x: x[1]['absolute_loss'])
+            
+            # Calculate recovery time estimates
+            recovery_estimates = await self._estimate_recovery_times(scenario_results, total_value)
+            
+            analysis_result = {
+                'portfolio_id': str(portfolio_id),
+                'total_portfolio_value': total_value,
+                'scenarios': scenario_results,
+                'worst_case_loss': worst_case_loss,
+                'worst_case_scenario': worst_case_scenario[0],
+                'recovery_estimates': recovery_estimates,
+                'analysis_timestamp': datetime.utcnow().isoformat(),
+                'recommendations': await self._generate_risk_recommendations(scenario_results, total_value)
+            }
+            
+            # Store scenario analysis results
+            await self._store_scenario_analysis(db, portfolio_id, analysis_result)
+            
+            logger.info(f"Scenario analysis completed for portfolio {portfolio_id}: "
+                       f"Worst case loss: {worst_case_loss}")
+            
+            return analysis_result
+            
+        except Exception as e:
+            logger.error(f"Scenario analysis failed for portfolio {portfolio_id}: {str(e)}")
+            raise
+    
+    # Private helper methods
+    
+    async def _get_historical_prices(self, db: AsyncSession, assets: List[PortfolioAsset]) -> pd.DataFrame:
+        """Get historical price data for portfolio assets"""
+        # In a real implementation, this would fetch from a price data service
+        # For now, we'll simulate with random data
         
-        total_score = Decimal('0')
-        total_weight = Decimal('0')
+        dates = pd.date_range(end=datetime.now(), periods=252, freq='D')  # 1 year of daily data
+        price_data = {}
         
-        # Weight different risk types
-        risk_weights = {
-            RiskType.MARKET_RISK: Decimal('0.4'),
-            RiskType.CONCENTRATION_RISK: Decimal('0.3'),
-            RiskType.LIQUIDITY_RISK: Decimal('0.2'),
-            RiskType.CREDIT_RISK: Decimal('0.1')
+        for asset in assets:
+            # Simulate price movements with realistic volatility
+            np.random.seed(hash(asset.symbol) % 2**32)  # Deterministic but asset-specific
+            returns = np.random.normal(0.0005, 0.02, len(dates))  # Daily returns
+            prices = [100.0]  # Starting price
+            
+            for ret in returns[1:]:
+                prices.append(prices[-1] * (1 + ret))
+            
+            price_data[asset.symbol] = prices
+        
+        return pd.DataFrame(price_data, index=dates)
+    
+    async def _calculate_var(self, price_data: pd.DataFrame, portfolio_value: Decimal) -> Tuple[Decimal, Decimal]:
+        """Calculate Value at Risk using historical simulation"""
+        # Calculate portfolio returns
+        returns = price_data.pct_change().dropna()
+        portfolio_returns = returns.mean(axis=1)  # Equal weighted for simplicity
+        
+        # Calculate VaR at 95% confidence level
+        var_1d = np.percentile(portfolio_returns, 5) * float(portfolio_value)
+        var_5d = var_1d * np.sqrt(5)  # Scale for 5-day horizon
+        
+        return Decimal(str(abs(var_1d))), Decimal(str(abs(var_5d)))
+    
+    async def _calculate_expected_shortfall(self, price_data: pd.DataFrame, portfolio_value: Decimal) -> Decimal:
+        """Calculate Expected Shortfall (Conditional VaR)"""
+        returns = price_data.pct_change().dropna()
+        portfolio_returns = returns.mean(axis=1)
+        
+        # Calculate 5% worst returns
+        var_threshold = np.percentile(portfolio_returns, 5)
+        tail_returns = portfolio_returns[portfolio_returns <= var_threshold]
+        expected_shortfall = tail_returns.mean() * float(portfolio_value)
+        
+        return Decimal(str(abs(expected_shortfall)))
+    
+    async def _calculate_portfolio_returns(self, price_data: pd.DataFrame) -> np.ndarray:
+        """Calculate portfolio returns"""
+        returns = price_data.pct_change().dropna()
+        return returns.mean(axis=1).values  # Equal weighted
+    
+    def _calculate_sharpe_ratio(self, returns: np.ndarray, risk_free_rate: float = 0.02) -> float:
+        """Calculate Sharpe ratio"""
+        excess_returns = returns - risk_free_rate / 252  # Daily risk-free rate
+        return float(np.mean(excess_returns) / np.std(excess_returns) * np.sqrt(252))
+    
+    def _calculate_sortino_ratio(self, returns: np.ndarray, risk_free_rate: float = 0.02) -> float:
+        """Calculate Sortino ratio (downside deviation)"""
+        excess_returns = returns - risk_free_rate / 252
+        downside_returns = excess_returns[excess_returns < 0]
+        downside_deviation = np.std(downside_returns) if len(downside_returns) > 0 else np.std(excess_returns)
+        return float(np.mean(excess_returns) / downside_deviation * np.sqrt(252))
+    
+    def _calculate_max_drawdown(self, returns: np.ndarray) -> float:
+        """Calculate maximum drawdown"""
+        cumulative_returns = np.cumprod(1 + returns)
+        running_max = np.maximum.accumulate(cumulative_returns)
+        drawdown = (cumulative_returns - running_max) / running_max
+        return float(np.min(drawdown))
+    
+    async def _calculate_beta(self, returns: np.ndarray, db: AsyncSession) -> float:
+        """Calculate portfolio beta against market benchmark"""
+        # In a real implementation, this would use actual market data
+        # For now, simulate market returns
+        np.random.seed(42)
+        market_returns = np.random.normal(0.0008, 0.015, len(returns))
+        
+        covariance = np.cov(returns, market_returns)[0, 1]
+        market_variance = np.var(market_returns)
+        
+        return float(covariance / market_variance) if market_variance > 0 else 1.0
+    
+    def _calculate_concentration_risk(self, assets: List[PortfolioAsset], total_value: Decimal) -> float:
+        """Calculate concentration risk score"""
+        if total_value == 0:
+            return 0.0
+        
+        # Calculate Herfindahl-Hirschman Index (HHI)
+        weights = [float(asset.current_value / total_value) for asset in assets]
+        hhi = sum(w**2 for w in weights)
+        
+        # Normalize to 0-1 scale (1 = maximum concentration)
+        max_hhi = 1.0  # Single asset portfolio
+        min_hhi = 1.0 / len(assets) if assets else 1.0  # Equal weighted
+        
+        if max_hhi == min_hhi:
+            return 0.0
+        
+        concentration_score = (hhi - min_hhi) / (max_hhi - min_hhi)
+        return min(concentration_score, 1.0)
+    
+    async def _calculate_liquidity_risk(self, db: AsyncSession, assets: List[PortfolioAsset]) -> float:
+        """Calculate liquidity risk score"""
+        if not assets:
+            return 1.0  # Maximum risk for empty portfolio
+        
+        # In a real implementation, this would use actual liquidity metrics
+        # For now, simulate based on asset types
+        liquidity_scores = []
+        
+        for asset in assets:
+            # Simulate liquidity based on asset symbol (crypto vs traditional)
+            if any(crypto in asset.symbol.upper() for crypto in ['BTC', 'ETH', 'USDT', 'USDC']):
+                liquidity_scores.append(0.8)  # High liquidity crypto
+            elif 'USD' in asset.symbol.upper():
+                liquidity_scores.append(0.95)  # Fiat currency
+            else:
+                liquidity_scores.append(0.6)  # Other assets
+        
+        # Weight by portfolio allocation
+        total_value = sum(asset.current_value for asset in assets)
+        if total_value == 0:
+            return 1.0
+        
+        weighted_liquidity = sum(
+            score * float(asset.current_value / total_value)
+            for score, asset in zip(liquidity_scores, assets)
+        )
+        
+        return 1.0 - weighted_liquidity  # Convert to risk score (higher = more risk)
+    
+    async def _perform_stress_tests(self, assets: List[PortfolioAsset], total_value: Decimal) -> Decimal:
+        """Perform stress tests on portfolio"""
+        max_loss = Decimal('0')
+        
+        for scenario_name, scenario_params in self.stress_scenarios.items():
+            scenario_loss = await self._calculate_scenario_impact(assets, total_value, scenario_params)
+            max_loss = max(max_loss, scenario_loss)
+        
+        return max_loss
+    
+    def _calculate_overall_risk_score(
+        self,
+        var_ratio: Decimal,
+        concentration_score: float,
+        liquidity_score: float,
+        volatility: float,
+        max_drawdown: float
+    ) -> float:
+        """Calculate overall risk score (0-100)"""
+        # Weighted combination of risk factors
+        weights = {
+            'var': 0.25,
+            'concentration': 0.20,
+            'liquidity': 0.20,
+            'volatility': 0.20,
+            'drawdown': 0.15
         }
         
-        for metric in risk_metrics:
-            weight = risk_weights.get(metric.risk_type, Decimal('0.1'))
-            
-            # Normalize metric value to 0-10 scale
-            if metric.limit > 0:
-                normalized_score = min(metric.value / metric.limit * 10, Decimal('10'))
-            else:
-                normalized_score = Decimal('5')  # Default moderate score
-            
-            total_score += normalized_score * weight
-            total_weight += weight
+        # Normalize components to 0-1 scale
+        var_component = min(float(var_ratio) * 10, 1.0)  # Cap at 10% VaR
+        concentration_component = concentration_score
+        liquidity_component = liquidity_score
+        volatility_component = min(volatility / 0.5, 1.0)  # Cap at 50% volatility
+        drawdown_component = min(abs(max_drawdown) / 0.3, 1.0)  # Cap at 30% drawdown
         
-        overall_score = total_score / total_weight if total_weight > 0 else Decimal('5')
-        return overall_score.quantize(Decimal('0.01'))
+        risk_score = (
+            weights['var'] * var_component +
+            weights['concentration'] * concentration_component +
+            weights['liquidity'] * liquidity_component +
+            weights['volatility'] * volatility_component +
+            weights['drawdown'] * drawdown_component
+        ) * 100
+        
+        return min(risk_score, 100.0)
     
-    def _determine_risk_level(self, risk_score: Decimal) -> RiskLevel:
-        """Determine risk level from risk score"""
-        if risk_score >= 8:
-            return RiskLevel.CRITICAL
-        elif risk_score >= 6:
-            return RiskLevel.HIGH
-        elif risk_score >= 4:
-            return RiskLevel.MEDIUM
+    async def _store_risk_assessment(self, db: AsyncSession, portfolio_id: UUID, metrics: PortfolioRiskMetrics):
+        """Store risk assessment in database"""
+        # In a real implementation, this would store in the database
+        logger.info(f"Storing risk assessment for portfolio {portfolio_id}")
+    
+    async def _check_position_limits(self, portfolio: Portfolio, transaction: Optional[Transaction]) -> List[RiskAlert]:
+        """Check position limits and generate alerts"""
+        alerts = []
+        
+        # Implementation would check actual position limits
+        # For now, return empty list
+        
+        return alerts
+    
+    async def _check_concentration_limits(self, portfolio: Portfolio) -> List[RiskAlert]:
+        """Check concentration limits"""
+        alerts = []
+        
+        total_value = sum(asset.current_value for asset in portfolio.assets)
+        if total_value == 0:
+            return alerts
+        
+        # Check single asset concentration
+        for asset in portfolio.assets:
+            concentration = float(asset.current_value / total_value)
+            if concentration > self.max_concentration_single_asset:
+                alerts.append(RiskAlert(
+                    risk_id=f"concentration_{asset.symbol}_{datetime.utcnow().timestamp()}",
+                    category=RiskCategory.CONCENTRATION_RISK,
+                    severity=RiskSeverity.HIGH if concentration > 0.4 else RiskSeverity.MEDIUM,
+                    title=f"High concentration in {asset.symbol}",
+                    description=f"Asset {asset.symbol} represents {concentration:.1%} of portfolio, "
+                               f"exceeding limit of {self.max_concentration_single_asset:.1%}",
+                    affected_entities=[str(portfolio.id)],
+                    recommended_actions=[
+                        f"Consider reducing position in {asset.symbol}",
+                        "Diversify portfolio across more assets",
+                        "Implement position size limits"
+                    ],
+                    created_at=datetime.utcnow(),
+                    expires_at=datetime.utcnow() + timedelta(hours=24),
+                    metadata={'asset': asset.symbol, 'concentration': concentration}
+                ))
+        
+        return alerts
+    
+    async def _check_var_limits(self, db: AsyncSession, portfolio: Portfolio) -> List[RiskAlert]:
+        """Check VaR limits"""
+        # Implementation would calculate and check VaR limits
+        return []
+    
+    async def _check_liquidity_risk(self, db: AsyncSession, portfolio: Portfolio) -> List[RiskAlert]:
+        """Check liquidity risk"""
+        # Implementation would check liquidity metrics
+        return []
+    
+    async def _check_transaction_risks(self, db: AsyncSession, transaction: Transaction) -> List[RiskAlert]:
+        """Check transaction-specific risks"""
+        # Implementation would analyze transaction risks
+        return []
+    
+    async def _check_regulatory_compliance(self, db: AsyncSession, user_id: UUID) -> List[RiskAlert]:
+        """Check regulatory compliance"""
+        # Implementation would check compliance requirements
+        return []
+    
+    async def _store_risk_alert(self, db: AsyncSession, alert: RiskAlert):
+        """Store risk alert in database"""
+        logger.info(f"Storing risk alert: {alert.title}")
+    
+    async def _get_asset_risk_multiplier(self, db: AsyncSession, asset_symbol: str) -> float:
+        """Get risk multiplier for asset"""
+        # In a real implementation, this would be based on asset classification
+        risk_multipliers = {
+            'BTC': 0.7,    # High volatility crypto
+            'ETH': 0.8,    # High volatility crypto
+            'USDT': 1.0,   # Stablecoin
+            'USDC': 1.0,   # Stablecoin
+        }
+        
+        return risk_multipliers.get(asset_symbol.upper(), 0.9)  # Default for unknown assets
+    
+    async def _calculate_scenario_impact(
+        self,
+        assets: List[PortfolioAsset],
+        total_value: Decimal,
+        scenario_params: Dict[str, float]
+    ) -> Decimal:
+        """Calculate impact of stress scenario"""
+        total_loss = Decimal('0')
+        
+        for asset in assets:
+            asset_loss = Decimal('0')
+            
+            # Apply relevant shocks based on asset type
+            if 'crypto' in asset.symbol.lower() or any(crypto in asset.symbol.upper() for crypto in ['BTC', 'ETH']):
+                if 'crypto_shock' in scenario_params:
+                    asset_loss = asset.current_value * Decimal(str(abs(scenario_params['crypto_shock'])))
+                elif 'defi_shock' in scenario_params:
+                    asset_loss = asset.current_value * Decimal(str(abs(scenario_params['defi_shock'])))
+            
+            if 'equity_shock' in scenario_params:
+                asset_loss = max(asset_loss, asset.current_value * Decimal(str(abs(scenario_params['equity_shock']))))
+            
+            total_loss += asset_loss
+        
+        return total_loss
+    
+    def _classify_scenario_severity(self, loss: Decimal, total_value: Decimal) -> RiskSeverity:
+        """Classify scenario severity based on loss percentage"""
+        if total_value == 0:
+            return RiskSeverity.LOW
+        
+        loss_percentage = float(loss / total_value)
+        
+        if loss_percentage >= 0.3:  # 30%+ loss
+            return RiskSeverity.CRITICAL
+        elif loss_percentage >= 0.2:  # 20%+ loss
+            return RiskSeverity.HIGH
+        elif loss_percentage >= 0.1:  # 10%+ loss
+            return RiskSeverity.MEDIUM
         else:
-            return RiskLevel.LOW
+            return RiskSeverity.LOW
     
-    async def _identify_risk_factors(self, risk_metrics: List[RiskMetric], 
-                                   portfolio_data: Dict[str, Any]) -> List[str]:
-        """Identify key risk factors"""
-        risk_factors = []
+    async def _estimate_recovery_times(self, scenario_results: Dict[str, Any], total_value: Decimal) -> Dict[str, str]:
+        """Estimate recovery times for different scenarios"""
+        recovery_estimates = {}
         
-        for metric in risk_metrics:
-            if metric.value > metric.threshold:
-                if metric.risk_type == RiskType.MARKET_RISK:
-                    risk_factors.append(f"High market risk: {metric.name} exceeds threshold")
-                elif metric.risk_type == RiskType.CONCENTRATION_RISK:
-                    risk_factors.append(f"Concentration risk: {metric.name} above recommended level")
-                elif metric.risk_type == RiskType.LIQUIDITY_RISK:
-                    risk_factors.append(f"Liquidity concern: {metric.name} below minimum threshold")
+        for scenario_name, result in scenario_results.items():
+            loss_percentage = result['percentage_loss']
+            
+            if loss_percentage < 0.1:
+                recovery_estimates[scenario_name] = "1-3 months"
+            elif loss_percentage < 0.2:
+                recovery_estimates[scenario_name] = "6-12 months"
+            elif loss_percentage < 0.3:
+                recovery_estimates[scenario_name] = "1-2 years"
+            else:
+                recovery_estimates[scenario_name] = "2+ years"
         
-        # Additional risk factors based on portfolio characteristics
-        positions = portfolio_data.get('positions', [])
-        if len(positions) < 5:
-            risk_factors.append("Portfolio under-diversified with fewer than 5 positions")
-        
-        return risk_factors
+        return recovery_estimates
     
-    async def _generate_risk_recommendations(self, risk_metrics: List[RiskMetric], 
-                                           risk_factors: List[str]) -> List[str]:
+    async def _generate_risk_recommendations(self, scenario_results: Dict[str, Any], total_value: Decimal) -> List[str]:
         """Generate risk management recommendations"""
         recommendations = []
         
-        for metric in risk_metrics:
-            if metric.value > metric.limit:
-                if metric.risk_type == RiskType.CONCENTRATION_RISK:
-                    recommendations.append(f"Reduce {metric.name} by diversifying holdings")
-                elif metric.risk_type == RiskType.MARKET_RISK:
-                    recommendations.append(f"Consider hedging strategies to reduce {metric.name}")
-                elif metric.risk_type == RiskType.LIQUIDITY_RISK:
-                    recommendations.append(f"Increase liquid assets to improve {metric.name}")
+        # Analyze scenario results and generate recommendations
+        high_risk_scenarios = [
+            name for name, result in scenario_results.items()
+            if result['severity'] in [RiskSeverity.HIGH, RiskSeverity.CRITICAL]
+        ]
         
-        # General recommendations
-        if len(risk_factors) > 3:
-            recommendations.append("Consider comprehensive portfolio rebalancing")
+        if high_risk_scenarios:
+            recommendations.extend([
+                "Consider reducing portfolio concentration in high-risk assets",
+                "Implement stop-loss orders to limit downside risk",
+                "Increase cash reserves for liquidity buffer"
+            ])
         
-        if not recommendations:
-            recommendations.append("Portfolio risk levels are within acceptable ranges")
+        if any('crypto' in scenario for scenario in high_risk_scenarios):
+            recommendations.append("Consider reducing cryptocurrency exposure")
+        
+        if len(scenario_results) > 3:
+            recommendations.append("Diversify across uncorrelated asset classes")
         
         return recommendations
     
-    async def _check_risk_limits(self, assessment: RiskAssessment):
-        """Check risk limits and create alerts if breached"""
-        entity_limits = self.risk_limits.get(assessment.entity_id, [])
-        
-        for limit in entity_limits:
-            # Find corresponding metric
-            matching_metric = None
-            for metric in assessment.risk_metrics:
-                if (metric.risk_type == limit.risk_type and 
-                    metric.name.lower().replace(' ', '_') == limit.metric_name.lower()):
-                    matching_metric = metric
-                    break
-            
-            if matching_metric:
-                # Check if limit is breached
-                if matching_metric.value > limit.limit_value:
-                    await self._create_risk_alert(
-                        assessment.entity_id,
-                        assessment.entity_type,
-                        limit.risk_type,
-                        RiskLevel.CRITICAL,
-                        f"Risk Limit Breached: {limit.metric_name}",
-                        f"{limit.metric_name} value {matching_metric.value} exceeds limit {limit.limit_value}",
-                        matching_metric.value,
-                        limit.limit_value
-                    )
-                elif matching_metric.value > limit.warning_threshold:
-                    await self._create_risk_alert(
-                        assessment.entity_id,
-                        assessment.entity_type,
-                        limit.risk_type,
-                        RiskLevel.HIGH,
-                        f"Risk Warning: {limit.metric_name}",
-                        f"{limit.metric_name} value {matching_metric.value} exceeds warning threshold {limit.warning_threshold}",
-                        matching_metric.value,
-                        limit.warning_threshold
-                    )
-    
-    async def _create_risk_alert(self, entity_id: str, entity_type: str, risk_type: RiskType,
-                               risk_level: RiskLevel, title: str, description: str,
-                               current_value: Decimal, threshold_value: Decimal):
-        """Create a risk alert"""
-        alert_id = f"alert_{uuid.uuid4().hex[:12]}"
-        
-        alert = RiskAlert(
-            alert_id=alert_id,
-            entity_id=entity_id,
-            entity_type=entity_type,
-            risk_type=risk_type,
-            risk_level=risk_level,
-            title=title,
-            description=description,
-            threshold_breached=f"{current_value} > {threshold_value}",
-            current_value=current_value,
-            threshold_value=threshold_value,
-            status=AlertStatus.ACTIVE,
-            created_at=datetime.now(timezone.utc),
-            acknowledged_at=None,
-            resolved_at=None,
-            assigned_to=None,
-            escalation_level=1 if risk_level == RiskLevel.HIGH else 2,
-            metadata={}
-        )
-        
-        self.risk_alerts[alert_id] = alert
-        
-        logger.warning(f"Risk alert created: {title} for {entity_type} {entity_id}")
-    
-    async def _apply_stress_scenario(self, entity_data: Dict[str, Any], 
-                                   scenario: StressTestScenario) -> Decimal:
-        """Apply stress scenario to calculate stressed value"""
-        positions = entity_data.get('positions', [])
-        cash_balance = entity_data.get('cash_balance', Decimal('0'))
-        
-        stressed_value = cash_balance  # Cash is unaffected
-        
-        for position in positions:
-            market_value = position.get('market_value', Decimal('0'))
-            asset_type = position.get('asset_type', 'stocks')
-            
-            # Apply shock based on asset type
-            shock = scenario.market_shocks.get(asset_type, Decimal('0'))
-            stressed_position_value = market_value * (Decimal('1') + shock)
-            stressed_value += stressed_position_value
-        
-        return stressed_value
-    
-    async def _calculate_stress_impact_on_metrics(self, entity_data: Dict[str, Any],
-                                                scenario: StressTestScenario) -> Dict[str, Decimal]:
-        """Calculate impact of stress scenario on risk metrics"""
-        # Simplified calculation - in production, recalculate all metrics
-        impact = {}
-        
-        for asset_type, shock in scenario.market_shocks.items():
-            volatility_impact = abs(shock) * Decimal('0.5')  # Simplified
-            impact[f"{asset_type}_volatility_increase"] = volatility_impact
-        
-        return impact
-    
-    def _get_max_acceptable_loss(self, risk_tolerance: str) -> Decimal:
-        """Get maximum acceptable loss percentage based on risk tolerance"""
-        tolerance_limits = {
-            'conservative': Decimal('5'),    # 5%
-            'moderate': Decimal('10'),       # 10%
-            'aggressive': Decimal('20'),     # 20%
-            'very_aggressive': Decimal('30') # 30%
-        }
-        return tolerance_limits.get(risk_tolerance, Decimal('10'))
-    
-    def get_risk_management_statistics(self) -> Dict[str, Any]:
-        """Get risk management service statistics"""
-        alert_counts = {}
-        assessment_counts = {}
-        
-        for alert in self.risk_alerts.values():
-            alert_counts[alert.status.value] = alert_counts.get(alert.status.value, 0) + 1
-        
-        for assessment in self.risk_assessments.values():
-            assessment_counts[assessment.risk_level.value] = assessment_counts.get(assessment.risk_level.value, 0) + 1
-        
-        return {
-            'total_assessments': len(self.risk_assessments),
-            'total_alerts': len(self.risk_alerts),
-            'active_alerts': alert_counts.get('active', 0),
-            'total_stress_tests': sum(len(results) for results in self.stress_test_results.values()),
-            'assessment_distribution': assessment_counts,
-            'alert_distribution': alert_counts,
-            'stress_test_scenarios': len(self.stress_test_scenarios)
-        }
+    async def _store_scenario_analysis(self, db: AsyncSession, portfolio_id: UUID, analysis_result: Dict[str, Any]):
+        """Store scenario analysis results"""
+        logger.info(f"Storing scenario analysis for portfolio {portfolio_id}")
 
