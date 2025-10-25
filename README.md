@@ -62,40 +62,6 @@ Fluxion revolutionizes synthetic asset trading by providing deep, cross-chain li
 * **Arbitrage Detection**: Identification and exploitation of cross-chain price discrepancies
 * **Adaptive Fee Structure**: ML-optimized fees based on market conditions
 
-## Roadmap
-
-| Feature | Status | Description | Release |
-|---------|--------|-------------|---------|
-| **Phase 1: Foundation** |  |  |  |
-| Synthetic Asset Factory | ✅ Completed | Smart contract for creating synthetic assets | v0.1 |
-| Basic Liquidity Pools | ✅ Completed | Initial AMM-based liquidity pools | v0.1 |
-| Web Interface | ✅ Completed | Basic trading interface | v0.1 |
-| **Phase 2: Advanced Trading** |  |  |  |
-| Order Book Integration | ✅ Completed | Limit orders and advanced trading | v0.2 |
-| Portfolio Management | ✅ Completed | Position tracking and management | v0.2 |
-| Risk Management Tools | ✅ Completed | Stop-loss and take-profit features | v0.2 |
-| **Phase 3: Zero-Knowledge Layer** |  |  |  |
-| zkEVM Integration | ✅ Completed | Zero-knowledge execution environment | v0.3 |
-| Private Transactions | ✅ Completed | Confidential trading capabilities | v0.3 |
-| Batched Settlements | ✅ Completed | Efficient transaction processing | v0.3 |
-| **Phase 4: Cross-Chain Expansion** |  |  |  |
-| Multi-Chain Deployment | 🔄 In Progress | Expansion to multiple blockchains | v0.4 |
-| Cross-Chain Messaging | 🔄 In Progress | Inter-blockchain communication | v0.4 |
-| Unified Liquidity | 🔄 In Progress | Shared liquidity across chains | v0.4 |
-| **Phase 5: AI Enhancement** |  |  |  |
-| Liquidity Prediction | 🔄 In Progress | ML models for liquidity forecasting | v0.5 |
-| Dynamic Market Making | 📅 Planned | AI-driven liquidity provision | v0.5 |
-| Volatility Forecasting | 📅 Planned | Advanced risk modeling | v0.5 |
-| **Phase 6: Governance & Scaling** |  |  |  |
-| DAO Governance | 📅 Planned | Community control of protocol | v0.6 |
-| Protocol Revenue Sharing | 📅 Planned | Fee distribution to stakeholders | v0.6 |
-| Layer 3 Scaling | 📅 Planned | Further scalability improvements | v0.6 |
-
-**Legend:**
-* ✅ Completed: Feature is implemented and available
-* 🔄 In Progress: Feature is currently being developed
-* 📅 Planned: Feature is planned for future release
-
 ## Tech Stack
 
 **Blockchain**
