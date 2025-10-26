@@ -1,8 +1,7 @@
 # Fluxion
 
-[![CI/CD Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxion/ci-cd.yml?branch=main&label=CI/CD&logo=github)](https://github.com/abrar2030/Fluxion/actions)
+![CI/CD Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxion/cicd.yml?branch=main&label=CI/CD&logo=github)
 [![Test Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](https://github.com/abrar2030/Fluxion/actions)
-[![Smart Contract Audit](https://img.shields.io/badge/smart%20contracts-audited-brightgreen)](https://github.com/abrar2030/Fluxion/tree/main/code/blockchain)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## ⚡ Synthetic Asset Liquidity Engine
