@@ -110,9 +110,3 @@ To create production builds:
    ```bash
    expo build:android
    ```
-
-## Related Documentation
-
-- [API Specification](../docs/API_SPEC.md)
-- [Architecture Overview](../docs/ARCHITECTURE.md)
-- [Web Frontend Documentation](../web-frontend/README.md)

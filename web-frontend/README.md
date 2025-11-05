@@ -103,9 +103,3 @@ The web application provides:
 - Optimize for performance with code splitting
 - Implement comprehensive error handling
 - Follow security best practices for Web3 applications
-
-## Related Documentation
-
-- [API Specification](../docs/API_SPEC.md)
-- [Architecture Overview](../docs/ARCHITECTURE.md)
-- [Mobile Frontend Documentation](../mobile-frontend/README.md)
