@@ -14,17 +14,24 @@ Fluxion is a cutting-edge synthetic asset liquidity engine that leverages zero-k
 
 > **Note**: This project is under active development. Features and functionalities are continuously being enhanced to improve synthetic asset liquidity and cross-chain capabilities.
 
-## Table of Contents
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Deployment](#deployment)
-- [Testing](#testing)
-- [CI/CD Pipeline](#cicd-pipeline)
-- [Contributing](#contributing)
-- [License](#license)
+---
+
+## 📚 Table of Contents
+
+| Section | Description |
+| :--- | :--- |
+| [Overview](#overview) | High-level summary of the platform's value proposition. |
+| [Key Features](#key-features) | Detailed breakdown of core functionalities. |
+| [Tech Stack](#tech-stack) | Technologies used across all layers of the application. |
+| [Architecture](#architecture) | Component-based view of the system's structure. |
+| [Installation](#installation) | Instructions for setting up the development environment. |
+| [Deployment](#deployment) | Guide for local, testnet, and production deployment. |
+| [Testing](#testing) | Overview of the comprehensive testing strategy. |
+| [CI/CD Pipeline](#cicd-pipeline) | Details on the automated continuous integration and deployment process. |
+| [Contributing](#contributing) | Guidelines for community contributions. |
+| [License](#license) | Licensing information. |
+
+---
 
 ## Overview
 
@@ -33,186 +40,125 @@ Fluxion revolutionizes synthetic asset trading by providing deep, cross-chain li
 ## Key Features
 
 ### Synthetic Asset Creation
-* **Asset Tokenization**: Create synthetic versions of real-world assets (stocks, commodities, forex)
-* **Custom Index Creation**: Build and deploy custom synthetic indices
-* **Yield-Bearing Synthetics**: Synthetic assets that generate yield
-* **Governance-Controlled Parameters**: Community governance of collateralization ratios and fees
-* **Permissionless Listing**: Open framework for adding new synthetic assets
+
+| Feature | Description |
+| :--- | :--- |
+| **Asset Tokenization** | Create synthetic versions of real-world assets (stocks, commodities, forex). |
+| **Custom Index Creation** | Build and deploy custom synthetic indices. |
+| **Yield-Bearing Synthetics** | Synthetic assets that generate yield. |
+| **Governance-Controlled Parameters** | Community governance of collateralization ratios and fees. |
+| **Permissionless Listing** | Open framework for adding new synthetic assets. |
 
 ### Zero-Knowledge Layer
-* **zkEVM Integration**: Scalable and private synthetic asset trading
-* **Batched Settlements**: Efficient transaction processing with reduced gas costs
-* **Privacy-Preserving Trades**: Confidential trading without revealing positions
-* **Proof Generation**: Fast and efficient zero-knowledge proof generation
-* **Verifiable Transactions**: Cryptographic verification of all trades
+
+| Feature | Description |
+| :--- | :--- |
+| **zkEVM Integration** | Scalable and private synthetic asset trading. |
+| **Batched Settlements** | Efficient transaction processing with reduced gas costs. |
+| **Privacy-Preserving Trades** | Confidential trading without revealing positions. |
+| **Proof Generation** | Fast and efficient zero-knowledge proof generation. |
+| **Verifiable Transactions** | Cryptographic verification of all trades. |
 
 ### Cross-Chain Infrastructure
-* **Multi-Chain Deployment**: Support for 10+ EVM-compatible chains
-* **Unified Liquidity**: Shared liquidity pools across multiple networks
-* **Cross-Chain Messaging**: Secure communication between blockchain networks
-* **Chain-Agnostic Trading**: Trade synthetic assets regardless of underlying blockchain
-* **Optimized Bridge Security**: Enhanced security for cross-chain asset transfers
+
+| Feature | Description |
+| :--- | :--- |
+| **Multi-Chain Deployment** | Support for 10+ EVM-compatible chains. |
+| **Unified Liquidity** | Shared liquidity pools across multiple networks. |
+| **Cross-Chain Messaging** | Secure communication between blockchain networks via Chainlink CCIP. |
+| **Chain-Agnostic Trading** | Trade synthetic assets regardless of underlying blockchain. |
+| **Optimized Bridge Security** | Enhanced security for cross-chain asset transfers. |
 
 ### AI-Powered Market Making
-* **Dynamic Liquidity Provision**: Intelligent allocation of liquidity across pools
-* **Predictive Price Modeling**: ML models for synthetic asset price prediction
-* **Volatility Forecasting**: Advanced volatility models for risk management
-* **Arbitrage Detection**: Identification and exploitation of cross-chain price discrepancies
-* **Adaptive Fee Structure**: ML-optimized fees based on market conditions
+
+| Feature | Description |
+| :--- | :--- |
+| **Dynamic Liquidity Provision** | Intelligent allocation of liquidity across pools. |
+| **Predictive Price Modeling** | ML models for synthetic asset price prediction. |
+| **Volatility Forecasting** | Advanced volatility models for risk management. |
+| **Arbitrage Detection** | Identification and exploitation of cross-chain price discrepancies. |
+| **Adaptive Fee Structure** | ML-optimized fees based on market conditions. |
 
 ## Tech Stack
 
-**Blockchain**
-* Solidity 0.8 for smart contracts
-* Foundry for development and testing
-* Chainlink CCIP for cross-chain communication
-* zkSync for zero-knowledge proofs
-
-**Backend**
-* Python 3.10 with FastAPI
-* Celery for task processing
-* gRPC for high-performance communication
-* WebSocket for real-time data
-
-**AI/ML**
-* PyTorch for deep learning models
-* Prophet for time series forecasting
-* Scikit-learn for statistical models
-* Ray for distributed training
-
-**Frontend**
-* React 18 with TypeScript
-* Recharts for data visualization
-* ethers.js 6 for blockchain interaction
-* TailwindCSS for styling
-
-**Database**
-* TimescaleDB for time-series data
-* Redis Stack for caching and real-time features
-* PostgreSQL for relational data
-* IPFS for decentralized storage
-
-**Infrastructure**
-* Kubernetes for container orchestration
-* Prometheus and Grafana for monitoring
-* ArgoCD for GitOps deployment
-* Terraform for infrastructure as code
+| Component | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Blockchain** | Solidity 0.8, Foundry, zkSync | Smart contract development, testing, and zero-knowledge proofs. |
+| **Cross-Chain** | Chainlink CCIP | Secure, reliable cross-chain communication and data transfer. |
+| **Backend** | Python 3.10 (FastAPI), Celery, gRPC, WebSocket | High-performance API, asynchronous task processing, and real-time data. |
+| **AI/ML** | PyTorch, Prophet, Scikit-learn, Ray | Deep learning, time series forecasting, statistical models, and distributed training. |
+| **Web Frontend** | React 18 (TypeScript), Recharts, ethers.js 6, TailwindCSS | User interface, data visualization, blockchain interaction, and styling. |
+| **Mobile Frontend** | React Native (Expo) | Cross-platform mobile application development. |
+| **Database** | TimescaleDB, Redis Stack, PostgreSQL, IPFS | Time-series data, caching/real-time features, relational data, and decentralized storage. |
+| **Infrastructure** | Kubernetes, Prometheus, Grafana, ArgoCD, Terraform | Container orchestration, monitoring, GitOps deployment, and infrastructure as code. |
 
 ## Architecture
 
-Fluxion follows a modular architecture with the following components:
+Fluxion follows a modular, microservices-based architecture, organized into distinct layers for scalability and maintainability.
 
-```
-Fluxion/
-├── Frontend Layer
-│   ├── Trading Interface
-│   ├── Portfolio Dashboard
-│   ├── Analytics Tools
-│   └── Admin Panel
-├── API Gateway
-│   ├── Authentication
-│   ├── Rate Limiting
-│   ├── Request Routing
-│   └── WebSocket Server
-├── Cross-Chain Router
-│   ├── CCIP Integration
-│   ├── Message Passing
-│   ├── Asset Bridging
-│   └── Chain Monitoring
-├── zkEVM Sequencer
-│   ├── Proof Generation
-│   ├── Batch Processing
-│   ├── State Management
-│   └── Verification System
-├── Liquidity Pools
-│   ├── AMM Pools
-│   ├── Order Books
-│   ├── Yield Strategies
-│   └── Rebalancing Engine
-├── Settlement Layer
-│   ├── Transaction Finalization
-│   ├── Fee Collection
-│   ├── Dispute Resolution
-│   └── Oracle Integration
-├── Risk Engine
-│   ├── Position Monitoring
-│   ├── Liquidation Manager
-│   ├── Insurance Fund
-│   └── Circuit Breakers
-├── AI Models
-│   ├── Liquidity Prediction
-│   ├── Price Forecasting
-│   ├── Volatility Modeling
-│   └── Arbitrage Detection
-└── Data Layer
-    ├── Market Data
-    ├── User Positions
-    ├── Historical Trades
-    └── Protocol Metrics
-```
+| Component Layer | Sub-Components | Primary Function |
+| :--- | :--- | :--- |
+| **Frontend Layer** | Trading Interface, Portfolio Dashboard, Analytics Tools, Admin Panel | User interaction, data visualization, and administrative control. |
+| **API Gateway** | Authentication, Rate Limiting, Request Routing, WebSocket Server | Single entry point for all external traffic, handling security and routing. |
+| **Cross-Chain Router** | CCIP Integration, Message Passing, Asset Bridging, Chain Monitoring | Manages secure, reliable communication and asset transfer between different blockchains. |
+| **zkEVM Sequencer** | Proof Generation, Batch Processing, State Management, Verification System | Handles the zero-knowledge proof generation and batch settlement process for scalability. |
+| **Liquidity Pools** | AMM Pools, Order Books, Yield Strategies, Rebalancing Engine | Core mechanism for providing liquidity and facilitating synthetic asset trades. |
+| **Settlement Layer** | Transaction Finalization, Fee Collection, Dispute Resolution, Oracle Integration | Finalizes trades, manages fees, and integrates with external data sources. |
+| **Risk Engine** | Position Monitoring, Liquidation Manager, Insurance Fund, Circuit Breakers | Monitors protocol health, manages liquidations, and protects the system from extreme market events. |
+| **AI Models** | Liquidity Prediction, Price Forecasting, Volatility Modeling, Arbitrage Detection | Provides intelligent insights and automation for market making and risk management. |
+| **Data Layer** | Market Data, User Positions, Historical Trades, Protocol Metrics | Persistent storage and retrieval of all critical protocol data. |
 
 ## Installation
 
-```bash
-# Clone repository
-git clone https://github.com/abrar2030/Fluxion.git
-cd Fluxion
+The project uses a monorepo structure with separate directories for the blockchain, backend, and frontend components.
 
-# Install dependencies
-cd code/blockchain && forge install
-cd ../backend && pip install -r requirements.txt
-cd ../web-frontend && npm install
+### Prerequisites
 
-# Configure environment
-cp .env.example .env
-# Add blockchain RPC URLs and API keys
-```
+| Prerequisite | Version/Requirement |
+| :--- | :--- |
+| **Blockchain** | Foundry (for smart contracts) |
+| **Backend** | Python 3.10+, pip |
+| **Web Frontend** | Node.js (v18+), npm |
+| **Infrastructure** | Git, Docker, Docker Compose |
+
+### Setup Steps
+
+| Step | Command | Description |
+| :--- | :--- | :--- |
+| **1. Clone Repository** | `git clone https://github.com/abrar2030/Fluxion.git && cd Fluxion` | Download the source code. |
+| **2. Install Blockchain Deps** | `cd code/blockchain && forge install` | Install dependencies for smart contracts. |
+| **3. Install Backend Deps** | `cd ../backend && pip install -r requirements.txt` | Install Python dependencies. |
+| **4. Install Web Frontend Deps** | `cd ../web-frontend && npm install` | Install Node.js dependencies for the web application. |
+| **5. Configure Environment** | `cp .env.example .env` | Create the environment file and add blockchain RPC URLs and API keys. |
 
 ## Deployment
 
 ### Local Development
-```bash
-# Start all services locally
-docker-compose up -d
 
-# Start blockchain node
-cd code/blockchain
-forge node
+| Component | Directory | Command | Access Point |
+| :--- | :--- | :--- | :--- |
+| **All Services (Docker)** | `infrastructure/docker` | `docker-compose up -d` | N/A |
+| **Blockchain Node** | `code/blockchain` | `forge node` | RPC Endpoint |
+| **Backend API** | `code/backend` | `uvicorn main:app --reload` | `http://localhost:8000` |
+| **Web Frontend** | `web-frontend` | `npm start` | `http://localhost:3000` (default) |
 
-# Start backend
-cd ../backend
-uvicorn main:app --reload
+### Testnet & Production Deployment
 
-# Start frontend
-cd ../web-frontend
-npm start
-```
-
-### Testnet Deployment
-```bash
-# Deploy contracts to testnet
-cd code/blockchain
-forge script script/Deploy.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast
-
-# Start backend services
-cd ../backend
-docker-compose -f docker-compose.testnet.yml up -d
-```
-
-### Production Deployment
-```bash
-# Deploy using Kubernetes
-kubectl apply -f infrastructure/k8s/
-```
+| Environment | Tool | Command/Process | Description |
+| :--- | :--- | :--- | :--- |
+| **Testnet Deployment** | Foundry, Docker Compose | `forge script script/Deploy.s.sol --rpc-url $RPC_URL --private-key $PRIVATE_KEY --broadcast` | Deploys smart contracts to a specified testnet. |
+| **Testnet Services** | Docker Compose | `docker-compose -f docker-compose.testnet.yml up -d` | Starts backend services configured for testnet interaction. |
+| **Production Deployment** | Kubernetes | `kubectl apply -f infrastructure/k8s/` | Deploys the entire application stack to a Kubernetes cluster. |
+| **GitOps Deployment** | ArgoCD | Managed via ArgoCD configuration files in `infrastructure/kubernetes/` | Continuous deployment using GitOps principles. |
 
 ## Testing
 
 The project maintains comprehensive test coverage across all components to ensure reliability and security.
 
-### Test Coverage
+### Test Coverage Summary
 
 | Component | Coverage | Status |
-|-----------|----------|--------|
+| :--- | :--- | :--- |
 | Smart Contracts | 90% | ✅ |
 | zkEVM Integration | 85% | ✅ |
 | Cross-Chain Router | 82% | ✅ |
@@ -221,65 +167,49 @@ The project maintains comprehensive test coverage across all components to ensur
 | Risk Engine | 80% | ✅ |
 | AI Models | 75% | ✅ |
 | Frontend Components | 78% | ✅ |
-| Overall | 83% | ✅ |
+| **Overall** | **83%** | ✅ |
 
-### Smart Contract Tests
-* Unit tests for all contract functions
-* Integration tests for contract interactions
-* Fuzz testing with Foundry
-* Security tests using Slither and Mythril
-* Gas optimization tests
+### Testing Strategy
 
-### Backend Tests
-* API endpoint tests
-* Service layer unit tests
-* Database integration tests
-* WebSocket communication tests
-
-### Frontend Tests
-* Component tests with React Testing Library
-* Integration tests with Cypress
-* End-to-end user flow tests
-* Web3 integration tests
+| Component | Test Types | Key Tools |
+| :--- | :--- | :--- |
+| **Smart Contracts** | Unit, Integration, Fuzz, Security, Gas Optimization | Foundry, Slither, Mythril |
+| **Backend** | API Endpoint, Service Layer Unit, Database Integration, WebSocket Communication | Pytest, Mocking Libraries |
+| **Web Frontend** | Component, Integration, End-to-End (E2E), Web3 Integration | React Testing Library, Cypress |
+| **Mobile Frontend** | Unit, Integration, E2E | Jest, React Native Testing Library |
 
 ### Running Tests
 
-```bash
-# Run smart contract tests
-cd code/blockchain
-forge test
-
-# Run backend tests
-cd ../backend
-pytest
-
-# Run frontend tests
-cd ../web-frontend
-npm test
-
-# Run all tests
-./test_fluxion.sh
-```
+| Component | Directory | Command |
+| :--- | :--- | :--- |
+| **Smart Contracts** | `code/blockchain` | `forge test` |
+| **Backend** | `code/backend` | `pytest` |
+| **Web Frontend** | `web-frontend` | `npm test` |
+| **Mobile Frontend** | `mobile-frontend` | `npm test` |
+| **All Tests** | Root | `./test_fluxion.sh` |
 
 ## CI/CD Pipeline
 
-Fluxion uses GitHub Actions for continuous integration and deployment:
+Fluxion uses GitHub Actions for continuous integration and deployment, ensuring a robust and automated software delivery lifecycle.
 
-* Automated testing on each pull request
-* Smart contract security scanning
-* Code quality checks
-* Docker image building and publishing
-* Automated deployment to staging and production environments
+| Stage | Description | Key Workflow File |
+| :--- | :--- | :--- |
+| **Continuous Integration (CI)** | Automated testing, linting, and code quality checks on every pull request. | `ci.yml` |
+| **Smart Contract Security** | Automated security scanning of Solidity code. | `security_scan.yml` |
+| **Docker Image Build** | Building and publishing Docker images for all services (backend, frontend). | `docker_build.yml` |
+| **Continuous Deployment (CD)** | Automated deployment to staging and production environments via ArgoCD. | `cd_deploy.yml` |
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please follow these guidelines to submit a Pull Request.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+| Step | Description | Command/Action |
+| :--- | :--- | :--- |
+| **1. Fork** | Fork the repository to your personal GitHub account. | N/A |
+| **2. Branch** | Create a new feature branch. | `git checkout -b feature/your-feature-name` |
+| **3. Commit** | Commit your changes with a descriptive message. | `git commit -m 'feat: add descriptive feature'` |
+| **4. Push** | Push your changes to your forked repository. | `git push origin feature/your-feature-name` |
+| **5. Pull Request** | Open a Pull Request against the `main` branch of the original repository. | GitHub UI |
 
 ## License
 
