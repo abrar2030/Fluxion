@@ -13,7 +13,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from .base import BaseModel, TimestampMixin, AuditMixin, ComplianceMixin
+from code.backend.models.base import BaseModel, TimestampMixin, AuditMixin, ComplianceMixin
 
 
 class TransactionType(enum.Enum):

@@ -9,7 +9,7 @@ import os
 import json
 from datetime import datetime
 import matplotlib.pyplot as plt
-from .enhanced_models import EnhancedLiquidityLSTM, SupplyChainForecaster
+from code.ml_models.enhanced_models import EnhancedLiquidityLSTM, SupplyChainForecaster
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

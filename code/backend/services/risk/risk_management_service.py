@@ -471,11 +471,15 @@ class EnhancedRiskManagementService:
         return returns.mean(axis=1).values  # Equal weighted
     
     def _calculate_sharpe_ratio(self, returns: np.ndarray, risk_free_rate: float = 0.02) -> float:
+        if len(returns) == 0:
+            raise ValueError("Cannot calculate Sharpe Ratio of an empty array")
         """Calculate Sharpe ratio"""
         excess_returns = returns - risk_free_rate / 252  # Daily risk-free rate
         return float(np.mean(excess_returns) / np.std(excess_returns) * np.sqrt(252))
     
     def _calculate_sortino_ratio(self, returns: np.ndarray, risk_free_rate: float = 0.02) -> float:
+        if len(returns) == 0:
+            raise ValueError("Cannot calculate Sortino Ratio of an empty array")
         """Calculate Sortino ratio (downside deviation)"""
         excess_returns = returns - risk_free_rate / 252
         downside_returns = excess_returns[excess_returns < 0]
@@ -483,6 +487,8 @@ class EnhancedRiskManagementService:
         return float(np.mean(excess_returns) / downside_deviation * np.sqrt(252))
     
     def _calculate_max_drawdown(self, returns: np.ndarray) -> float:
+        if len(returns) == 0:
+            raise ValueError("Cannot calculate Max Drawdown of an empty array")
         """Calculate maximum drawdown"""
         cumulative_returns = np.cumprod(1 + returns)
         running_max = np.maximum.accumulate(cumulative_returns)
@@ -490,6 +496,8 @@ class EnhancedRiskManagementService:
         return float(np.min(drawdown))
     
     async def _calculate_beta(self, returns: np.ndarray, db: AsyncSession) -> float:
+        if len(returns) == 0:
+            raise ValueError("Cannot calculate Beta of an empty array")
         """Calculate portfolio beta against market benchmark"""
         # In a real implementation, this would use actual market data
         # For now, simulate market returns

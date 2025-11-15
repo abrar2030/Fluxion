@@ -16,7 +16,7 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import event, text
 
-from .settings import settings
+from code.backend.config.settings import settings
 
 logger = logging.getLogger(__name__)
 

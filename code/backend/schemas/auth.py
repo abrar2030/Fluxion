@@ -8,7 +8,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field, EmailStr, validator
 import re
 
-from .base import BaseSchema, TimestampSchema
+from code.backend.schemas.base import BaseSchema, TimestampSchema
 
 
 class UserRegister(BaseSchema):

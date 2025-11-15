@@ -2,13 +2,13 @@
 Database models package for Fluxion backend
 """
 
-from .base import BaseModel, TimestampMixin, SoftDeleteMixin
-from .user import User, UserProfile, UserSession, UserActivity
-from .transaction import Transaction, TransactionStatus, TransactionType
-from .portfolio import Portfolio, PortfolioAsset, AssetHolding
-from .compliance import KYCRecord, AMLCheck, ComplianceAlert, AuditLog
-from .risk import RiskProfile, RiskAssessment, RiskAlert
-from .blockchain import BlockchainNetwork, SmartContract, ContractEvent
+from code.backend.models.base import BaseModel, TimestampMixin, SoftDeleteMixin
+from code.backend.models.user import User, UserProfile, UserSession, UserActivity
+from code.backend.models.transaction import Transaction, TransactionStatus, TransactionType
+from code.backend.models.portfolio import Portfolio, PortfolioAsset, AssetHolding
+from code.backend.models.compliance import KYCRecord, AMLCheck, ComplianceAlert, AuditLog
+from code.backend.models.risk import RiskProfile, RiskAssessment, RiskAlert
+from code.backend.models.blockchain import BlockchainNetwork, SmartContract, ContractEvent
 
 __all__ = [
     # Base models

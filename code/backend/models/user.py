@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from .base import BaseModel, TimestampMixin, SoftDeleteMixin, AuditMixin, EncryptedMixin, ComplianceMixin
+from code.backend.models.base import BaseModel, TimestampMixin, SoftDeleteMixin, AuditMixin, EncryptedMixin, ComplianceMixin
 
 
 class UserStatus(enum.Enum):
