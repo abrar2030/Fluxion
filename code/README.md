@@ -297,8 +297,6 @@ The platform is designed to comply with:
 - Data retention and deletion policies
 - Privacy by design implementation
 
-## Support and Documentation
-
 ### Developer Resources
 
 - API documentation: `/docs` endpoint (Swagger UI)
