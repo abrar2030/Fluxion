@@ -190,7 +190,7 @@ npx hardhat run scripts/deploy.js --network mainnet
 - Vesting schedules for team and investors
 - Compliance features and transfer restrictions
 
-#### EnhancedLiquidityPoolManager
+#### LiquidityPoolManager
 - Automated market making functionality
 - Dynamic fee adjustment based on market conditions
 - Impermanent loss protection
@@ -307,31 +307,6 @@ The platform is designed to comply with:
 - Integration guides
 - Best practices documentation
 
-## Contributing
-
-We welcome contributions from the community. Please read our contributing guidelines and code of conduct before submitting pull requests.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
-
-### Code Standards
-
-- Follow PEP 8 for Python code
-- Use TypeScript for frontend development
-- Write comprehensive tests for all new features
-- Document all public APIs and functions
-- Follow security best practices
-
 ## License
 
 This project is licensed under the AGPL-3.0 License. See the LICENSE file for details.
-
-## Disclaimer
-
-This software is provided for educational and development purposes. Users are responsible for ensuring compliance with applicable laws and regulations in their jurisdiction. The developers make no warranties regarding the security, reliability, or fitness for any particular purpose.
