@@ -2,7 +2,7 @@
 
 # Linting and Fixing Script for Fluxion Project (Python, JavaScript, Solidity, YAML, Terraform)
 
-set -e  # Exit immediately if a command exits with a non-zero status
+set -euo pipefail  # Exit immediately if a command exits with a non-zero status, treat unset variables as error, and fail if any command in a pipeline fails
 
 echo "----------------------------------------"
 echo "Starting linting and fixing process for Fluxion..."

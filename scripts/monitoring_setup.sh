@@ -4,7 +4,7 @@
 # across multiple environments and blockchain networks.
 
 # Exit immediately if a command exits with a non-zero status
-set -e
+set -euo pipefail
 
 # Colors for terminal output
 GREEN='\033[0;32m'

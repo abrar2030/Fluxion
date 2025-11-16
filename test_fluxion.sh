@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash\nset -euo pipefail
 
 # Test script for Fluxion application
 # This script runs tests for both backend and frontend

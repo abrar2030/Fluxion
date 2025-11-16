@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash\nset -euo pipefail
 # Run script for Fluxion project
 # This script starts the application components
 

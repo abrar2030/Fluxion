@@ -3,7 +3,7 @@
 # Fluxion Project Setup Script (Comprehensive)
 
 # Exit immediately if a command exits with a non-zero status.
-set -e
+set -euo pipefail
 
 # Prerequisites (ensure these are installed and configured based on README.md):
 # - Node.js (for frontend and blockchain components)
