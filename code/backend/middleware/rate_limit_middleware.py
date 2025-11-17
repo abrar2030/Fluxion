@@ -4,21 +4,20 @@ Implements sophisticated rate limiting with multiple algorithms,
 user-based limits, and integration with threat detection.
 """
 
-import time
-import json
 import asyncio
+import json
 import logging
-from typing import Dict, Optional, Tuple, List
-from datetime import datetime, timedelta
+import time
 from collections import defaultdict, deque
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Tuple
 
-from fastapi import Request, HTTPException
+import redis.asyncio as redis
+from config.settings import settings
+from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
-import redis.asyncio as redis
-
-from config.settings import settings
 
 logger = logging.getLogger(__name__)
 

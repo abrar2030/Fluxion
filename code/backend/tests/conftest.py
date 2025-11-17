@@ -3,23 +3,22 @@ Pytest configuration and fixtures for Fluxion backend tests
 """
 
 import asyncio
-import pytest
-import pytest_asyncio
+from datetime import datetime, timedelta
 from typing import AsyncGenerator, Generator
 from uuid import uuid4
-from datetime import datetime, timedelta
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
-
+import pytest
+import pytest_asyncio
+from app.main import app
 from config.database import Base
 from config.settings import settings
-from app.main import app
-from models.user import User, UserStatus, UserRole, KYCStatus
-from services.auth.jwt_service import JWTService
+from fastapi.testclient import TestClient
+from models.user import KYCStatus, User, UserRole, UserStatus
 from services.auth.auth_service import AuthService
-
+from services.auth.jwt_service import JWTService
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
+from sqlalchemy.pool import StaticPool
 
 # Test database URL (SQLite in-memory for testing)
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -40,21 +39,19 @@ async def test_db() -> AsyncGenerator[AsyncSession, None]:
         TEST_DATABASE_URL,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
-        echo=False
+        echo=False,
     )
-    
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     async_session = async_sessionmaker(
-        bind=engine,
-        class_=AsyncSession,
-        expire_on_commit=False
+        bind=engine, class_=AsyncSession, expire_on_commit=False
     )
-    
+
     async with async_session() as session:
         yield session
-    
+
     await engine.dispose()
 
 
@@ -85,13 +82,13 @@ async def test_user(test_db: AsyncSession) -> User:
         is_email_verified=True,
         kyc_status=KYCStatus.APPROVED,
         created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        updated_at=datetime.utcnow(),
     )
-    
+
     test_db.add(user)
     await test_db.commit()
     await test_db.refresh(user)
-    
+
     return user
 
 
@@ -110,13 +107,13 @@ async def admin_user(test_db: AsyncSession) -> User:
         is_email_verified=True,
         kyc_status=KYCStatus.APPROVED,
         created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow()
+        updated_at=datetime.utcnow(),
     )
-    
+
     test_db.add(user)
     await test_db.commit()
     await test_db.refresh(user)
-    
+
     return user
 
 
@@ -126,10 +123,10 @@ def auth_headers(test_user: User, jwt_service: JWTService) -> dict:
     token_data = {
         "user_id": str(test_user.id),
         "email": test_user.email,
-        "role": test_user.role.value
+        "role": test_user.role.value,
     }
     access_token = jwt_service.create_access_token(token_data)
-    
+
     return {"Authorization": f"Bearer {access_token}"}
 
 
@@ -139,10 +136,10 @@ def admin_auth_headers(admin_user: User, jwt_service: JWTService) -> dict:
     token_data = {
         "user_id": str(admin_user.id),
         "email": admin_user.email,
-        "role": admin_user.role.value
+        "role": admin_user.role.value,
     }
     access_token = jwt_service.create_access_token(token_data)
-    
+
     return {"Authorization": f"Bearer {access_token}"}
 
 
@@ -155,7 +152,7 @@ def sample_transaction_data() -> dict:
         "currency": "USDC",
         "from_address": "0x742d35Cc6634C0532925a3b8D0C9964F8b2Ac9d2",
         "to_address": "0x8ba1f109551bD432803012645Hac136c",
-        "network": "ethereum"
+        "network": "ethereum",
     }
 
 
@@ -173,7 +170,7 @@ def sample_kyc_data() -> dict:
         "city": "New York",
         "state": "NY",
         "postal_code": "10001",
-        "country": "US"
+        "country": "US",
     }
 
 
@@ -184,7 +181,7 @@ def sample_portfolio_data() -> dict:
         "name": "Test Portfolio",
         "description": "A test portfolio",
         "portfolio_type": "default",
-        "investment_strategy": "balanced"
+        "investment_strategy": "balanced",
     }
 
 
@@ -197,16 +194,16 @@ def mock_blockchain_response() -> dict:
         "block_hash": "0xabcdef1234567890",
         "status": "success",
         "gas_used": 21000,
-        "gas_price": "20000000000"
+        "gas_price": "20000000000",
     }
 
 
 class MockExternalService:
     """Mock external service for testing."""
-    
+
     def __init__(self):
         self.calls = []
-    
+
     async def call_api(self, endpoint: str, data: dict = None) -> dict:
         """Mock API call."""
         self.calls.append({"endpoint": endpoint, "data": data})
@@ -221,6 +218,7 @@ def mock_external_service() -> MockExternalService:
 
 # Test data factories
 
+
 def create_test_user_data(**kwargs) -> dict:
     """Create test user data with defaults."""
     default_data = {
@@ -230,7 +228,7 @@ def create_test_user_data(**kwargs) -> dict:
         "first_name": "Test",
         "last_name": "User",
         "terms_accepted": True,
-        "privacy_accepted": True
+        "privacy_accepted": True,
     }
     default_data.update(kwargs)
     return default_data
@@ -244,7 +242,7 @@ def create_test_transaction_data(**kwargs) -> dict:
         "currency": "USDC",
         "from_address": "0x742d35Cc6634C0532925a3b8D0C9964F8b2Ac9d2",
         "to_address": "0x8ba1f109551bD432803012645Hac136c",
-        "network": "ethereum"
+        "network": "ethereum",
     }
     default_data.update(kwargs)
     return default_data
@@ -252,9 +250,10 @@ def create_test_transaction_data(**kwargs) -> dict:
 
 # Test utilities
 
+
 class TestUtils:
     """Test utility functions."""
-    
+
     @staticmethod
     def assert_response_success(response, expected_status: int = 200):
         """Assert response is successful."""
@@ -262,7 +261,7 @@ class TestUtils:
         data = response.json()
         assert data.get("success") is True
         return data
-    
+
     @staticmethod
     def assert_response_error(response, expected_status: int = 400):
         """Assert response is an error."""
@@ -271,7 +270,7 @@ class TestUtils:
         assert data.get("success") is False
         assert "error" in data
         return data
-    
+
     @staticmethod
     def assert_validation_error(response):
         """Assert response is a validation error."""
@@ -290,6 +289,7 @@ def test_utils() -> TestUtils:
 
 # Async test helpers
 
+
 async def async_test_helper():
     """Helper for async tests."""
     await asyncio.sleep(0.01)  # Simulate async operation
@@ -298,52 +298,57 @@ async def async_test_helper():
 
 # Database test helpers
 
+
 async def create_test_records(db: AsyncSession, model_class, count: int = 5, **kwargs):
     """Create multiple test records."""
     records = []
     for i in range(count):
         record_data = kwargs.copy()
-        record_data.update({
-            "id": uuid4(),
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow()
-        })
+        record_data.update(
+            {
+                "id": uuid4(),
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow(),
+            }
+        )
         record = model_class(**record_data)
         db.add(record)
         records.append(record)
-    
+
     await db.commit()
     return records
 
 
 # Performance test helpers
 
+
 @pytest.fixture
 def performance_timer():
     """Timer for performance tests."""
     import time
-    
+
     class Timer:
         def __init__(self):
             self.start_time = None
             self.end_time = None
-        
+
         def start(self):
             self.start_time = time.time()
-        
+
         def stop(self):
             self.end_time = time.time()
-        
+
         @property
         def elapsed(self):
             if self.start_time and self.end_time:
                 return self.end_time - self.start_time
             return None
-    
+
     return Timer()
 
 
 # Cleanup helpers
+
 
 @pytest.fixture(autouse=True)
 async def cleanup_test_data():
@@ -351,4 +356,3 @@ async def cleanup_test_data():
     yield
     # Cleanup logic here if needed
     pass
-

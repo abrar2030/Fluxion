@@ -3,13 +3,13 @@ Authentication API Routes for Fluxion Backend
 Handles user authentication, registration, and session management.
 """
 
+from typing import Any, Dict, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer
-from typing import Dict, Any, Optional
 from pydantic import BaseModel, EmailStr
-
+from services.auth.enhanced_jwt_service import DeviceInfo, EnhancedJWTService
 from services.user.user_service import UserService, UserType
-from services.auth.enhanced_jwt_service import EnhancedJWTService, DeviceInfo
 
 router = APIRouter()
 security = HTTPBearer()
@@ -45,7 +45,7 @@ class MFAVerificationRequest(BaseModel):
 async def register_user(
     request: RegisterRequest,
     http_request: Request,
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
 ):
     """Register a new user"""
     try:
@@ -53,31 +53,31 @@ async def register_user(
         device_info = DeviceInfo(
             ip_address=http_request.client.host,
             user_agent=http_request.headers.get("user-agent", ""),
-            device_id=http_request.headers.get("x-device-id")
+            device_id=http_request.headers.get("x-device-id"),
         )
-        
+
         # Prepare profile data
         profile_data = {
             "first_name": request.first_name,
             "last_name": request.last_name,
             "phone_number": request.phone_number,
-            "country_of_residence": request.country_of_residence
+            "country_of_residence": request.country_of_residence,
         }
-        
+
         result = await user_service.register_user(
             email=request.email,
             password=request.password,
             user_type=UserType(request.user_type),
             profile_data=profile_data,
-            device_info=device_info
+            device_info=device_info,
         )
-        
+
         return {
             "success": True,
             "data": result,
-            "message": "User registered successfully"
+            "message": "User registered successfully",
         }
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -86,9 +86,7 @@ async def register_user(
 
 @router.post("/login")
 async def login_user(
-    request: LoginRequest,
-    http_request: Request,
-    user_service: UserService = Depends()
+    request: LoginRequest, http_request: Request, user_service: UserService = Depends()
 ):
     """Authenticate user and create session"""
     try:
@@ -96,21 +94,15 @@ async def login_user(
         device_info = DeviceInfo(
             ip_address=http_request.client.host,
             user_agent=http_request.headers.get("user-agent", ""),
-            device_id=http_request.headers.get("x-device-id")
+            device_id=http_request.headers.get("x-device-id"),
         )
-        
+
         result = await user_service.authenticate_user(
-            email=request.email,
-            password=request.password,
-            device_info=device_info
+            email=request.email, password=request.password, device_info=device_info
         )
-        
-        return {
-            "success": True,
-            "data": result,
-            "message": "Authentication successful"
-        }
-        
+
+        return {"success": True, "data": result, "message": "Authentication successful"}
+
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
     except Exception as e:
@@ -118,20 +110,17 @@ async def login_user(
 
 
 @router.post("/verify-email")
-async def verify_email(
-    verification_token: str,
-    user_service: UserService = Depends()
-):
+async def verify_email(verification_token: str, user_service: UserService = Depends()):
     """Verify user email address"""
     try:
         result = await user_service.verify_email(verification_token)
-        
+
         return {
             "success": True,
             "data": result,
-            "message": "Email verified successfully"
+            "message": "Email verified successfully",
         }
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -142,24 +131,24 @@ async def verify_email(
 async def change_password(
     request: ChangePasswordRequest,
     current_user: Dict[str, Any] = Depends(),  # Would implement JWT dependency
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
 ):
     """Change user password"""
     try:
         user_id = current_user.get("user_id")
-        
+
         result = await user_service.change_password(
             user_id=user_id,
             current_password=request.current_password,
-            new_password=request.new_password
+            new_password=request.new_password,
         )
-        
+
         return {
             "success": True,
             "data": result,
-            "message": "Password changed successfully"
+            "message": "Password changed successfully",
         }
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -169,20 +158,16 @@ async def change_password(
 @router.post("/enable-mfa")
 async def enable_mfa(
     current_user: Dict[str, Any] = Depends(),  # Would implement JWT dependency
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
 ):
     """Enable multi-factor authentication"""
     try:
         user_id = current_user.get("user_id")
-        
+
         result = await user_service.enable_mfa(user_id)
-        
-        return {
-            "success": True,
-            "data": result,
-            "message": "MFA setup initiated"
-        }
-        
+
+        return {"success": True, "data": result, "message": "MFA setup initiated"}
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -193,23 +178,18 @@ async def enable_mfa(
 async def verify_mfa_setup(
     request: MFAVerificationRequest,
     current_user: Dict[str, Any] = Depends(),  # Would implement JWT dependency
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
 ):
     """Verify MFA setup with authenticator code"""
     try:
         user_id = current_user.get("user_id")
-        
+
         result = await user_service.verify_mfa_setup(
-            user_id=user_id,
-            mfa_code=request.mfa_code
+            user_id=user_id, mfa_code=request.mfa_code
         )
-        
-        return {
-            "success": True,
-            "data": result,
-            "message": "MFA enabled successfully"
-        }
-        
+
+        return {"success": True, "data": result, "message": "MFA enabled successfully"}
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -220,23 +200,16 @@ async def verify_mfa_setup(
 async def disable_mfa(
     password: str,
     current_user: Dict[str, Any] = Depends(),  # Would implement JWT dependency
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
 ):
     """Disable multi-factor authentication"""
     try:
         user_id = current_user.get("user_id")
-        
-        result = await user_service.disable_mfa(
-            user_id=user_id,
-            password=password
-        )
-        
-        return {
-            "success": True,
-            "data": result,
-            "message": "MFA disabled successfully"
-        }
-        
+
+        result = await user_service.disable_mfa(user_id=user_id, password=password)
+
+        return {"success": True, "data": result, "message": "MFA disabled successfully"}
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -246,20 +219,17 @@ async def disable_mfa(
 @router.post("/logout")
 async def logout_user(
     current_user: Dict[str, Any] = Depends(),  # Would implement JWT dependency
-    jwt_service: EnhancedJWTService = Depends()
+    jwt_service: EnhancedJWTService = Depends(),
 ):
     """Logout user and revoke tokens"""
     try:
         user_id = current_user.get("user_id")
-        
+
         # Revoke user sessions
         await jwt_service.revoke_user_sessions(user_id, "User logout")
-        
-        return {
-            "success": True,
-            "message": "Logged out successfully"
-        }
-        
+
+        return {"success": True, "message": "Logged out successfully"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail="Logout failed")
 
@@ -267,22 +237,21 @@ async def logout_user(
 @router.get("/me")
 async def get_current_user(
     current_user: Dict[str, Any] = Depends(),  # Would implement JWT dependency
-    user_service: UserService = Depends()
+    user_service: UserService = Depends(),
 ):
     """Get current user information"""
     try:
         user_id = current_user.get("user_id")
-        
+
         profile = await user_service.get_user_profile(user_id)
-        
+
         return {
             "success": True,
             "data": profile,
-            "message": "User profile retrieved successfully"
+            "message": "User profile retrieved successfully",
         }
-        
+
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to retrieve user profile")
-
