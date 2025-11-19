@@ -3,9 +3,7 @@ Unit tests for User Service
 Tests user registration, authentication, profile management, and security features.
 """
 
-import uuid
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 import pytest_asyncio
@@ -288,7 +286,7 @@ class TestUserService:
         await user_service.verify_email(registration_result["verification_token"])
 
         # Enable MFA
-        mfa_result = await user_service.enable_mfa(registration_result["user_id"])
+        await user_service.enable_mfa(registration_result["user_id"])
 
         # Mock TOTP verification (in real implementation, would use actual TOTP code)
         with patch("pyotp.TOTP.verify", return_value=True):

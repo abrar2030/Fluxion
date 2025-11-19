@@ -7,13 +7,10 @@ for financial services platform with real-time monitoring and alerting.
 import asyncio
 import json
 import logging
-import threading
 import time
-import uuid
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
 
@@ -221,7 +218,7 @@ class MetricsCollector:
 
     async def _collect_system_metrics(self):
         """Collect system-level metrics"""
-        timestamp = datetime.now(timezone.utc)
+        datetime.now(timezone.utc)
 
         # CPU metrics
         cpu_percent = psutil.cpu_percent(interval=1)
@@ -468,7 +465,7 @@ class MetricsCollector:
             threshold = rule["threshold"]
             operator = rule["operator"]
             severity = rule["severity"]
-            duration = rule["duration"]
+            rule["duration"]
 
             current_value = self.get_metric_value(metric_name)
             if current_value is None:
@@ -703,7 +700,7 @@ def timed_metric(metric_name: str, labels: Optional[Dict[str, str]] = None):
                 duration_ms = (time.time() - start_time) * 1000
                 metrics_collector.record_timer(metric_name, duration_ms, labels)
                 return result
-            except Exception as e:
+            except Exception:
                 duration_ms = (time.time() - start_time) * 1000
                 error_labels = (labels or {}).copy()
                 error_labels["error"] = "true"

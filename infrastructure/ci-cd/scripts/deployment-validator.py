@@ -12,10 +12,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import boto3
 import hvac
 import requests
-import yaml
 from kubernetes import client, config
 
 
@@ -383,7 +381,7 @@ class DeploymentValidator:
         # Check if running in Kubernetes
         try:
             config.load_kube_config()
-            v1 = client.CoreV1Api()
+            client.CoreV1Api()
             apps_v1 = client.AppsV1Api()
 
             # Get all deployments
@@ -730,7 +728,7 @@ def main():
         validator.validate_resource_requirements()
 
     # Generate and display report
-    report = validator.generate_report(args.output)
+    validator.generate_report(args.output)
     validator.print_summary()
 
     # Exit with appropriate code

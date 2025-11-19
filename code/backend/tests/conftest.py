@@ -3,7 +3,7 @@ Pytest configuration and fixtures for Fluxion backend tests
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import AsyncGenerator, Generator
 from uuid import uuid4
 
@@ -11,12 +11,11 @@ import pytest
 import pytest_asyncio
 from app.main import app
 from config.database import Base
-from config.settings import settings
 from fastapi.testclient import TestClient
 from models.user import KYCStatus, User, UserRole, UserStatus
-from services.auth.auth_service import AuthService
 from services.auth.jwt_service import JWTService
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
 from sqlalchemy.pool import StaticPool
 
 # Test database URL (SQLite in-memory for testing)
@@ -354,4 +353,3 @@ async def cleanup_test_data():
     """Cleanup test data after each test."""
     yield
     # Cleanup logic here if needed
-    pass

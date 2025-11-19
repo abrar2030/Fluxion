@@ -5,21 +5,15 @@ and communication tracking for financial services platform.
 """
 
 import asyncio
-import json
 import logging
-import smtplib
 import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
-from email import encoders
-from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from config.settings import settings
 from services.security.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)

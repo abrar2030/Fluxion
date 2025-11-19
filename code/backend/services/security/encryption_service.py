@@ -7,7 +7,6 @@ for financial data protection and regulatory compliance.
 import base64
 import hashlib
 import logging
-import os
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -16,7 +15,7 @@ from typing import Any, Dict, Optional, Tuple, Union
 
 import jwt
 from config.settings import settings
-from cryptography.fernet import Fernet, MultiFernet
+from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
@@ -622,7 +621,7 @@ class EncryptionService:
             data = data.encode("utf-8")
 
         # Overwrite memory (limited effectiveness in Python)
-        random_data = secrets.token_bytes(len(data))
+        secrets.token_bytes(len(data))
         # This is more of a symbolic gesture in Python due to string immutability
 
     # Utility Methods

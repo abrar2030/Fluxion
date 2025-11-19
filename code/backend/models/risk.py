@@ -6,22 +6,10 @@ import enum
 from code.backend.models.base import AuditMixin, BaseModel, TimestampMixin
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-from sqlalchemy import (
-    DECIMAL,
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    String,
-    Text,
-)
+from sqlalchemy import (DECIMAL, JSON, Boolean, Column, DateTime, Enum, Float,
+                        ForeignKey, Index, Integer, String, Text)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -560,7 +548,6 @@ class RiskScenario(BaseModel, TimestampMixin, AuditMixin):
         """Apply scenario to portfolio data"""
         # This would contain the logic to apply scenario shocks
         # to portfolio positions and calculate stressed values
-        pass
 
     # Indexes
     __table_args__ = (

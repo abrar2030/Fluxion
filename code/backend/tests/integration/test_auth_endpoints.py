@@ -2,8 +2,6 @@
 Integration tests for authentication endpoints
 """
 
-from datetime import datetime
-
 import pytest
 from app.main import app
 from fastapi.testclient import TestClient
@@ -386,7 +384,7 @@ class TestAuthEndpoints:
         response = client.get("/api/v1/auth/me")
 
         # Check for common security headers
-        headers = response.headers
+        response.headers
         # Note: Actual headers depend on middleware configuration
         # These tests verify the middleware is working
         assert response.status_code in [200, 401, 500]  # Any valid response

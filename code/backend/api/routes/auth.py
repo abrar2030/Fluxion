@@ -80,7 +80,7 @@ async def register_user(
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Registration failed")
 
 
@@ -105,7 +105,7 @@ async def login_user(
 
     except ValueError as e:
         raise HTTPException(status_code=401, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Authentication failed")
 
 
@@ -123,7 +123,7 @@ async def verify_email(verification_token: str, user_service: UserService = Depe
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Email verification failed")
 
 
@@ -151,7 +151,7 @@ async def change_password(
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Password change failed")
 
 
@@ -170,7 +170,7 @@ async def enable_mfa(
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="MFA setup failed")
 
 
@@ -192,7 +192,7 @@ async def verify_mfa_setup(
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="MFA verification failed")
 
 
@@ -212,7 +212,7 @@ async def disable_mfa(
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="MFA disable failed")
 
 
@@ -230,7 +230,7 @@ async def logout_user(
 
         return {"success": True, "message": "Logged out successfully"}
 
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Logout failed")
 
 
@@ -253,5 +253,5 @@ async def get_current_user(
 
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=500, detail="Failed to retrieve user profile")

@@ -4,18 +4,15 @@ Implements advanced portfolio tracking, asset management, performance analytics,
 and rebalancing for financial services platform.
 """
 
-import asyncio
-import json
 import logging
 import statistics
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
-from decimal import ROUND_HALF_UP, Decimal
+from datetime import datetime, timezone
+from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from config.settings import settings
 from services.security.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)

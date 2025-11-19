@@ -3,31 +3,13 @@ Portfolio models for Fluxion backend
 """
 
 import enum
-from code.backend.models.base import (
-    AuditMixin,
-    BaseModel,
-    ComplianceMixin,
-    TimestampMixin,
-)
-from datetime import datetime
+from code.backend.models.base import (AuditMixin, BaseModel, ComplianceMixin,
+                                      TimestampMixin)
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-from sqlalchemy import (
-    DECIMAL,
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    Float,
-    ForeignKey,
-    Index,
-    Integer,
-    Numeric,
-    String,
-    Text,
-)
+from sqlalchemy import (DECIMAL, JSON, Boolean, Column, DateTime, Enum, Float,
+                        ForeignKey, Index, Integer, String, Text)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 

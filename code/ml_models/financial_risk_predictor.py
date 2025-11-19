@@ -6,19 +6,16 @@ market volatility, and compliance violations in DeFi environments.
 
 import logging
 import warnings
-from datetime import datetime, timedelta
 
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-import seaborn as sns
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.ensemble import IsolationForest
-from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
-from sklearn.model_selection import TimeSeriesSplit, train_test_split
+from sklearn.metrics import roc_auc_score
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import RobustScaler, StandardScaler
 
 warnings.filterwarnings("ignore")
@@ -107,7 +104,7 @@ class FinancialRiskLSTM(nn.Module):
 
     def forward(self, x):
         # Input shape: (batch_size, sequence_length, input_size)
-        batch_size = x.size(0)
+        x.size(0)
 
         # LSTM processing
         lstm_out, (hidden, cell) = self.lstm(x)
@@ -815,7 +812,7 @@ class FinancialRiskPredictor:
         self.anomaly_threshold = np.percentile(normal_errors, 95)  # 95th percentile
 
         # Evaluate performance
-        predictions = (reconstruction_errors > self.anomaly_threshold).astype(int)
+        (reconstruction_errors > self.anomaly_threshold).astype(int)
         auc_score = roc_auc_score(y_val, reconstruction_errors)
 
         logger.info(f"Anomaly detection AUC: {auc_score:.4f}")

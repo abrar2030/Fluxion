@@ -5,35 +5,20 @@ Tests KYC, AML, and regulatory compliance functionality
 
 import asyncio
 import base64
-import json
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
 from app.main import app
 from fastapi.testclient import TestClient
-from models.compliance import (
-    BiometricData,
-    ComplianceAlert,
-    DocumentType,
-    IdentityVerification,
-    KYCLevel,
-    KYCRecord,
-    KYCStatus,
-)
+from models.compliance import DocumentType, KYCRecord, KYCStatus
 from models.user import User
 from services.compliance.compliance_service import ComplianceService
 from services.compliance.enhanced_kyc_service import (
-    BiometricVerificationResult,
-    DocumentStatus,
-    DocumentVerificationResult,
-    EnhancedKYCService,
-    KYCAssessment,
-    KYCTier,
-    RiskRating,
-)
+    BiometricVerificationResult, DocumentStatus, DocumentVerificationResult,
+    EnhancedKYCService, KYCAssessment, KYCTier, RiskRating)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

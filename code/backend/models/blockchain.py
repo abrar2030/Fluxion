@@ -4,24 +4,11 @@ Blockchain models for Fluxion backend
 
 import enum
 from code.backend.models.base import AuditMixin, BaseModel, TimestampMixin
-from datetime import datetime
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import (
-    DECIMAL,
-    JSON,
-    BigInteger,
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    ForeignKey,
-    Index,
-    Integer,
-    String,
-    Text,
-)
+from sqlalchemy import (DECIMAL, JSON, BigInteger, Boolean, Column, DateTime,
+                        Enum, ForeignKey, Index, Integer, String, Text)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 

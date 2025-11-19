@@ -4,9 +4,8 @@ Implements comprehensive risk assessment, monitoring, and mitigation strategies
 following financial industry best practices and regulatory requirements.
 """
 
-import asyncio
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
@@ -15,20 +14,9 @@ from uuid import UUID
 
 import numpy as np
 import pandas as pd
-from config.settings import settings
 from models.portfolio import Portfolio, PortfolioAsset
-from models.risk import (
-    ConcentrationRisk,
-    RiskAssessment,
-    RiskLevel,
-    RiskMetric,
-    RiskProfile,
-    StressTestResult,
-    VaRCalculation,
-)
-from models.transaction import Transaction, TransactionStatus, TransactionType
-from models.user import User
-from sqlalchemy import and_, desc, func, or_, select
+from models.transaction import Transaction
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 

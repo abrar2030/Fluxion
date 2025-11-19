@@ -4,18 +4,14 @@ Implements advanced analytics, business intelligence, reporting, and data insigh
 for financial services platform with real-time and historical analysis.
 """
 
-import asyncio
-import json
 import logging
-import statistics
 import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from config.settings import settings
 from services.security.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)

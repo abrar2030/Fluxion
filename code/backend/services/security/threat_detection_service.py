@@ -4,9 +4,7 @@ Implements advanced threat detection, anomaly detection, and security monitoring
 using machine learning and rule-based approaches.
 """
 
-import asyncio
 import ipaddress
-import json
 import logging
 import re
 import time
@@ -14,11 +12,10 @@ from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from statistics import mean, stdev
-from typing import Any, Dict, List, Optional, Set, Tuple
+from statistics import mean
+from typing import Any, Dict, List, Optional, Set
 
 import numpy as np
-from config.settings import settings
 from fastapi import Request
 from services.security.encryption_service import EncryptionService
 from sklearn.ensemble import IsolationForest
@@ -840,7 +837,6 @@ class ThreatDetectionService:
     async def _store_threat_event(self, threat: ThreatEvent):
         """Store threat event in persistent storage"""
         # In production, store in database
-        pass
 
     async def _send_threat_alert(self, threat: ThreatEvent):
         """Send threat alert to security team"""

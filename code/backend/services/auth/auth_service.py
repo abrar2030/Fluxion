@@ -6,7 +6,7 @@ import logging
 import secrets
 import string
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, Tuple
+from typing import Optional, Tuple
 from uuid import UUID
 
 import bcrypt
@@ -18,9 +18,8 @@ from services.auth.jwt_service import JWTService
 from services.auth.mfa_service import MFAService
 from services.auth.security_service import SecurityService
 from services.auth.session_service import SessionService
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +27,9 @@ logger = logging.getLogger(__name__)
 class AuthenticationError(Exception):
     """Authentication error exception"""
 
-    pass
-
 
 class AuthorizationError(Exception):
     """Authorization error exception"""
-
-    pass
 
 
 class AuthService:

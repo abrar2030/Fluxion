@@ -4,32 +4,18 @@ Implements comprehensive identity verification, document processing,
 and compliance monitoring following global regulatory standards.
 """
 
-import asyncio
-import base64
-import hashlib
-import json
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
 
-from config.settings import settings
-from models.compliance import (
-    BiometricData,
-    ComplianceAlert,
-    DocumentType,
-    IdentityVerification,
-    KYCLevel,
-    KYCRecord,
-    KYCStatus,
-)
+from models.compliance import DocumentType, KYCRecord, KYCStatus
 from models.user import User
 from services.security.encryption_service import EncryptionService
-from sqlalchemy import and_, desc, func, or_, select
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 logger = logging.getLogger(__name__)
 
@@ -473,7 +459,7 @@ class EnhancedKYCService:
             verification_id = str(uuid4())
 
             # Simulate biometric processing (in real implementation, use biometric service)
-            biometric_analysis = await self._analyze_biometric_data(selfie_data)
+            await self._analyze_biometric_data(selfie_data)
 
             # Perform liveness detection
             liveness_score = await self._detect_liveness(selfie_data)

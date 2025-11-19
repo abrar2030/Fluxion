@@ -3,15 +3,12 @@ Alembic environment configuration for Fluxion backend
 """
 
 import asyncio
-import logging
 from logging.config import fileConfig
 
 from alembic import context
 from config.database import Base
 from config.settings import settings
-
 # Import all models to ensure they are registered with SQLAlchemy
-from models import *
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config

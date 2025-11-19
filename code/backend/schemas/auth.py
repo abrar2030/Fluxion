@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import EmailStr, Field, validator
 
 
 class UserRegister(BaseSchema):

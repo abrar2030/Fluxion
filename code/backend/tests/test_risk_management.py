@@ -3,10 +3,9 @@ Comprehensive test suite for risk management services
 Tests all risk assessment, monitoring, and mitigation functionality
 """
 
-import asyncio
 from datetime import datetime, timedelta
 from decimal import Decimal
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
@@ -16,17 +15,9 @@ from models.portfolio import Portfolio, PortfolioAsset
 from models.transaction import Transaction, TransactionStatus, TransactionType
 from models.user import User
 from services.risk.enhanced_risk_management_service import (
-    CreditRisk,
-    EnhancedRiskManagementService,
-    LiquidityRisk,
-    MarketRisk,
-    OperationalRisk,
-    PortfolioRisk,
-    RiskAssessment,
-    RiskLevel,
-    RiskMetric,
-    RiskType,
-)
+    CreditRisk, EnhancedRiskManagementService, LiquidityRisk, MarketRisk,
+    OperationalRisk, PortfolioRisk, RiskAssessment, RiskLevel, RiskMetric,
+    RiskType)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

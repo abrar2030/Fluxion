@@ -4,24 +4,19 @@ Implements comprehensive financial analytics, real-time monitoring,
 and predictive insights for DeFi and supply chain operations.
 """
 
-import asyncio
-import json
 import logging
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 import numpy as np
-import pandas as pd
-from config.settings import settings
-from models.blockchain import BlockchainTransaction, LiquidityPool
+from models.blockchain import LiquidityPool
 from models.portfolio import Portfolio, PortfolioAsset
-from models.transaction import Transaction, TransactionStatus, TransactionType
-from models.user import User
-from sqlalchemy import and_, desc, func, or_, select, text
+from models.transaction import Transaction, TransactionStatus
+from sqlalchemy import and_, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 

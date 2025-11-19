@@ -10,11 +10,10 @@ import secrets
 import time
 from datetime import datetime, timedelta
 from ipaddress import ip_address, ip_network
-from typing import Dict, List, Optional, Set
+from typing import Optional, Set
 
 from config.settings import settings
 from fastapi import HTTPException, Request, Response
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from services.auth.jwt_service import JWTService
 from services.security.encryption_service import EncryptionService
 from services.security.threat_detection_service import ThreatDetectionService
@@ -80,7 +79,6 @@ class SecurityMiddleware(BaseHTTPMiddleware):
     def _load_ip_configurations(self):
         """Load IP whitelist and blacklist from configuration"""
         # In production, these would be loaded from database or configuration service
-        pass
 
     def _build_csp_header(self) -> str:
         """Build Content Security Policy header"""
@@ -198,7 +196,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                     logger.warning(f"Non-whitelisted IP attempted access: {client_ip}")
                     raise HTTPException(status_code=403, detail="Access denied")
 
-        except ValueError as e:
+        except ValueError:
             logger.error(f"Invalid IP address format: {client_ip}")
             raise HTTPException(status_code=400, detail="Invalid request")
 

@@ -14,7 +14,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from config.settings import settings
 from fastapi import Request, Response
 from services.audit.audit_service import AuditService
 from services.security.encryption_service import EncryptionService

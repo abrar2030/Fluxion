@@ -8,12 +8,8 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
 
 from sqlalchemy import event, text
-from sqlalchemy.ext.asyncio import (
-    AsyncEngine,
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
+from sqlalchemy.ext.asyncio import (AsyncEngine, AsyncSession,
+                                    async_sessionmaker, create_async_engine)
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.pool import QueuePool
 
@@ -22,8 +18,6 @@ logger = logging.getLogger(__name__)
 
 class Base(DeclarativeBase):
     """Base class for all database models"""
-
-    pass
 
 
 class DatabaseManager:
@@ -220,7 +214,7 @@ class DatabaseHealthCheck:
         """Check write database health"""
         try:
             async with db_manager.get_session() as session:
-                result = await session.execute(text("SELECT 1"))
+                await session.execute(text("SELECT 1"))
                 latency_start = logger.time()
                 await session.execute(text("SELECT pg_sleep(0.001)"))
                 latency = (logger.time() - latency_start) * 1000
@@ -246,7 +240,7 @@ class DatabaseHealthCheck:
 
         try:
             async with db_manager.get_session(read_only=True) as session:
-                result = await session.execute(text("SELECT 1"))
+                await session.execute(text("SELECT 1"))
                 return {
                     "status": "healthy",
                     "connection_pool": {

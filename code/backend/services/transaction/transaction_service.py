@@ -5,17 +5,14 @@ for financial services with enterprise-grade reliability and compliance.
 """
 
 import asyncio
-import hashlib
-import json
 import logging
 import uuid
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
-from config.settings import settings
 from services.compliance.kyc_service import KYCService
 from services.security.encryption_service import EncryptionService
 
@@ -219,7 +216,6 @@ class TransactionService:
     def _initialize_default_configurations(self):
         """Initialize default configurations"""
         # This would be loaded from database in production
-        pass
 
     async def create_transaction(
         self,

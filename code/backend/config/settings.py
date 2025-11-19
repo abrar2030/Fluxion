@@ -2,8 +2,7 @@
 Comprehensive settings configuration for Fluxion backend
 """
 
-import os
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
 from pydantic import BaseSettings, Field, PostgresDsn, RedisDsn, validator
 from pydantic_settings import BaseSettings

@@ -4,17 +4,13 @@ Implements advanced user lifecycle management, profile management, preferences,
 and user-related business logic for financial services platform.
 """
 
-import asyncio
-import hashlib
-import json
 import logging
 import secrets
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-from config.settings import settings
 from services.auth.enhanced_jwt_service import DeviceInfo, EnhancedJWTService
 from services.compliance.kyc_service import KYCService
 from services.security.encryption_service import EncryptionService

@@ -5,7 +5,6 @@ Main FastAPI application for Fluxion backend
 import logging
 import time
 from contextlib import asynccontextmanager
-from typing import Any, Dict
 
 from app.api.v1.router import api_router
 from config.database import close_database, init_database

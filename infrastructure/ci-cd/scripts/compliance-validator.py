@@ -6,12 +6,11 @@ Validates infrastructure and application compliance with financial standards
 
 import argparse
 import json
-import os
 import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import yaml
 
@@ -618,7 +617,7 @@ def main():
     validator.validate_secrets_management(args.path)
 
     # Generate and display report
-    report = validator.generate_report(args.output)
+    validator.generate_report(args.output)
     validator.print_summary()
 
     # Exit with appropriate code

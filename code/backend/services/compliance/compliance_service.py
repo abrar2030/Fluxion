@@ -5,27 +5,16 @@ Compliance service for Fluxion backend
 import logging
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from uuid import UUID
 
-from config.settings import settings
-from models.compliance import (
-    AMLCheck,
-    AMLRiskLevel,
-    AuditLog,
-    AuditLogLevel,
-    ComplianceAlert,
-    ComplianceAlertStatus,
-    ComplianceAlertType,
-    KYCRecord,
-    KYCStatus,
-)
-from models.risk import RiskLevel, RiskProfile
-from models.transaction import Transaction, TransactionStatus, TransactionType
+from models.compliance import (AMLCheck, AMLRiskLevel, ComplianceAlert,
+                               ComplianceAlertStatus, ComplianceAlertType,
+                               KYCRecord, KYCStatus)
+from models.transaction import Transaction, TransactionStatus
 from models.user import User
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 logger = logging.getLogger(__name__)
 

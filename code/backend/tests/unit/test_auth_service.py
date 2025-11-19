@@ -2,12 +2,11 @@
 Unit tests for authentication service
 """
 
-from datetime import datetime, timedelta
 from uuid import uuid4
 
 import pytest
 import pytest_asyncio
-from models.user import User, UserRole, UserStatus
+from models.user import UserRole, UserStatus
 from schemas.auth import PasswordChange, UserLogin, UserRegister
 from services.auth.auth_service import AuthenticationError, AuthService
 from services.auth.jwt_service import JWTService
