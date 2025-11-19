@@ -103,4 +103,4 @@ describe('ResultsDisplay', () => {
     const confidenceInterval = getByText('95% CI: [9.8000, 11.2000]');
     expect(confidenceInterval.props.style).toContainEqual({ color: expect.any(String) });
   });
-}); 
+});

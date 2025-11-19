@@ -35,7 +35,7 @@ const Dashboard = () => {
   const { marketData, poolsData, analyticsData, fetchMarketData, fetchPoolsData, isLoading } = useData();
   const { addNotification } = useUI();
   const [chartData, setChartData] = useState([]);
-  
+
   const cardBg = useColorModeValue('gray.700', 'gray.700');
   const borderColor = useColorModeValue('gray.600', 'gray.600');
 
@@ -43,10 +43,10 @@ const Dashboard = () => {
     // Fetch data when component mounts
     fetchMarketData();
     fetchPoolsData();
-    
+
     // Set up chart data
     setChartData(analyticsData.tvlData);
-    
+
     // Show welcome notification
     addNotification({
       title: 'Welcome to Fluxion',
@@ -78,7 +78,7 @@ const Dashboard = () => {
       <Heading as="h1" mb={6} fontSize="3xl" color="white">
         Dashboard
       </Heading>
-      
+
       {!isConnected && (
         <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" mb={8} className="slide-up">
           <CardBody>
@@ -98,7 +98,7 @@ const Dashboard = () => {
           </CardBody>
         </Card>
       )}
-      
+
       <SimpleGrid columns={{ base: 1, md: 4 }} spacing={{ base: 5, lg: 8 }}>
         <StatCard
           title="Total Value Locked"
@@ -157,12 +157,12 @@ const Dashboard = () => {
               <CartesianGrid strokeDasharray="3 3" stroke="#444" />
               <XAxis dataKey="name" stroke="#999" />
               <YAxis stroke="#999" />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: '#333', 
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: '#333',
                   borderColor: '#555',
                   color: 'white'
-                }} 
+                }}
               />
               <Line type="monotone" dataKey="tvl" stroke="#0080ff" activeDot={{ r: 8 }} />
               <Line type="monotone" dataKey="volume" stroke="#ff8c00" />

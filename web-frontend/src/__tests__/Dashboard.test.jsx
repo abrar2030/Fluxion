@@ -95,10 +95,10 @@ describe('Dashboard Component', () => {
   it('handles tab switching', () => {
     renderDashboard();
     const tabs = screen.getAllByRole('tab');
-    
+
     // Click on the second tab
     fireEvent.click(tabs[1]);
-    
+
     // Verify the content changes (you might need to adjust this based on your actual tab content)
     expect(screen.getByText('Recent Transactions')).toBeInTheDocument();
   });
@@ -110,4 +110,4 @@ describe('Dashboard Component', () => {
     expect(screen.getByText('ETH-DAI')).toBeInTheDocument();
     expect(screen.getByText('USDC-DAI')).toBeInTheDocument();
   });
-}); 
+});

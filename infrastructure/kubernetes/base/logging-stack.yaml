@@ -19,12 +19,12 @@ data:
     node.name: ${HOSTNAME}
     network.host: 0.0.0.0
     discovery.type: single-node
-    
+
     # Security settings
     xpack.security.enabled: true
     xpack.security.transport.ssl.enabled: true
     xpack.security.http.ssl.enabled: true
-    
+
     # Audit logging for compliance
     xpack.security.audit.enabled: true
     xpack.security.audit.logfile.events.include: [
@@ -32,10 +32,10 @@ data:
       "authentication_failed", "authentication_success",
       "realm_authentication_failed", "run_as_denied", "run_as_granted"
     ]
-    
+
     # Index lifecycle management
     xpack.ilm.enabled: true
-    
+
     # Monitoring
     xpack.monitoring.enabled: true
     xpack.monitoring.collection.enabled: true
@@ -169,28 +169,28 @@ data:
     xpack.monitoring.elasticsearch.username: elastic
     xpack.monitoring.elasticsearch.password: "${ELASTIC_PASSWORD}"
     xpack.monitoring.elasticsearch.ssl.verification_mode: none
-  
+
   pipeline.conf: |
     input {
       beats {
         port => 5044
       }
     }
-    
+
     filter {
       # Parse Kubernetes logs
       if [kubernetes] {
         mutate {
           add_field => { "log_source" => "kubernetes" }
         }
-        
+
         # Parse JSON logs from applications
         if [message] =~ /^\{.*\}$/ {
           json {
             source => "message"
           }
         }
-        
+
         # Add security classification
         if [kubernetes][namespace] == "{{ .Values.namespace | default "default" }}" {
           mutate {
@@ -198,7 +198,7 @@ data:
             add_field => { "compliance_required" => "true" }
           }
         }
-        
+
         # Parse audit logs
         if [kubernetes][labels][app] =~ /audit/ {
           mutate {
@@ -206,7 +206,7 @@ data:
             add_field => { "retention_years" => "7" }
           }
         }
-        
+
         # Parse security logs
         if [message] =~ /(authentication|authorization|login|logout|access_denied|security)/ {
           mutate {
@@ -215,17 +215,17 @@ data:
           }
         }
       }
-      
+
       # Parse application logs
       if [fields][app] == "fluxion" {
         grok {
           match => { "message" => "%{TIMESTAMP_ISO8601:timestamp} %{LOGLEVEL:level} %{GREEDYDATA:log_message}" }
         }
-        
+
         date {
           match => [ "timestamp", "ISO8601" ]
         }
-        
+
         # Detect sensitive data patterns
         if [log_message] =~ /(password|token|secret|key|credit_card|ssn)/ {
           mutate {
@@ -235,7 +235,7 @@ data:
         }
       }
     }
-    
+
     output {
       elasticsearch {
         hosts => ["https://elasticsearch:9200"]
@@ -243,10 +243,10 @@ data:
         password => "${ELASTIC_PASSWORD}"
         ssl => true
         ssl_certificate_verification => false
-        
+
         # Index strategy for compliance
         index => "fluxion-logs-%{+YYYY.MM.dd}"
-        
+
         # Use different indices for different log types
         if [log_type] == "audit" {
           index => "fluxion-audit-%{+YYYY.MM.dd}"
@@ -256,7 +256,7 @@ data:
           index => "fluxion-financial-%{+YYYY.MM.dd}"
         }
       }
-      
+
       # Send critical alerts to external systems
       if [alert_required] == "true" or [level] == "ERROR" or [level] == "FATAL" {
         http {
@@ -374,17 +374,17 @@ data:
     elasticsearch.username: elastic
     elasticsearch.password: "${ELASTIC_PASSWORD}"
     elasticsearch.ssl.verificationMode: none
-    
+
     # Security settings
     xpack.security.enabled: true
     xpack.encryptedSavedObjects.encryptionKey: "${KIBANA_ENCRYPTION_KEY}"
-    
+
     # Audit logging
     xpack.security.audit.enabled: true
-    
+
     # Monitoring
     xpack.monitoring.enabled: true
-    
+
     # Compliance dashboard settings
     xpack.canvas.enabled: true
     xpack.dashboard_mode.roles: ["kibana_dashboard_only_user"]
@@ -488,4 +488,3 @@ metadata:
 type: Opaque
 data:
   encryption_key: {{ .Values.kibana.encryptionKey | b64enc }}
-

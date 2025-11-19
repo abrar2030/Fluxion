@@ -71,4 +71,3 @@ This document outlines the design for a modern mobile frontend for the Fluxora e
 *   Saving prediction history.
 *   Real-time data updates (if backend supports).
 *   More sophisticated data visualization.
-

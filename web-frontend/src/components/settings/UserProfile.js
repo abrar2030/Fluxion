@@ -49,4 +49,3 @@ const UserProfile = ({ user, onUpdate }) => {
 };
 
 export default UserProfile;
-

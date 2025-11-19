@@ -13,8 +13,8 @@ data:
           - alert: DataRetentionViolation
             expr: |
               (
-                elasticsearch_indices_docs{index=~"fluxion-.*"} 
-                and on(index) 
+                elasticsearch_indices_docs{index=~"fluxion-.*"}
+                and on(index)
                 (time() - elasticsearch_indices_creation_date_in_millis{index=~"fluxion-.*"} / 1000) > (7 * 365 * 24 * 3600)
               )
             for: 0m
@@ -368,18 +368,18 @@ data:
     import requests
     from datetime import datetime, timedelta
     from elasticsearch import Elasticsearch
-    
+
     def generate_compliance_report():
         """Generate daily compliance report"""
-        
+
         # Configuration
         es_url = os.getenv('ELASTICSEARCH_URL')
         prometheus_url = os.getenv('PROMETHEUS_URL')
         report_date = os.getenv('REPORT_DATE', datetime.now().strftime('%Y-%m-%d'))
-        
+
         # Initialize clients
         es = Elasticsearch([es_url], verify_certs=False)
-        
+
         report = {
             'report_date': report_date,
             'generated_at': datetime.now().isoformat(),
@@ -388,37 +388,37 @@ data:
             'metrics': {},
             'recommendations': []
         }
-        
+
         # Check data retention compliance
         try:
             indices = es.indices.get_alias(index="fluxion-*")
             retention_violations = []
-            
+
             for index_name in indices:
                 index_info = es.indices.get(index=index_name)
                 creation_date = index_info[index_name]['settings']['index']['creation_date']
                 creation_timestamp = int(creation_date) / 1000
                 age_days = (datetime.now().timestamp() - creation_timestamp) / (24 * 3600)
-                
+
                 if age_days > (7 * 365):  # 7 years
                     retention_violations.append({
                         'index': index_name,
                         'age_days': age_days,
                         'violation_type': 'data_retention'
                     })
-            
+
             report['compliance_status']['data_retention'] = {
                 'status': 'PASS' if not retention_violations else 'FAIL',
                 'violations_count': len(retention_violations),
                 'details': retention_violations
             }
-            
+
         except Exception as e:
             report['compliance_status']['data_retention'] = {
                 'status': 'ERROR',
                 'error': str(e)
             }
-        
+
         # Check audit log completeness
         try:
             audit_query = {
@@ -431,25 +431,25 @@ data:
                     }
                 }
             }
-            
+
             audit_result = es.search(index="fluxion-audit-*", body=audit_query)
             audit_count = audit_result['hits']['total']['value']
-            
+
             # Expected minimum audit events per day (configurable)
             min_expected_audit_events = 1000
-            
+
             report['compliance_status']['audit_logging'] = {
                 'status': 'PASS' if audit_count >= min_expected_audit_events else 'WARN',
                 'audit_events_count': audit_count,
                 'expected_minimum': min_expected_audit_events
             }
-            
+
         except Exception as e:
             report['compliance_status']['audit_logging'] = {
                 'status': 'ERROR',
                 'error': str(e)
             }
-        
+
         # Check security events
         try:
             security_query = {
@@ -469,24 +469,24 @@ data:
                     }
                 }
             }
-            
+
             security_result = es.search(index="fluxion-security-*", body=security_query)
             security_events = security_result['aggregations']['security_events']['buckets']
-            
+
             report['metrics']['security_events'] = {
                 event['key']: event['doc_count'] for event in security_events
             }
-            
+
         except Exception as e:
             report['metrics']['security_events'] = {'error': str(e)}
-        
+
         # Query Prometheus for SLA metrics
         try:
             # Service availability
             availability_query = 'avg_over_time(up{job="fluxion-backend"}[24h])'
-            response = requests.get(f"{prometheus_url}/api/v1/query", 
+            response = requests.get(f"{prometheus_url}/api/v1/query",
                                   params={'query': availability_query})
-            
+
             if response.status_code == 200:
                 data = response.json()
                 if data['data']['result']:
@@ -497,13 +497,13 @@ data:
                         'sla_target': 99.9,
                         'compliant': availability >= 0.999
                     }
-            
+
         except Exception as e:
             report['metrics']['service_availability'] = {'error': str(e)}
-        
+
         # Generate recommendations
         recommendations = []
-        
+
         if report['compliance_status'].get('data_retention', {}).get('status') == 'FAIL':
             recommendations.append({
                 'priority': 'HIGH',
@@ -511,7 +511,7 @@ data:
                 'description': 'Implement automated data archival for indices older than 7 years',
                 'action_required': 'Configure index lifecycle management (ILM) policies'
             })
-        
+
         if report['metrics'].get('service_availability', {}).get('compliant') == False:
             recommendations.append({
                 'priority': 'MEDIUM',
@@ -519,31 +519,31 @@ data:
                 'description': 'Service availability below SLA target',
                 'action_required': 'Review infrastructure scaling and redundancy'
             })
-        
+
         report['recommendations'] = recommendations
-        
+
         # Calculate overall compliance score
         total_checks = len(report['compliance_status'])
-        passed_checks = sum(1 for status in report['compliance_status'].values() 
+        passed_checks = sum(1 for status in report['compliance_status'].values()
                           if status.get('status') == 'PASS')
-        
+
         report['overall_compliance_score'] = {
             'percentage': (passed_checks / total_checks * 100) if total_checks > 0 else 0,
             'total_checks': total_checks,
             'passed_checks': passed_checks,
             'status': 'COMPLIANT' if passed_checks == total_checks else 'NON_COMPLIANT'
         }
-        
+
         # Save report
         report_filename = f"/reports/compliance_report_{report_date}.json"
         with open(report_filename, 'w') as f:
             json.dump(report, f, indent=2)
-        
+
         print(f"Compliance report generated: {report_filename}")
         print(f"Overall compliance score: {report['overall_compliance_score']['percentage']:.1f}%")
-        
+
         return report
-    
+
     if __name__ == "__main__":
         generate_compliance_report()
 ---
@@ -592,4 +592,3 @@ roleRef:
   kind: Role
   name: compliance-monitor
   apiGroup: rbac.authorization.k8s.io
-

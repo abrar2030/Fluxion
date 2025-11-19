@@ -77,14 +77,14 @@ const SidebarContent = ({ ...rest }) => {
           Settings
         </NavItem>
       </VStack>
-      
+
       <Box position="absolute" bottom="5" width="100%">
         <Box mx="8" mb="4">
-          <Button 
+          <Button
             leftIcon={<FiExternalLink />}
-            colorScheme="brand" 
-            variant="outline" 
-            size="sm" 
+            colorScheme="brand"
+            variant="outline"
+            size="sm"
             width="full"
             _hover={{
               bg: 'brand.500',

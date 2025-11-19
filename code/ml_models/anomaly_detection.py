@@ -1,8 +1,7 @@
 import json
 import logging
 import os
-from code.ml_models.enhanced_models import (EnhancedLiquidityLSTM,
-                                            SupplyChainForecaster)
+from code.ml_models.enhanced_models import EnhancedLiquidityLSTM, SupplyChainForecaster
 from datetime import datetime
 
 import matplotlib.pyplot as plt

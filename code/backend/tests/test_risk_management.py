@@ -16,9 +16,17 @@ from models.portfolio import Portfolio, PortfolioAsset
 from models.transaction import Transaction, TransactionStatus, TransactionType
 from models.user import User
 from services.risk.enhanced_risk_management_service import (
-    CreditRisk, EnhancedRiskManagementService, LiquidityRisk, MarketRisk,
-    OperationalRisk, PortfolioRisk, RiskAssessment, RiskLevel, RiskMetric,
-    RiskType)
+    CreditRisk,
+    EnhancedRiskManagementService,
+    LiquidityRisk,
+    MarketRisk,
+    OperationalRisk,
+    PortfolioRisk,
+    RiskAssessment,
+    RiskLevel,
+    RiskMetric,
+    RiskType,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

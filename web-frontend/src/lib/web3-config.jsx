@@ -89,33 +89,33 @@ export function Web3Provider({ children }) {
     const init = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       // Check if window.ethereum is available
       if (window.ethereum) {
         try {
           // Fix for ethers v6
           const provider = new ethers.BrowserProvider(window.ethereum);
           setProvider(provider);
-          
+
           // Get network
           const network = await provider.getNetwork();
           setChainId(network.chainId);
-          
+
           // Initialize contracts
           initializeContracts(provider);
-          
+
           // Listen for account changes
           window.ethereum.on('accountsChanged', handleAccountsChanged);
-          
+
           // Listen for chain changes
           window.ethereum.on('chainChanged', () => window.location.reload());
-          
+
           // Check if already connected
           const accounts = await provider.listAccounts();
           if (accounts.length > 0) {
             handleAccountsChanged(accounts);
           }
-          
+
           setIsLoading(false);
         } catch (error) {
           console.error("Error initializing web3:", error);
@@ -127,9 +127,9 @@ export function Web3Provider({ children }) {
         setIsLoading(false);
       }
     };
-    
+
     init();
-    
+
     return () => {
       if (window.ethereum) {
         window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
@@ -142,19 +142,19 @@ export function Web3Provider({ children }) {
     try {
       const poolManagerAddress = import.meta.env.VITE_POOL_MANAGER_ADDRESS || '0x0000000000000000000000000000000000000000';
       const factoryAddress = import.meta.env.VITE_FACTORY_ADDRESS || '0x0000000000000000000000000000000000000000';
-      
+
       const poolManager = new ethers.Contract(
         poolManagerAddress,
         POOL_MANAGER_ABI,
         provider
       );
-      
+
       const factory = new ethers.Contract(
         factoryAddress,
         FACTORY_ABI,
         provider
       );
-      
+
       setContracts({ poolManager, factory });
     } catch (error) {
       console.error("Error initializing contracts:", error);
@@ -173,19 +173,19 @@ export function Web3Provider({ children }) {
     } else {
       // User connected or changed account
       setAccount(accounts[0]);
-      
+
       try {
         // Fix for ethers v6
         const signer = await provider.getSigner();
         setSigner(signer);
         setIsConnected(true);
-        
+
         // Fetch pools for the connected account
         fetchPools(accounts[0]);
-        
+
         // Update user profile on backend
         try {
-          await userAPI.updateProfile({ 
+          await userAPI.updateProfile({
             address: accounts[0],
             chainId: chainId
           });
@@ -203,11 +203,11 @@ export function Web3Provider({ children }) {
   const connectWallet = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     if (provider) {
       try {
-        const accounts = await window.ethereum.request({ 
-          method: 'eth_requestAccounts' 
+        const accounts = await window.ethereum.request({
+          method: 'eth_requestAccounts'
         });
         handleAccountsChanged(accounts);
         setIsLoading(false);
@@ -226,7 +226,7 @@ export function Web3Provider({ children }) {
   const fetchPools = async (address) => {
     if (contracts.poolManager && address) {
       setIsLoading(true);
-      
+
       try {
         // Mock data for development
         const mockPools = [
@@ -249,7 +249,7 @@ export function Web3Provider({ children }) {
             apy: '5.2%'
           }
         ];
-        
+
         setPools(mockPools);
         setIsLoading(false);
       } catch (error) {
@@ -266,14 +266,14 @@ export function Web3Provider({ children }) {
       setError("Please connect your wallet first");
       return null;
     }
-    
+
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Simulate pool creation
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       // Mock new pool
       const newPool = {
         id: 'pool-' + account.substring(0, 8) + '-' + (pools.length + 1),
@@ -284,10 +284,10 @@ export function Web3Provider({ children }) {
         tvl: '$0',
         apy: '0%'
       };
-      
+
       setPools([...pools, newPool]);
       setIsLoading(false);
-      
+
       return newPool.id;
     } catch (error) {
       console.error("Error creating pool:", error);

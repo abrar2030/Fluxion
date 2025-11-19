@@ -100,4 +100,4 @@ describe('App Component', () => {
     renderWithRouter(<App />, { route: '/settings' });
     expect(screen.getByTestId('settings')).toBeInTheDocument();
   });
-}); 
+});

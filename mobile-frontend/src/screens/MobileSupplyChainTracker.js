@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   TextInput,
   ActivityIndicator,
   SafeAreaView,
@@ -28,39 +28,39 @@ const { width, height } = Dimensions.get('window');
 
 // Mock data for demonstration
 const mockAssets = [
-  { 
-    id: 1, 
-    metadata: 'Product XYZ-123', 
-    currentCustodian: '0x1234567890abcdef1234567890abcdef12345678', 
-    timestamp: '2023-05-18T14:30:00Z', 
-    status: 'InTransit', 
+  {
+    id: 1,
+    metadata: 'Product XYZ-123',
+    currentCustodian: '0x1234567890abcdef1234567890abcdef12345678',
+    timestamp: '2023-05-18T14:30:00Z',
+    status: 'InTransit',
     location: 'New York, USA',
     position: { latitude: 40.7128, longitude: -74.0060 }
   },
-  { 
-    id: 2, 
-    metadata: 'Component ABC-456', 
-    currentCustodian: '0xabcdef1234567890abcdef1234567890abcdef12', 
-    timestamp: '2023-05-17T10:15:00Z', 
-    status: 'Delivered', 
+  {
+    id: 2,
+    metadata: 'Component ABC-456',
+    currentCustodian: '0xabcdef1234567890abcdef1234567890abcdef12',
+    timestamp: '2023-05-17T10:15:00Z',
+    status: 'Delivered',
     location: 'Los Angeles, USA',
     position: { latitude: 34.0522, longitude: -118.2437 }
   },
-  { 
-    id: 3, 
-    metadata: 'Raw Material DEF-789', 
-    currentCustodian: '0x7890abcdef1234567890abcdef1234567890abcd', 
-    timestamp: '2023-05-16T08:45:00Z', 
-    status: 'Created', 
+  {
+    id: 3,
+    metadata: 'Raw Material DEF-789',
+    currentCustodian: '0x7890abcdef1234567890abcdef1234567890abcd',
+    timestamp: '2023-05-16T08:45:00Z',
+    status: 'Created',
     location: 'Chicago, USA',
     position: { latitude: 41.8781, longitude: -87.6298 }
   },
-  { 
-    id: 4, 
-    metadata: 'Shipment GHI-012', 
-    currentCustodian: '0xef1234567890abcdef1234567890abcdef123456', 
-    timestamp: '2023-05-15T16:20:00Z', 
-    status: 'Rejected', 
+  {
+    id: 4,
+    metadata: 'Shipment GHI-012',
+    currentCustodian: '0xef1234567890abcdef1234567890abcdef123456',
+    timestamp: '2023-05-15T16:20:00Z',
+    status: 'Rejected',
     location: 'Houston, USA',
     position: { latitude: 29.7604, longitude: -95.3698 }
   },
@@ -204,12 +204,12 @@ const MobileSupplyChainTracker = () => {
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
     setShowScanner(false);
-    
+
     try {
       // Assume data is a JSON string with asset information
       const assetData = JSON.parse(data);
       Alert.alert('Asset Found', `Found asset: ${assetData.metadata || assetData.id}`);
-      
+
       // Find the asset in our list
       const foundAsset = assets.find(a => a.id.toString() === assetData.id.toString());
       if (foundAsset) {
@@ -231,7 +231,7 @@ const MobileSupplyChainTracker = () => {
   // Transfer asset (mock implementation)
   const handleTransferAsset = () => {
     if (!selectedAsset) return;
-    
+
     setLoading(true);
     // Simulate API call
     setTimeout(() => {
@@ -245,7 +245,7 @@ const MobileSupplyChainTracker = () => {
         location: transferDetails.location || (currentLocation ? 'Current Location' : 'Unknown'),
         proofHash: transferDetails.proofHash || '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')
       };
-      
+
       // Update asset
       const updatedAssets = assets.map(asset => {
         if (asset.id === selectedAsset.id) {
@@ -259,7 +259,7 @@ const MobileSupplyChainTracker = () => {
         }
         return asset;
       });
-      
+
       setAssets(updatedAssets);
       setTransfers([...transfers, newTransfer]);
       setSelectedAsset({
@@ -269,7 +269,7 @@ const MobileSupplyChainTracker = () => {
         status: 'InTransit',
         timestamp: new Date().toISOString()
       });
-      
+
       setLoading(false);
       setShowTransferModal(false);
       setTransferDetails({
@@ -277,7 +277,7 @@ const MobileSupplyChainTracker = () => {
         location: '',
         proofHash: ''
       });
-      
+
       Alert.alert('Success', `Asset ${selectedAsset.id} transferred successfully`);
     }, 1500);
   };
@@ -356,7 +356,7 @@ const MobileSupplyChainTracker = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Supply Chain Tracker</Text>
@@ -369,7 +369,7 @@ const MobileSupplyChainTracker = () => {
           </TouchableOpacity>
         </View>
       </View>
-      
+
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <MaterialIcons name="search" size={20} color="#7f8c8d" style={styles.searchIcon} />
@@ -385,7 +385,7 @@ const MobileSupplyChainTracker = () => {
           </TouchableOpacity>
         )}
       </View>
-      
+
       {/* Status Filter Chips */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterChips}>
         <TouchableOpacity
@@ -416,7 +416,7 @@ const MobileSupplyChainTracker = () => {
           </TouchableOpacity>
         ))}
       </ScrollView>
-      
+
       {/* Content */}
       {loading && assets.length === 0 ? (
         <View style={styles.loadingContainer}>
@@ -441,7 +441,7 @@ const MobileSupplyChainTracker = () => {
               <MaterialIcons name="arrow-forward" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
-          
+
           {/* Asset Details */}
           <View style={styles.detailCard}>
             <Text style={styles.detailCardTitle}>Asset Information</Text>
@@ -462,7 +462,7 @@ const MobileSupplyChainTracker = () => {
               <Text style={styles.detailValue}>{new Date(selectedAsset.timestamp).toLocaleString()}</Text>
             </View>
           </View>
-          
+
           {/* Asset QR Code */}
           <TouchableOpacity
             style={styles.qrCodeCard}
@@ -480,7 +480,7 @@ const MobileSupplyChainTracker = () => {
             </View>
             <MaterialIcons name="chevron-right" size={24} color="#7f8c8d" />
           </TouchableOpacity>
-          
+
           {/* Asset Map */}
           <View style={styles.mapCard}>
             <Text style={styles.mapCardTitle}>Asset Location</Text>
@@ -508,7 +508,7 @@ const MobileSupplyChainTracker = () => {
               </MapView>
             </View>
           </View>
-          
+
           {/* Transfer History */}
           <View style={styles.transfersCard}>
             <Text style={styles.transfersCardTitle}>Transfer History</Text>
@@ -539,7 +539,7 @@ const MobileSupplyChainTracker = () => {
           contentContainerStyle={styles.assetList}
         />
       )}
-      
+
       {/* QR Code Scanner Modal */}
       <Modal
         visible={showScanner}
@@ -554,7 +554,7 @@ const MobileSupplyChainTracker = () => {
             <Text style={styles.scannerTitle}>Scan Asset QR Code</Text>
             <View style={{ width: 24 }} />
           </View>
-          
+
           {hasPermission === null ? (
             <View style={styles.scannerPlaceholder}>
               <Text>Requesting camera permission...</Text>
@@ -580,7 +580,7 @@ const MobileSupplyChainTracker = () => {
               </View>
             </View>
           )}
-          
+
           {scanned && (
             <TouchableOpacity
               style={styles.rescanButton}
@@ -591,7 +591,7 @@ const MobileSupplyChainTracker = () => {
           )}
         </SafeAreaView>
       </Modal>
-      
+
       {/* QR Code Full Screen Modal */}
       <Modal
         visible={showQRCode}
@@ -619,7 +619,7 @@ const MobileSupplyChainTracker = () => {
           </View>
         </View>
       </Modal>
-      
+
       {/* Filter Modal */}
       <Modal
         visible={showFilterModal}
@@ -665,7 +665,7 @@ const MobileSupplyChainTracker = () => {
           </View>
         </View>
       </Modal>
-      
+
       {/* Transfer Modal */}
       <Modal
         visible={showTransferModal}
@@ -691,7 +691,7 @@ const MobileSupplyChainTracker = () => {
                   onChangeText={(text) => handleTransferDetailsChange('to', text)}
                 />
               </View>
-              
+
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>New Location</Text>
                 <View style={styles.locationInputContainer}>
@@ -711,7 +711,7 @@ const MobileSupplyChainTracker = () => {
                   )}
                 </View>
               </View>
-              
+
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Proof Hash (Optional)</Text>
                 <TextInput
@@ -748,7 +748,7 @@ const MobileSupplyChainTracker = () => {
           </View>
         </View>
       </Modal>
-      
+
       {/* Back Button (when viewing asset details) */}
       {selectedAsset && (
         <TouchableOpacity

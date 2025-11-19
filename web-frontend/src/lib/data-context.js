@@ -13,14 +13,14 @@ export const DataProvider = ({ children }) => {
     activePools: 24,
     avgApy: '5.8%'
   });
-  
+
   const [poolsData, setPoolsData] = useState([]);
   const [analyticsData, setAnalyticsData] = useState({
     volumeData: [],
     tvlData: [],
     poolDistribution: []
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -28,18 +28,18 @@ export const DataProvider = ({ children }) => {
   const fetchMarketData = async () => {
     try {
       setIsLoading(true);
-      
+
       // In a real implementation, this would call an API
       // For now, we'll use mock data
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setMarketData({
         tvl: '$5.9M',
         volume24h: '$840K',
         activePools: 24,
         avgApy: '5.8%'
       });
-      
+
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching market data:", error);
@@ -52,11 +52,11 @@ export const DataProvider = ({ children }) => {
   const fetchPoolsData = async () => {
     try {
       setIsLoading(true);
-      
+
       // In a real implementation, this would call an API
       // For now, we'll use mock data
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const mockPoolsData = [
         {
           id: 'ETH-USDC',
@@ -119,7 +119,7 @@ export const DataProvider = ({ children }) => {
           utilization: 89
         }
       ];
-      
+
       setPoolsData(mockPoolsData);
       setIsLoading(false);
     } catch (error) {
@@ -133,11 +133,11 @@ export const DataProvider = ({ children }) => {
   const fetchAnalyticsData = async () => {
     try {
       setIsLoading(true);
-      
+
       // In a real implementation, this would call an API
       // For now, we'll use mock data
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const mockVolumeData = [
         { name: 'Jan', volume: 2400 },
         { name: 'Feb', volume: 1398 },
@@ -147,7 +147,7 @@ export const DataProvider = ({ children }) => {
         { name: 'Jun', volume: 3800 },
         { name: 'Jul', volume: 4300 },
       ];
-      
+
       const mockTvlData = [
         { name: 'Jan', tvl: 4000 },
         { name: 'Feb', tvl: 3000 },
@@ -157,7 +157,7 @@ export const DataProvider = ({ children }) => {
         { name: 'Jun', tvl: 2390 },
         { name: 'Jul', tvl: 3490 },
       ];
-      
+
       const mockPoolDistribution = [
         { name: 'ETH-USDC', value: 2400 },
         { name: 'BTC-ETH', value: 1800 },
@@ -165,13 +165,13 @@ export const DataProvider = ({ children }) => {
         { name: 'UNI-USDT', value: 750 },
         { name: 'Others', value: 1200 },
       ];
-      
+
       setAnalyticsData({
         volumeData: mockVolumeData,
         tvlData: mockTvlData,
         poolDistribution: mockPoolDistribution
       });
-      
+
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching analytics data:", error);

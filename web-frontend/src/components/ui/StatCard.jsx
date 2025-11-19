@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  Box, 
-  Button, 
-  Flex, 
-  Text, 
-  Icon, 
+import {
+  Box,
+  Button,
+  Flex,
+  Text,
+  Icon,
   useColorModeValue,
   Tooltip
 } from '@chakra-ui/react';
@@ -13,7 +13,7 @@ import { FiInfo } from 'react-icons/fi';
 const StatCard = ({ title, value, icon, helpText, type, isLoading }) => {
   const bgColor = useColorModeValue('gray.700', 'gray.700');
   const borderColor = useColorModeValue('gray.600', 'gray.600');
-  
+
   return (
     <Box
       p={5}
@@ -44,8 +44,8 @@ const StatCard = ({ title, value, icon, helpText, type, isLoading }) => {
             {isLoading ? '—' : value}
           </Text>
           {type && (
-            <Text 
-              fontSize="sm" 
+            <Text
+              fontSize="sm"
               color={type === 'increase' ? 'green.400' : 'red.400'}
               mt={1}
             >
@@ -53,10 +53,10 @@ const StatCard = ({ title, value, icon, helpText, type, isLoading }) => {
             </Text>
           )}
         </Box>
-        <Box 
-          p={2} 
-          borderRadius="full" 
-          bg="gray.800" 
+        <Box
+          p={2}
+          borderRadius="full"
+          bg="gray.800"
           color="brand.500"
         >
           <Icon as={icon} boxSize={6} />

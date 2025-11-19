@@ -65,4 +65,4 @@ export const useWeb3 = () => {
     isLoading,
     error,
   };
-}; 
+};

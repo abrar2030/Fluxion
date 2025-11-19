@@ -97,7 +97,7 @@ describe('Analytics Component', () => {
     renderAnalytics();
     const chart = screen.getByTestId('line-chart');
     fireEvent.click(chart);
-    
+
     // Check if modal is opened
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
@@ -109,4 +109,4 @@ describe('Analytics Component', () => {
     expect(trendUp.length).toBeGreaterThan(0);
     expect(trendDown.length).toBeGreaterThan(0);
   });
-}); 
+});

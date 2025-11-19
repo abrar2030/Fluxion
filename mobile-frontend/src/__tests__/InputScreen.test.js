@@ -48,7 +48,7 @@ describe('InputScreen', () => {
         </PaperProvider>
       </NavigationContainer>
     );
-    
+
     expect(getByTestId('submit-button')).toBeTruthy();
   });
 
@@ -62,7 +62,7 @@ describe('InputScreen', () => {
     );
 
     fireEvent.press(getByTestId('submit-button'));
-    
+
     await waitFor(() => {
       expect(queryByTestId('loading-indicator')).toBeTruthy();
     });
@@ -78,7 +78,7 @@ describe('InputScreen', () => {
     );
 
     fireEvent.press(getByTestId('submit-button'));
-    
+
     await waitFor(() => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith('Results', expect.any(Object));
     });
@@ -111,4 +111,4 @@ describe('InputScreen', () => {
     // Restore console.error
     console.error = originalConsoleError;
   });
-}); 
+});

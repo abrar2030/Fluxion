@@ -32,7 +32,7 @@ export async function createSyntheticAsset(provider, params) {
     SYNTHETIC_ABI,
     signer
   );
-  
+
   try {
     const tx = await factory.createSynthetic(
       params.assetId,       // e.g., "sUSD"
@@ -40,11 +40,10 @@ export async function createSyntheticAsset(provider, params) {
       params.jobId,         // e.g., Chainlink Job ID for the oracle
       ethers.utils.parseEther(params.payment.toString()) // e.g., Collateral amount
     );
-    
+
     return tx.wait(); // Returns a promise that resolves to the transaction receipt
   } catch (error) {
     console.error('Error creating synthetic asset:', error);
     throw error; // Re-throw the error to be handled by the caller
   }
 }
-

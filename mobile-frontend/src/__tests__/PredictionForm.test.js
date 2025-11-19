@@ -71,7 +71,7 @@ describe('PredictionForm', () => {
     // Add a timestamp
     const addButton = getByText('Add Timestamp');
     fireEvent.press(addButton);
-    
+
     // Mock the date picker confirmation
     const mockDate = new Date('2024-01-01T12:00:00');
     const datePicker = getByText('Add Timestamp');
@@ -118,7 +118,7 @@ describe('PredictionForm', () => {
     // Add a timestamp
     const addButton = getByText('Add Timestamp');
     fireEvent.press(addButton);
-    
+
     // Mock the date picker confirmation
     const mockDate = new Date('2024-01-01T12:00:00');
     const datePicker = getByText('Add Timestamp');
@@ -132,4 +132,4 @@ describe('PredictionForm', () => {
     // Verify the timestamp was removed
     expect(queryByText(mockDate.toISOString())).toBeNull();
   });
-}); 
+});

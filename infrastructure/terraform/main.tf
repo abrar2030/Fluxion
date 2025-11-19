@@ -26,7 +26,7 @@ terraform {
     encrypt        = true
     kms_key_id     = var.terraform_state_kms_key
     dynamodb_table = var.terraform_state_lock_table
-    
+
     # Enable versioning and MFA delete protection
     versioning = true
   }
@@ -35,7 +35,7 @@ terraform {
 # Configure AWS Provider with security best practices
 provider "aws" {
   region = var.aws_region
-  
+
   # Assume role for cross-account access if needed
   dynamic "assume_role" {
     for_each = var.assume_role_arn != null ? [1] : []
@@ -153,7 +153,7 @@ module "network" {
   enable_vpn_gateway = var.enable_vpn_gateway
   enable_flow_logs   = var.enable_flow_logs
   kms_key_id         = aws_kms_key.fluxion_key.arn
-  
+
   common_tags = local.common_tags
 }
 
@@ -166,18 +166,18 @@ module "security" {
   app_name     = var.app_name
   vpc_cidr     = module.network.vpc_cidr
   kms_key_id   = aws_kms_key.fluxion_key.arn
-  
+
   # Security configuration
   enable_guardduty     = var.enable_guardduty
   enable_config        = var.enable_config
   enable_cloudtrail    = var.enable_cloudtrail
   enable_security_hub  = var.enable_security_hub
   enable_inspector     = var.enable_inspector
-  
+
   # Compliance settings
   cloudtrail_s3_bucket = var.cloudtrail_s3_bucket
   config_s3_bucket     = var.config_s3_bucket
-  
+
   common_tags = local.common_tags
 }
 
@@ -188,13 +188,13 @@ module "storage" {
   environment = var.environment
   app_name    = var.app_name
   kms_key_id   = aws_kms_key.fluxion_key.arn
-  
+
   # Storage configuration
   enable_versioning     = var.enable_s3_versioning
   enable_mfa_delete     = var.enable_s3_mfa_delete
   lifecycle_rules       = var.s3_lifecycle_rules
   backup_retention_days = var.backup_retention_days
-  
+
   common_tags = local.common_tags
 }
 
@@ -211,7 +211,7 @@ module "database" {
   db_password       = var.db_password
   security_group_ids = [module.security.db_security_group_id]
   kms_key_id      = aws_kms_key.fluxion_key.arn
-  
+
   # Database configuration
   allocated_storage       = var.db_allocated_storage
   max_allocated_storage   = var.db_max_allocated_storage
@@ -219,14 +219,14 @@ module "database" {
   backup_window          = var.db_backup_window
   maintenance_window     = var.db_maintenance_window
   multi_az               = var.db_multi_az
-  
+
   # Security settings
   deletion_protection     = var.db_deletion_protection
   skip_final_snapshot    = var.db_skip_final_snapshot
   copy_tags_to_snapshot  = true
   performance_insights   = var.db_performance_insights
   monitoring_interval    = var.db_monitoring_interval
-  
+
   common_tags = local.common_tags
 }
 
@@ -243,19 +243,18 @@ module "compute" {
   app_name          = var.app_name
   security_group_ids = [module.security.app_security_group_id]
   kms_key_id       = aws_kms_key.fluxion_key.arn
-  
+
   # Compute configuration
   min_size             = var.asg_min_size
   max_size             = var.asg_max_size
   desired_capacity     = var.asg_desired_capacity
   enable_monitoring    = var.enable_detailed_monitoring
   enable_ebs_encryption = true
-  
+
   # Load balancer configuration
   enable_alb           = var.enable_alb
   alb_certificate_arn  = var.alb_certificate_arn
   health_check_path    = var.health_check_path
-  
+
   common_tags = local.common_tags
 }
-

@@ -175,4 +175,3 @@ spec:
                   values:
                   - {{ .Values.appName }}-backend
               topologyKey: kubernetes.io/hostname
-

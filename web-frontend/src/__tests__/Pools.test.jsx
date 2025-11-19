@@ -56,7 +56,7 @@ describe('Pools Component', () => {
   it('filters pools by search query', () => {
     renderPools();
     const searchInput = screen.getByPlaceholderText('Search pools...');
-    
+
     // Search for ETH-USDC pool
     fireEvent.change(searchInput, { target: { value: 'ETH-USDC' } });
     expect(screen.getByText('ETH-USDC')).toBeInTheDocument();
@@ -67,11 +67,11 @@ describe('Pools Component', () => {
     renderPools();
     const filterButton = screen.getByText('All Pools');
     fireEvent.click(filterButton);
-    
+
     // Select weighted pools
     const weightedOption = screen.getByText('Weighted Pools');
     fireEvent.click(weightedOption);
-    
+
     // Check if only weighted pools are shown
     expect(screen.getByText('ETH-USDC')).toBeInTheDocument();
     expect(screen.getByText('WBTC-ETH')).toBeInTheDocument();
@@ -82,10 +82,10 @@ describe('Pools Component', () => {
     renderPools();
     const tvlHeader = screen.getByText('TVL');
     fireEvent.click(tvlHeader);
-    
+
     // Get all TVL values
     const tvlValues = screen.getAllByText(/\$\d+\.\d+M/);
-    
+
     // Check if values are in descending order
     const values = tvlValues.map(el => parseFloat(el.textContent.replace('$', '').replace('M', '')));
     expect(values).toEqual([...values].sort((a, b) => b - a));
@@ -95,10 +95,10 @@ describe('Pools Component', () => {
     renderPools();
     const apyHeader = screen.getByText('APY');
     fireEvent.click(apyHeader);
-    
+
     // Get all APY values
     const apyValues = screen.getAllByText(/\d+\.\d+%/);
-    
+
     // Check if values are in descending order
     const values = apyValues.map(el => parseFloat(el.textContent.replace('%', '')));
     expect(values).toEqual([...values].sort((a, b) => b - a));
@@ -108,7 +108,7 @@ describe('Pools Component', () => {
     renderPools();
     const poolRow = screen.getByText('ETH-USDC').closest('tr');
     fireEvent.click(poolRow);
-    
+
     // Check if modal is opened with pool details
     expect(screen.getByText('Pool Details')).toBeInTheDocument();
     expect(screen.getByText('ETH-USDC')).toBeInTheDocument();
@@ -132,4 +132,4 @@ describe('Pools Component', () => {
     expect(screen.getByText('$25,000')).toBeInTheDocument();
     expect(screen.getByText('$12,500')).toBeInTheDocument();
   });
-}); 
+});

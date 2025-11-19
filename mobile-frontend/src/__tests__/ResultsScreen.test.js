@@ -84,4 +84,4 @@ describe('ResultsScreen', () => {
     const safeArea = getByTestId('safe-area');
     expect(safeArea.props.style).toContainEqual({ backgroundColor: expect.any(String) });
   });
-}); 
+});

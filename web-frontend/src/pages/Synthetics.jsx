@@ -38,43 +38,43 @@ import { FiPackage, FiPlus, FiExternalLink, FiAlertCircle, FiCheckCircle } from 
 
 // Mock data for synthetic assets
 const syntheticAssets = [
-  { 
-    id: 'sUSD', 
-    name: 'Synthetic USD', 
-    price: '$1.00', 
-    oracle: 'Chainlink', 
+  {
+    id: 'sUSD',
+    name: 'Synthetic USD',
+    price: '$1.00',
+    oracle: 'Chainlink',
     collateral: '150%',
     status: 'active'
   },
-  { 
-    id: 'sBTC', 
-    name: 'Synthetic Bitcoin', 
-    price: '$63,245.78', 
-    oracle: 'Chainlink', 
+  {
+    id: 'sBTC',
+    name: 'Synthetic Bitcoin',
+    price: '$63,245.78',
+    oracle: 'Chainlink',
     collateral: '175%',
     status: 'active'
   },
-  { 
-    id: 'sETH', 
-    name: 'Synthetic Ethereum', 
-    price: '$3,125.42', 
-    oracle: 'Chainlink', 
+  {
+    id: 'sETH',
+    name: 'Synthetic Ethereum',
+    price: '$3,125.42',
+    oracle: 'Chainlink',
     collateral: '165%',
     status: 'active'
   },
-  { 
-    id: 'sGOLD', 
-    name: 'Synthetic Gold', 
-    price: '$2,345.67', 
-    oracle: 'Band Protocol', 
+  {
+    id: 'sGOLD',
+    name: 'Synthetic Gold',
+    price: '$2,345.67',
+    oracle: 'Band Protocol',
     collateral: '180%',
     status: 'active'
   },
-  { 
-    id: 'sTSLA', 
-    name: 'Synthetic Tesla', 
-    price: '$187.32', 
-    oracle: 'API3', 
+  {
+    id: 'sTSLA',
+    name: 'Synthetic Tesla',
+    price: '$187.32',
+    oracle: 'API3',
     collateral: '200%',
     status: 'inactive'
   }
@@ -89,7 +89,7 @@ const Synthetics = () => {
     oracle: 'Chainlink',
     collateral: 150
   });
-  
+
   const cardBg = useColorModeValue('gray.700', 'gray.700');
   const borderColor = useColorModeValue('gray.600', 'gray.600');
 
@@ -105,7 +105,7 @@ const Synthetics = () => {
       });
       return;
     }
-    
+
     // Check if ID already exists
     if (syntheticAssets.some(asset => asset.id === newAsset.id)) {
       toast({
@@ -117,7 +117,7 @@ const Synthetics = () => {
       });
       return;
     }
-    
+
     // Simulate asset creation
     toast({
       title: "Asset created",
@@ -126,7 +126,7 @@ const Synthetics = () => {
       duration: 3000,
       isClosable: true,
     });
-    
+
     // Reset form
     setNewAsset({
       id: '',
@@ -134,7 +134,7 @@ const Synthetics = () => {
       oracle: 'Chainlink',
       collateral: 150
     });
-    
+
     // Switch to explore tab
     setActiveTab('explore');
   };
@@ -144,17 +144,17 @@ const Synthetics = () => {
       <Heading as="h1" mb={6} fontSize="3xl" color="white">
         Synthetic Assets
       </Heading>
-      
+
       <HStack spacing={4} mb={8}>
-        <Button 
-          colorScheme={activeTab === 'explore' ? 'blue' : 'gray'} 
+        <Button
+          colorScheme={activeTab === 'explore' ? 'blue' : 'gray'}
           onClick={() => setActiveTab('explore')}
           size="lg"
         >
           Explore Assets
         </Button>
-        <Button 
-          colorScheme={activeTab === 'create' ? 'blue' : 'gray'} 
+        <Button
+          colorScheme={activeTab === 'create' ? 'blue' : 'gray'}
           onClick={() => setActiveTab('create')}
           size="lg"
           leftIcon={<FiPlus />}
@@ -162,7 +162,7 @@ const Synthetics = () => {
           Create Asset
         </Button>
       </HStack>
-      
+
       {activeTab === 'explore' ? (
         <Box>
           <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" mb={8} className="slide-up">
@@ -211,7 +211,7 @@ const Synthetics = () => {
               </Box>
             </CardBody>
           </Card>
-          
+
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
@@ -240,7 +240,7 @@ const Synthetics = () => {
                 </VStack>
               </CardBody>
             </Card>
-            
+
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
                 <Heading size="md" mb={4} color="white">Oracle Providers</Heading>
@@ -251,18 +251,18 @@ const Synthetics = () => {
                     { name: 'API3', status: 'Connected', lastUpdate: '8 min ago' },
                     { name: 'Tellor', status: 'Not Connected', lastUpdate: 'N/A' },
                   ].map((oracle, index) => (
-                    <Flex 
-                      key={index} 
-                      justify="space-between" 
-                      align="center" 
-                      p={3} 
-                      borderRadius="md" 
+                    <Flex
+                      key={index}
+                      justify="space-between"
+                      align="center"
+                      p={3}
+                      borderRadius="md"
                       bg="gray.800"
                     >
                       <HStack>
-                        <Icon 
-                          as={oracle.status === 'Connected' ? FiCheckCircle : FiAlertCircle} 
-                          color={oracle.status === 'Connected' ? 'green.400' : 'red.400'} 
+                        <Icon
+                          as={oracle.status === 'Connected' ? FiCheckCircle : FiAlertCircle}
+                          color={oracle.status === 'Connected' ? 'green.400' : 'red.400'}
                         />
                         <Text color="white">{oracle.name}</Text>
                       </HStack>
@@ -287,11 +287,11 @@ const Synthetics = () => {
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
                 <Heading size="md" mb={4} color="white">Create Synthetic Asset</Heading>
-                
+
                 <FormControl mb={4}>
                   <FormLabel color="gray.300">Asset ID</FormLabel>
-                  <Input 
-                    placeholder="e.g., sGOLD" 
+                  <Input
+                    placeholder="e.g., sGOLD"
                     value={newAsset.id}
                     onChange={(e) => setNewAsset({...newAsset, id: e.target.value})}
                     bg="gray.800"
@@ -299,11 +299,11 @@ const Synthetics = () => {
                     borderColor="gray.600"
                   />
                 </FormControl>
-                
+
                 <FormControl mb={4}>
                   <FormLabel color="gray.300">Asset Name</FormLabel>
-                  <Input 
-                    placeholder="e.g., Synthetic Gold" 
+                  <Input
+                    placeholder="e.g., Synthetic Gold"
                     value={newAsset.name}
                     onChange={(e) => setNewAsset({...newAsset, name: e.target.value})}
                     bg="gray.800"
@@ -311,10 +311,10 @@ const Synthetics = () => {
                     borderColor="gray.600"
                   />
                 </FormControl>
-                
+
                 <FormControl mb={4}>
                   <FormLabel color="gray.300">Oracle Provider</FormLabel>
-                  <Select 
+                  <Select
                     value={newAsset.oracle}
                     onChange={(e) => setNewAsset({...newAsset, oracle: e.target.value})}
                     bg="gray.800"
@@ -327,10 +327,10 @@ const Synthetics = () => {
                     <option value="Tellor">Tellor</option>
                   </Select>
                 </FormControl>
-                
+
                 <FormControl mb={4}>
                   <FormLabel color="gray.300">Collateral Ratio (%)</FormLabel>
-                  <NumberInput 
+                  <NumberInput
                     value={newAsset.collateral}
                     min={120}
                     max={300}
@@ -346,10 +346,10 @@ const Synthetics = () => {
                     </NumberInputStepper>
                   </NumberInput>
                 </FormControl>
-                
-                <Button 
-                  colorScheme="blue" 
-                  size="lg" 
+
+                <Button
+                  colorScheme="blue"
+                  size="lg"
                   onClick={handleCreateAsset}
                   isFullWidth
                   mt={4}
@@ -359,16 +359,16 @@ const Synthetics = () => {
               </CardBody>
             </Card>
           </VStack>
-          
+
           <VStack spacing={6} align="stretch">
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
                 <Heading size="md" mb={4} color="white">Asset Preview</Heading>
-                
-                <Box 
-                  p={4} 
-                  borderRadius="md" 
-                  bg="gray.800" 
+
+                <Box
+                  p={4}
+                  borderRadius="md"
+                  bg="gray.800"
                   borderWidth="1px"
                   borderColor="gray.600"
                   mb={4}
@@ -398,12 +398,12 @@ const Synthetics = () => {
                     </Flex>
                   </VStack>
                 </Box>
-                
+
                 <Heading size="sm" mb={3} color="white">Risk Assessment</Heading>
-                <Box 
-                  p={4} 
-                  borderRadius="md" 
-                  bg="gray.800" 
+                <Box
+                  p={4}
+                  borderRadius="md"
+                  bg="gray.800"
                   borderWidth="1px"
                   borderColor="gray.600"
                 >
@@ -433,10 +433,10 @@ const Synthetics = () => {
                 </Box>
               </CardBody>
             </Card>
-            
+
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
                 <Heading size="md" mb={4} color="white">Advanced Settings</Heading>
-                
+
                 <VStack spacing={4} alig
 (Content truncated due to size limit. Use line ranges to read in chunks)

@@ -30,17 +30,17 @@ const Pools = () => {
   const borderColor = useColorModeValue('gray.700', 'gray.600');
   const textColor = useColorModeValue('white', 'white');
   const subTextColor = useColorModeValue('gray.400', 'gray.400');
-  
+
   // State for filtering and sorting
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('tvl');
   const [sortOrder, setSortOrder] = useState('desc');
   const [filterType, setFilterType] = useState('all');
-  
+
   // Modal state
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedPool, setSelectedPool] = useState(null);
-  
+
   // Mock pools data
   const mockPools = [
     {
@@ -129,7 +129,7 @@ const Pools = () => {
       hasStaked: true,
     },
   ];
-  
+
   // Filter and sort pools
   const filteredPools = mockPools
     .filter(pool => {
@@ -137,23 +137,23 @@ const Pools = () => {
       if (searchQuery && !pool.name.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
       }
-      
+
       // Filter by type
       if (filterType !== 'all' && pool.type !== filterType) {
         return false;
       }
-      
+
       // Filter by user's pools
       if (filterType === 'my-pools' && pool.myLiquidity === '$0') {
         return false;
       }
-      
+
       return true;
     })
     .sort((a, b) => {
       // Sort by selected field
       let valueA, valueB;
-      
+
       switch (sortBy) {
         case 'tvl':
           valueA = a.tvlValue;
@@ -171,17 +171,17 @@ const Pools = () => {
           valueA = a.tvlValue;
           valueB = b.tvlValue;
       }
-      
+
       // Apply sort order
       return sortOrder === 'desc' ? valueB - valueA : valueA - valueB;
     });
-  
+
   // Handle pool click
   const handlePoolClick = (pool) => {
     setSelectedPool(pool);
     onOpen();
   };
-  
+
   // Toggle sort order
   const toggleSortOrder = (field) => {
     if (sortBy === field) {
@@ -195,9 +195,9 @@ const Pools = () => {
   return (
     <Box>
       {/* Hero Section */}
-      <Box 
-        p={8} 
-        borderRadius="xl" 
+      <Box
+        p={8}
+        borderRadius="xl"
         mb={8}
         bgGradient="linear(to-br, gray.900, gray.800)"
         boxShadow="xl"
@@ -207,27 +207,27 @@ const Pools = () => {
         overflow="hidden"
       >
         {/* Decorative elements */}
-        <Box 
-          position="absolute" 
-          top="-50px" 
-          right="-50px" 
-          w="200px" 
-          h="200px" 
-          borderRadius="full" 
-          bg="brand.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          top="-50px"
+          right="-50px"
+          w="200px"
+          h="200px"
+          borderRadius="full"
+          bg="brand.500"
+          opacity="0.1"
         />
-        <Box 
-          position="absolute" 
-          bottom="-30px" 
-          left="30%" 
-          w="100px" 
-          h="100px" 
-          borderRadius="full" 
-          bg="accent.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          bottom="-30px"
+          left="30%"
+          w="100px"
+          h="100px"
+          borderRadius="full"
+          bg="accent.500"
+          opacity="0.1"
         />
-        
+
         <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ base: 'flex-start', md: 'center' }}>
           <Box mb={{ base: 6, md: 0 }}>
             <Heading as="h1" size="xl" mb={4}>
@@ -237,9 +237,9 @@ const Pools = () => {
               Provide liquidity to earn fees and participate in the Fluxion ecosystem. Explore existing pools or create your own.
             </Text>
           </Box>
-          
+
           <RouterLink to="/pools/create">
-            <Button 
+            <Button
               leftIcon={<FiPlus />}
               colorScheme="brand"
               size="lg"
@@ -273,7 +273,7 @@ const Pools = () => {
             <Text color="green.400">+5.2% (24h)</Text>
           </HStack>
         </Box>
-        
+
         <Box
           bg={cardBg}
           p={6}
@@ -290,8 +290,8 @@ const Pools = () => {
                 <XAxis dataKey="name" stroke="#888" />
                 <YAxis stroke="#888" />
                 <RechartsTooltip
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                  contentStyle={{
+                    backgroundColor: 'rgba(23, 25, 35, 0.9)',
                     border: '1px solid #333',
                     borderRadius: '4px',
                     color: 'white'
@@ -302,7 +302,7 @@ const Pools = () => {
             </ResponsiveContainer>
           </Box>
         </Box>
-        
+
         <Box
           bg={cardBg}
           p={6}
@@ -323,8 +323,8 @@ const Pools = () => {
                 <XAxis type="number" stroke="#888" />
                 <YAxis dataKey="name" type="category" stroke="#888" width={80} />
                 <RechartsTooltip
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                  contentStyle={{
+                    backgroundColor: 'rgba(23, 25, 35, 0.9)',
                     border: '1px solid #333',
                     borderRadius: '4px',
                     color: 'white'
@@ -350,19 +350,19 @@ const Pools = () => {
       >
         <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ base: 'flex-start', md: 'center' }} mb={6} gap={4}>
           <Heading size="md">Available Pools</Heading>
-          
+
           <HStack spacing={4}>
             <InputGroup maxW="300px">
               <InputLeftElement pointerEvents="none">
                 <Icon as={FiSearch} color="gray.400" />
               </InputLeftElement>
-              <Input 
-                placeholder="Search pools..." 
+              <Input
+                placeholder="Search pools..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </InputGroup>
-            
+
             <Menu>
               <MenuButton
                 as={Button}
@@ -375,28 +375,28 @@ const Pools = () => {
                 </HStack>
               </MenuButton>
               <MenuList bg="gray.800" borderColor="gray.700">
-                <MenuItem 
+                <MenuItem
                   onClick={() => setFilterType('all')}
                   bg={filterType === 'all' ? 'gray.700' : 'gray.800'}
                   _hover={{ bg: 'gray.700' }}
                 >
                   All Pools
                 </MenuItem>
-                <MenuItem 
+                <MenuItem
                   onClick={() => setFilterType('weighted')}
                   bg={filterType === 'weighted' ? 'gray.700' : 'gray.800'}
                   _hover={{ bg: 'gray.700' }}
                 >
                   Weighted Pools
                 </MenuItem>
-                <MenuItem 
+                <MenuItem
                   onClick={() => setFilterType('stable')}
                   bg={filterType === 'stable' ? 'gray.700' : 'gray.800'}
                   _hover={{ bg: 'gray.700' }}
                 >
                   Stable Pools
                 </MenuItem>
-                <MenuItem 
+                <MenuItem
                   onClick={() => setFilterType('my-pools')}
                   bg={filterType === 'my-pools' ? 'gray.700' : 'gray.800'}
                   _hover={{ bg: 'gray.700' }}
@@ -407,7 +407,7 @@ const Pools = () => {
             </Menu>
           </HStack>
         </Flex>
-        
+
         <Box overflowX="auto">
           <Table variant="simple">
             <Thead>
@@ -416,27 +416,27 @@ const Pools = () => {
                 <Th isNumeric>
                   <HStack justify="flex-end" spacing={1} cursor="pointer" onClick={() => toggleSortOrder('tvl')}>
                     <Text>TVL</Text>
-                    <Icon 
-                      as={sortBy === 'tvl' ? (sortOrder === 'asc' ? FiTrendingUp : FiTrendingDown) : FiChevronDown} 
-                      boxSize={4} 
+                    <Icon
+                      as={sortBy === 'tvl' ? (sortOrder === 'asc' ? FiTrendingUp : FiTrendingDown) : FiChevronDown}
+                      boxSize={4}
                     />
                   </HStack>
                 </Th>
                 <Th isNumeric>
                   <HStack justify="flex-end" spacing={1} cursor="pointer" onClick={() => toggleSortOrder('volume')}>
                     <Text>Volume (24h)</Text>
-                    <Icon 
-                      as={sortBy === 'volume' ? (sortOrder === 'asc' ? FiTrendingUp : FiTrendingDown) : FiChevronDown} 
-                      boxSize={4} 
+                    <Icon
+                      as={sortBy === 'volume' ? (sortOrder === 'asc' ? FiTrendingUp : FiTrendingDown) : FiChevronDown}
+                      boxSize={4}
                     />
                   </HStack>
                 </Th>
                 <Th isNumeric>
                   <HStack justify="flex-end" spacing={1} cursor="pointer" onClick={() => toggleSortOrder('apy')}>
                     <Text>APY</Text>
-                    <Icon 
-                      as={sortBy === 'apy' ? (sortOrder === 'asc' ? FiTrendingUp : FiTrendingDown) : FiChevronDown} 
-                      boxSize={4} 
+                    <Icon
+                      as={sortBy === 'apy' ? (sortOrder === 'asc' ? FiTrendingUp : FiTrendingDown) : FiChevronDown}
+                      boxSize={4}
                     />
                   </HStack>
                 </Th>
@@ -447,7 +447,7 @@ const Pools = () => {
             </Thead>
             <Tbody>
               {filteredPools.map((pool) => (
-                <Tr 
+                <Tr
                   key={pool.id}
                   _hover={{
                     bg: 'gray.700',
@@ -526,7 +526,7 @@ const Pools = () => {
           </Table>
         </Box>
       </Box>
-      
+
       {/* Pool Detail Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay backdropFilter="blur(4px)" />
@@ -568,7 +568,7 @@ const Pools = () => {
                 <Tab>Composition</Tab>
                 <Tab>Activity</Tab>
               </TabList>
-              
+
               <TabPanels>
                 <TabPanel px={0}>
                   <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={6}>
@@ -580,7 +580,7 @@ const Pools = () => {
                         5.2% (24h)
                       </StatHelpText>
                     </Stat>
-                    
+
                     <Stat>
                       <StatLabel>Volume (24h)</StatLabel>
                       <StatNumber>{selectedPool?.volume24h}</StatNumber>
@@ -589,7 +589,7 @@ const Pools = () => {
                         12.5% (24h)
                       </StatHelpText>
                     </Stat>
-                    
+
                     <Stat>
                       <StatLabel>APY</StatLabel>
                       <StatNumber color="green.400">{selectedPool?.apy}</StatNumber>
@@ -602,7 +602,7 @@ const Pools = () => {
                         </HStack>
                       </StatHelpText>
                     </Stat>
-                    
+
                     <Stat>
                       <StatLabel>My Liquidity</StatLabel>
                       <StatNumber>{selectedPool?.myLiquidity}</StatNumber>
@@ -618,7 +618,7 @@ const Pools = () => {
                       </StatHelpText>
                     </Stat>
                   </SimpleGrid>
-                  
+
                   <Box mb={6}>
                     <Heading size="sm" mb={2}>Pool Performance</Heading>
                     <Box h="200px">
@@ -638,8 +638,8 @@ const Pools = () => {
                           <XAxis dataKey="date" stroke="#888" />
                           <YAxis stroke="#888" />
                           <RechartsTooltip
-                            contentStyle={{ 
-                              backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                            contentStyle={{
+                              backgroundColor: 'rgba(23, 25, 35, 0.9)',
                               border: '1px solid #333',
                               borderRadius: '4px',
                               color: 'white'
@@ -651,7 +651,7 @@ const Pools = () => {
                       </ResponsiveContainer>
                     </Box>
                   </Box>
-                  
+
                   <Box>
                     <Heading size="sm" mb={2}>Pool Information</Heading>
                     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
@@ -674,7 +674,7 @@ const Pools = () => {
                     </SimpleGrid>
                   </Box>
                 </TabPanel>
-                
+
                 <TabPanel px={0}>
                   <Box mb={6}>
                     <Heading size="sm" mb={4}>Asset Weights</Heading>
@@ -699,27 +699,27 @@ const Pools = () => {
                           </HStack>
                           <Text fontWeight="bold">{selectedPool?.weights[index]}%</Text>
                         </Flex>
-                        <Progress 
-                          value={selectedPool?.weights[index]} 
-                          size="sm" 
+                        <Progress
+                          value={selectedPool?.weights[index]}
+                          size="sm"
                           colorScheme={
-                            asset === 'ETH' ? 'blue' : 
-                            asset === 'WBTC' ? 'orange' : 
-                            asset === 'USDC' ? 'green' : 
+                            asset === 'ETH' ? 'blue' :
+                            asset === 'WBTC' ? 'orange' :
+                            asset === 'USDC' ? 'green' :
                             'purple'
-                          } 
-                          borderRadius="full" 
+                          }
+                          borderRadius="full"
                           bg="gray.600"
                         />
                       </Box>
                     ))}
                   </Box>
-                  
+
                   <Box mb={6}>
                     <Heading size="sm" mb={4}>Pool Composition</Heading>
                     <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                       {selectedPool?.assets.map((asset, index) => (
-                        <Box 
+                        <Box
                           key={index}
                           p={4}
                           borderRadius="md"
@@ -744,30 +744,30 @@ const Pools = () => {
                             <VStack align="start" spacing={0}>
                               <Text fontWeight="bold">{asset}</Text>
                               <Text fontSize="sm" color={subTextColor}>
-                                {asset === 'ETH' ? 'Ethereum' : 
-                                 asset === 'WBTC' ? 'Wrapped Bitcoin' : 
-                                 asset === 'USDC' ? 'USD Coin' : 
+                                {asset === 'ETH' ? 'Ethereum' :
+                                 asset === 'WBTC' ? 'Wrapped Bitcoin' :
+                                 asset === 'USDC' ? 'USD Coin' :
                                  'Dai Stablecoin'}
                               </Text>
                             </VStack>
                           </HStack>
-                          
+
                           <SimpleGrid columns={2} spacing={4}>
                             <Box>
                               <Text color={subTextColor}>Amount</Text>
                               <Text fontWeight="bold">
-                                {asset === 'ETH' ? '1,250' : 
-                                 asset === 'WBTC' ? '42' : 
-                                 asset === 'USDC' ? '2,100,000' : 
+                                {asset === 'ETH' ? '1,250' :
+                                 asset === 'WBTC' ? '42' :
+                                 asset === 'USDC' ? '2,100,000' :
                                  '2,050,000'}
                               </Text>
                             </Box>
                             <Box>
                               <Text color={subTextColor}>Value</Text>
                               <Text fontWeight="bold">
-                                {asset === 'ETH' ? '$2.1M' : 
-                                 asset === 'WBTC' ? '$2.1M' : 
-                                 asset === 'USDC' ? '$2.1M' : 
+                                {asset === 'ETH' ? '$2.1M' :
+                                 asset === 'WBTC' ? '$2.1M' :
+                                 asset === 'USDC' ? '$2.1M' :
                                  '$2.05M'}
                               </Text>
                             </Box>
@@ -777,7 +777,7 @@ const Pools = () => {
                     </SimpleGrid>
                   </Box>
                 </TabPanel>
-                
+
                 <TabPanel px={0}>
                   <Box mb={6}>
                     <Heading size="sm" mb={4}>Recent Transactions</Heading>
@@ -841,7 +841,7 @@ const Pools = () => {
 
           <ModalFooter>
             <HStack spacing={4}>
-              <Button 
+              <Button
                 colorScheme="brand"
                 bgGradient="linear(to-r, brand.500, accent.500)"
                 _hover={{

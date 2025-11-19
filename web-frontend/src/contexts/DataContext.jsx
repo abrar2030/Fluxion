@@ -10,12 +10,12 @@ export const DataProvider = ({ children }) => {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Fetch market data
   const fetchMarketData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Try to fetch from API, fall back to mock data if it fails
       try {
         const response = await marketAPI.getMarketData();
@@ -30,7 +30,7 @@ export const DataProvider = ({ children }) => {
           avgApy: '5.8%'
         });
       }
-      
+
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching market data:", error);
@@ -38,12 +38,12 @@ export const DataProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-  
+
   // Fetch pools data
   const fetchPoolsData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Try to fetch from API, fall back to mock data if it fails
       try {
         const response = await poolsAPI.getAllPools();
@@ -114,7 +114,7 @@ export const DataProvider = ({ children }) => {
           }
         ]);
       }
-      
+
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching pools data:", error);
@@ -122,18 +122,18 @@ export const DataProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-  
+
   // Fetch analytics data
   const fetchAnalyticsData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Try to fetch from API, fall back to mock data if it fails
       try {
         const volumeResponse = await analyticsAPI.getVolumeData();
         const tvlResponse = await analyticsAPI.getTvlData();
         const distributionResponse = await analyticsAPI.getPoolDistribution();
-        
+
         setAnalyticsData({
           volumeData: volumeResponse.data,
           tvlData: tvlResponse.data,
@@ -151,7 +151,7 @@ export const DataProvider = ({ children }) => {
           { name: 'Jun', volume: 3800 },
           { name: 'Jul', volume: 4300 },
         ];
-        
+
         const mockTvlData = [
           { name: 'Jan', tvl: 4000 },
           { name: 'Feb', tvl: 3000 },
@@ -161,7 +161,7 @@ export const DataProvider = ({ children }) => {
           { name: 'Jun', tvl: 2390 },
           { name: 'Jul', tvl: 3490 },
         ];
-        
+
         const mockPoolDistribution = [
           { name: 'ETH-USDC', value: 2400 },
           { name: 'BTC-ETH', value: 1800 },
@@ -169,14 +169,14 @@ export const DataProvider = ({ children }) => {
           { name: 'UNI-USDT', value: 750 },
           { name: 'Others', value: 1200 },
         ];
-        
+
         setAnalyticsData({
           volumeData: mockVolumeData,
           tvlData: mockTvlData,
           poolDistribution: mockPoolDistribution
         });
       }
-      
+
       setIsLoading(false);
     } catch (error) {
       console.error("Error fetching analytics data:", error);
@@ -184,14 +184,14 @@ export const DataProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
-  
+
   // Initialize data
   useEffect(() => {
     fetchMarketData();
     fetchPoolsData();
     fetchAnalyticsData();
   }, []);
-  
+
   // Context value
   const value = {
     marketData,
@@ -203,7 +203,7 @@ export const DataProvider = ({ children }) => {
     fetchPoolsData,
     fetchAnalyticsData
   };
-  
+
   return (
     <DataContext.Provider value={value}>
       {children}

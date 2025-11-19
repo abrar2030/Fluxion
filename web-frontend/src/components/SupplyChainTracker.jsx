@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Container, 
-  Typography, 
-  Paper, 
-  Grid, 
-  Button, 
-  TextField, 
-  Select, 
-  MenuItem, 
-  FormControl, 
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Grid,
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
   InputLabel,
   CircularProgress,
   Snackbar,
@@ -66,39 +66,39 @@ const icons = {
 
 // Mock data for demonstration
 const mockAssets = [
-  { 
-    id: 1, 
-    metadata: 'Product XYZ-123', 
-    currentCustodian: '0x1234567890abcdef1234567890abcdef12345678', 
-    timestamp: '2023-05-18T14:30:00Z', 
-    status: 'InTransit', 
+  {
+    id: 1,
+    metadata: 'Product XYZ-123',
+    currentCustodian: '0x1234567890abcdef1234567890abcdef12345678',
+    timestamp: '2023-05-18T14:30:00Z',
+    status: 'InTransit',
     location: 'New York, USA',
     position: [40.7128, -74.0060]
   },
-  { 
-    id: 2, 
-    metadata: 'Component ABC-456', 
-    currentCustodian: '0xabcdef1234567890abcdef1234567890abcdef12', 
-    timestamp: '2023-05-17T10:15:00Z', 
-    status: 'Delivered', 
+  {
+    id: 2,
+    metadata: 'Component ABC-456',
+    currentCustodian: '0xabcdef1234567890abcdef1234567890abcdef12',
+    timestamp: '2023-05-17T10:15:00Z',
+    status: 'Delivered',
     location: 'Los Angeles, USA',
     position: [34.0522, -118.2437]
   },
-  { 
-    id: 3, 
-    metadata: 'Raw Material DEF-789', 
-    currentCustodian: '0x7890abcdef1234567890abcdef1234567890abcd', 
-    timestamp: '2023-05-16T08:45:00Z', 
-    status: 'Created', 
+  {
+    id: 3,
+    metadata: 'Raw Material DEF-789',
+    currentCustodian: '0x7890abcdef1234567890abcdef1234567890abcd',
+    timestamp: '2023-05-16T08:45:00Z',
+    status: 'Created',
     location: 'Chicago, USA',
     position: [41.8781, -87.6298]
   },
-  { 
-    id: 4, 
-    metadata: 'Shipment GHI-012', 
-    currentCustodian: '0xef1234567890abcdef1234567890abcdef123456', 
-    timestamp: '2023-05-15T16:20:00Z', 
-    status: 'Rejected', 
+  {
+    id: 4,
+    metadata: 'Shipment GHI-012',
+    currentCustodian: '0xef1234567890abcdef1234567890abcdef123456',
+    timestamp: '2023-05-15T16:20:00Z',
+    status: 'Rejected',
     location: 'Houston, USA',
     position: [29.7604, -95.3698]
   },
@@ -245,7 +245,7 @@ const SupplyChainTracker = () => {
         location: newAsset.location,
         position: [40.7128, -74.0060] // Default to New York for demo
       };
-      
+
       setAssets([...assets, createdAsset]);
       setLoading(false);
       setCreateDialogOpen(false);
@@ -265,7 +265,7 @@ const SupplyChainTracker = () => {
   // Transfer asset (mock implementation)
   const handleTransferAsset = () => {
     if (!selectedAsset) return;
-    
+
     setLoading(true);
     // Simulate API call
     setTimeout(() => {
@@ -279,7 +279,7 @@ const SupplyChainTracker = () => {
         location: transferDetails.location,
         proofHash: transferDetails.proofHash || '0x' + Array(64).fill(0).map(() => Math.floor(Math.random() * 16).toString(16)).join('')
       };
-      
+
       // Update asset
       const updatedAssets = assets.map(asset => {
         if (asset.id === selectedAsset.id) {
@@ -293,7 +293,7 @@ const SupplyChainTracker = () => {
         }
         return asset;
       });
-      
+
       setAssets(updatedAssets);
       setTransfers([...transfers, newTransfer]);
       setSelectedAsset({
@@ -303,7 +303,7 @@ const SupplyChainTracker = () => {
         status: 'InTransit',
         timestamp: new Date().toISOString()
       });
-      
+
       setLoading(false);
       setTransferDialogOpen(false);
       setTransferDetails({
@@ -364,7 +364,7 @@ const SupplyChainTracker = () => {
             sx={{ flexGrow: 1 }}
           />
         </Box>
-        
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <FormControl variant="outlined" size="small" sx={{ minWidth: 150 }}>
             <InputLabel id="status-filter-label">Status</InputLabel>
@@ -382,7 +382,7 @@ const SupplyChainTracker = () => {
               <MenuItem value="Recalled">Recalled</MenuItem>
             </Select>
           </FormControl>
-          
+
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -483,7 +483,7 @@ const SupplyChainTracker = () => {
                       Transfer Asset
                     </Button>
                   </Box>
-                  
+
                   <Grid container spacing={2}>
                     <Grid item xs={12} sm={6}>
                       <Typography variant="body2" color="text.secondary">Metadata</Typography>
@@ -522,16 +522,16 @@ const SupplyChainTracker = () => {
 
                 {/* Map */}
                 <Box sx={{ height: '300px', width: '100%' }}>
-                  <MapContainer 
-                    center={selectedAsset.position || [40.7128, -74.0060]} 
-                    zoom={13} 
+                  <MapContainer
+                    center={selectedAsset.position || [40.7128, -74.0060]}
+                    zoom={13}
                     style={{ height: '100%', width: '100%' }}
                   >
                     <TileLayer
                       attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
-                    <Marker 
+                    <Marker
                       position={selectedAsset.position || [40.7128, -74.0060]}
                       icon={icons[selectedAsset.status] || icons['Created']}
                     >
@@ -551,7 +551,7 @@ const SupplyChainTracker = () => {
                   <Typography variant="h6" component="div" sx={{ mb: 2 }}>
                     Transfer History
                   </Typography>
-                  
+
                   {loading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
                       <CircularProgress />
@@ -614,7 +614,7 @@ const SupplyChainTracker = () => {
           <Typography variant="h6" component="div" sx={{ mb: 3 }}>
             Create New Asset
           </Typography>
-          
+
           <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
             <Step>
               <StepLabel>Asset Information</StepLabel>
@@ -626,7 +626,7 @@ const SupplyChainTracker = () => {
               <StepLabel>Confirmation</StepLabel>
             </Step>
           </Stepper>
-          
+
           {activeStep === 0 && (
             <Box>
               <TextField
@@ -638,13 +638,13 @@ const SupplyChainTracker = () => {
                 sx={{ mb: 3 }}
                 placeholder="Enter product name, serial number, or other identifying information"
               />
-              
+
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                 <Button onClick={() => setCreateDialogOpen(false)} sx={{ mr: 1 }}>
                   Cancel
                 </Button>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   onClick={() => setActiveStep(1)}
                   disabled={!newAsset.metadata}
                 >
@@ -653,7 +653,7 @@ const SupplyChainTracker = () => {
               </Box>
             </Box>
           )}
-          
+
           {activeStep === 1 && (
             <Box>
               <TextField
@@ -665,7 +665,7 @@ const SupplyChainTracker = () => {
                 sx={{ mb: 3 }}
                 placeholder="0x..."
               />
-              
+
               <TextField
                 fullWidth
                 label="Initial Location"
@@ -675,13 +675,13 @@ const SupplyChainTracker = () => {
                 sx={{ mb: 3 }}
                 placeholder="City, Country"
               />
-              
+
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                 <Button onClick={() => setActiveStep(0)} sx={{ mr: 1 }}>
                   Back
                 </Button>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   onClick={() => setActiveStep(2)}
                   disabled={!newAsset.initialCustodian || !newAsset.location}
                 >
@@ -690,13 +690,13 @@ const SupplyChainTracker = () => {
               </Box>
             </Box>
           )}
-          
+
           {activeStep === 2 && (
             <Box>
               <Typography variant="subtitle1" gutterBottom>
                 Please confirm the asset details:
               </Typography>
-              
+
               <Grid container spacing={2} sx={{ mb: 3 }}>
                 <Grid item xs={12} sm={6}>
                   <Typography variant="body2" color="text.secondary">Metadata</Typography>
@@ -711,13 +711,13 @@ const SupplyChainTracker = () => {
                   <Typography variant="body1">{newAsset.location}</Typography>
                 </Grid>
               </Grid>
-              
+
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                 <Button onClick={() => setActiveStep(1)} sx={{ mr: 1 }}>
                   Back
                 </Button>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   onClick={handleCreateAsset}
                   disabled={loading}
                 >
@@ -735,7 +735,7 @@ const SupplyChainTracker = () => {
           <Typography variant="h6" component="div" sx={{ mb: 3 }}>
             Transfer Asset #{selectedAsset.id}
           </Typography>
-          
+
           <TextField
             fullWidth
             label="Recipient Address"
@@ -745,7 +745,7 @@ const SupplyChainTracker = () => {
             sx={{ mb: 3 }}
             placeholder="0x..."
           />
-          
+
           <TextField
             fullWidth
             label="New Location"
@@ -755,7 +755,7 @@ const SupplyChainTracker = () => {
             sx={{ mb: 3 }}
             placeholder="City, Country"
           />
-          
+
           <TextField
             fullWidth
             label="Proof Hash (Optional)"
@@ -766,13 +766,13 @@ const SupplyChainTracker = () => {
             placeholder="0x..."
             helperText="Leave blank to generate automatically"
           />
-          
+
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
             <Button onClick={() => setTransferDialogOpen(false)} sx={{ mr: 1 }}>
               Cancel
             </Button>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={handleTransferAsset}
               disabled={loading || !transferDetails.to || !transferDetails.location}
             >

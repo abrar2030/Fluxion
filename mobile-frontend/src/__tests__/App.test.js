@@ -43,4 +43,4 @@ describe('App Component', () => {
     expect(predictionTab).toBeTruthy();
     // Add more theme-related tests as needed
   });
-}); 
+});

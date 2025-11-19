@@ -388,4 +388,3 @@ variable "config_s3_bucket" {
   type        = string
   default     = null
 }
-

@@ -5,9 +5,9 @@ import { useUI } from '../../lib/ui-context';
 
 const NotificationCenter = () => {
   const { notifications, dismissNotification } = useUI();
-  
+
   if (notifications.length === 0) return null;
-  
+
   return (
     <Box
       position="fixed"
@@ -20,10 +20,10 @@ const NotificationCenter = () => {
       className="notification-container"
     >
       {notifications.map((notification) => (
-        <NotificationItem 
-          key={notification.id} 
-          notification={notification} 
-          onDismiss={() => dismissNotification(notification.id)} 
+        <NotificationItem
+          key={notification.id}
+          notification={notification}
+          onDismiss={() => dismissNotification(notification.id)}
         />
       ))}
     </Box>
@@ -32,7 +32,7 @@ const NotificationCenter = () => {
 
 const NotificationItem = ({ notification, onDismiss }) => {
   const { title, message, type = 'info' } = notification;
-  
+
   const bgColor = useColorModeValue(
     {
       success: 'green.500',
@@ -47,14 +47,14 @@ const NotificationItem = ({ notification, onDismiss }) => {
       info: 'blue.600'
     }[type]
   );
-  
+
   const IconComponent = {
     success: FiCheckCircle,
     error: FiAlertCircle,
     warning: FiAlertTriangle,
     info: FiInfo
   }[type];
-  
+
   return (
     <Flex
       bg="gray.800"

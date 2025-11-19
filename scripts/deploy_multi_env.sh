@@ -63,7 +63,7 @@ function validate_environment {
 # Function to validate networks
 function validate_networks {
     local valid_networks=("ethereum" "polygon" "arbitrum" "optimism" "avalanche" "binance" "zksync" "starknet" "base" "linea" "scroll")
-    
+
     for network in "${NETWORKS[@]}"; do
         local valid=false
         for valid_network in "${valid_networks[@]}"; do
@@ -72,7 +72,7 @@ function validate_networks {
                 break
             fi
         done
-        
+
         if [[ "$valid" == "false" ]]; then
             echo -e "${RED}Error: Invalid network '$network'${NC}"
             echo "Valid networks are: ${valid_networks[*]}"
@@ -84,26 +84,26 @@ function validate_networks {
 # Function to check prerequisites
 function check_prerequisites {
     echo -e "${BLUE}Checking prerequisites...${NC}"
-    
+
     # Check for required tools
     command -v docker >/dev/null 2>&1 || { echo -e "${RED}Error: Docker is required but not installed${NC}"; exit 1; }
     command -v kubectl >/dev/null 2>&1 || { echo -e "${RED}Error: kubectl is required but not installed${NC}"; exit 1; }
     command -v terraform >/dev/null 2>&1 || { echo -e "${RED}Error: Terraform is required but not installed${NC}"; exit 1; }
     command -v python3 >/dev/null 2>&1 || { echo -e "${RED}Error: Python 3 is required but not installed${NC}"; exit 1; }
     command -v npm >/dev/null 2>&1 || { echo -e "${RED}Error: npm is required but not installed${NC}"; exit 1; }
-    
+
     # Check for configuration directory
     if [[ ! -d "$CONFIG_DIR" ]]; then
         echo -e "${RED}Error: Configuration directory '$CONFIG_DIR' not found${NC}"
         exit 1
     fi
-    
+
     # Check for environment configuration
     if [[ ! -f "$CONFIG_DIR/$ENVIRONMENT.env" ]]; then
         echo -e "${RED}Error: Environment configuration file '$CONFIG_DIR/$ENVIRONMENT.env' not found${NC}"
         exit 1
     fi
-    
+
     echo -e "${GREEN}All prerequisites satisfied${NC}"
 }
 
@@ -113,9 +113,9 @@ function run_tests {
         echo -e "${YELLOW}Skipping pre-deployment tests${NC}"
         return 0
     fi
-    
+
     echo -e "${BLUE}Running pre-deployment tests...${NC}"
-    
+
     # Run backend tests
     if [[ "$DEPLOY_BACKEND" == "true" ]]; then
         echo -e "${BLUE}Running backend tests...${NC}"
@@ -123,7 +123,7 @@ function run_tests {
         python3 -m pytest -xvs
         cd ../..
     fi
-    
+
     # Run frontend tests
     if [[ "$DEPLOY_FRONTEND" == "true" ]]; then
         echo -e "${BLUE}Running frontend tests...${NC}"
@@ -131,7 +131,7 @@ function run_tests {
         npm test -- --watchAll=false
         cd ..
     fi
-    
+
     # Run smart contract tests
     if [[ "$DEPLOY_CONTRACTS" == "true" ]]; then
         echo -e "${BLUE}Running smart contract tests...${NC}"
@@ -139,32 +139,32 @@ function run_tests {
         forge test -vvv
         cd ../..
     fi
-    
+
     echo -e "${GREEN}All tests passed successfully${NC}"
 }
 
 # Function to deploy backend
 function deploy_backend {
     echo -e "${BLUE}Deploying backend to $ENVIRONMENT environment...${NC}"
-    
+
     # Load environment variables
     source "$CONFIG_DIR/$ENVIRONMENT.env"
-    
+
     # Build Docker image
     echo -e "${BLUE}Building backend Docker image...${NC}"
     cd code/backend
     docker build -t "fluxion-backend:$ENVIRONMENT" .
-    
+
     # Push to container registry
     echo -e "${BLUE}Pushing backend Docker image to registry...${NC}"
     docker tag "fluxion-backend:$ENVIRONMENT" "$CONTAINER_REGISTRY/fluxion-backend:$ENVIRONMENT"
     docker push "$CONTAINER_REGISTRY/fluxion-backend:$ENVIRONMENT"
-    
+
     # Apply Kubernetes configurations
     echo -e "${BLUE}Applying Kubernetes configurations...${NC}"
     cd ../../infrastructure/kubernetes
     kubectl apply -f backend-$ENVIRONMENT.yaml
-    
+
     cd ../..
     echo -e "${GREEN}Backend deployment to $ENVIRONMENT completed successfully${NC}"
 }
@@ -172,16 +172,16 @@ function deploy_backend {
 # Function to deploy frontend
 function deploy_frontend {
     echo -e "${BLUE}Deploying frontend to $ENVIRONMENT environment...${NC}"
-    
+
     # Load environment variables
     source "$CONFIG_DIR/$ENVIRONMENT.env"
-    
+
     # Build frontend
     echo -e "${BLUE}Building frontend...${NC}"
     cd web-frontend
     npm install
     npm run build
-    
+
     # Deploy to CDN/hosting service based on environment
     echo -e "${BLUE}Deploying frontend to hosting service...${NC}"
     if [[ "$ENVIRONMENT" == "production" ]]; then
@@ -195,7 +195,7 @@ function deploy_frontend {
         # Development deployment
         aws s3 sync build/ "s3://$FRONTEND_BUCKET-dev" --delete
     fi
-    
+
     cd ..
     echo -e "${GREEN}Frontend deployment to $ENVIRONMENT completed successfully${NC}"
 }
@@ -203,28 +203,28 @@ function deploy_frontend {
 # Function to deploy smart contracts
 function deploy_contracts {
     echo -e "${BLUE}Deploying smart contracts to selected networks...${NC}"
-    
+
     # Load environment variables
     source "$CONFIG_DIR/$ENVIRONMENT.env"
-    
+
     # For each network, deploy contracts
     for network in "${NETWORKS[@]}"; do
         echo -e "${BLUE}Deploying contracts to $network network...${NC}"
-        
+
         cd code/blockchain
-        
+
         # Set network-specific configuration
         export NETWORK="$network"
-        
+
         # Deploy contracts using Foundry
         forge script script/Deploy.s.sol:DeployScript --rpc-url "$RPC_URL_$network" --private-key "$PRIVATE_KEY" --broadcast --verify
-        
+
         # Verify contracts on block explorer if not development
         if [[ "$ENVIRONMENT" != "development" ]]; then
             echo -e "${BLUE}Verifying contracts on $network block explorer...${NC}"
             forge verify-contract --chain-id "$CHAIN_ID_$network" --compiler-version "$(forge --version)" "$(cat deployments/$network/latest.json | jq -r '.contractAddress')" "src/Fluxion.sol:Fluxion" --etherscan-api-key "$ETHERSCAN_API_KEY_$network"
         fi
-        
+
         cd ../..
         echo -e "${GREEN}Smart contract deployment to $network completed successfully${NC}"
     done
@@ -233,11 +233,11 @@ function deploy_contracts {
 # Function to update deployment registry
 function update_deployment_registry {
     echo -e "${BLUE}Updating deployment registry...${NC}"
-    
+
     # Create deployment record
     TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
     DEPLOYMENT_ID=$(uuidgen)
-    
+
     # Record deployment details
     cat > "infrastructure/deployment/registry/$DEPLOYMENT_ID.json" << EOF
 {
@@ -255,7 +255,7 @@ function update_deployment_registry {
     "deployer": "$(whoami)"
 }
 EOF
-    
+
     echo -e "${GREEN}Deployment registry updated with ID: $DEPLOYMENT_ID${NC}"
 }
 

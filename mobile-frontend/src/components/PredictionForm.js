@@ -80,10 +80,10 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
           </View>
           <View style={styles.chipContainer}>
             {selectedTimestamps.map((date, index) => (
-              <Chip 
-                key={index} 
-                icon="clock" 
-                onClose={() => removeTimestamp(index)} 
+              <Chip
+                key={index}
+                icon="clock"
+                onClose={() => removeTimestamp(index)}
                 style={styles.chip}
                 mode="outlined"
               >
@@ -133,9 +133,9 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
           </HelperText>
 
           {/* Submit Button */}
-          <Button 
-            mode="contained" 
-            onPress={handleSubmit} 
+          <Button
+            mode="contained"
+            onPress={handleSubmit}
             disabled={isLoading}
             loading={isLoading}
             style={styles.button}
@@ -203,4 +203,3 @@ const styles = StyleSheet.create({
 });
 
 export default PredictionForm;
-

@@ -3,15 +3,15 @@ import { Box, Text, Flex } from '@chakra-ui/react';
 
 const Footer = () => {
   return (
-    <Box 
+    <Box
       as="footer"
       bg="var(--color-surface)"
       py={4}
       px={6}
       mt="auto"
     >
-      <Flex 
-        justify="space-between" 
+      <Flex
+        justify="space-between"
         align="center"
         direction={{ base: 'column', md: 'row' }}
         gap={{ base: 2, md: 0 }}

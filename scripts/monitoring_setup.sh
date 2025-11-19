@@ -63,7 +63,7 @@ function validate_environment {
 # Function to validate components
 function validate_components {
     local valid_components=("backend" "frontend" "blockchain" "database" "ai" "infrastructure")
-    
+
     for component in "${COMPONENTS[@]}"; do
         local valid=false
         for valid_component in "${valid_components[@]}"; do
@@ -72,7 +72,7 @@ function validate_components {
                 break
             fi
         done
-        
+
         if [[ "$valid" == "false" ]]; then
             echo -e "${RED}Error: Invalid component '$component'${NC}"
             echo "Valid components are: ${valid_components[*]}"
@@ -84,7 +84,7 @@ function validate_components {
 # Function to validate alert channels
 function validate_alert_channels {
     local valid_channels=("slack" "email" "pagerduty" "webhook" "telegram")
-    
+
     for channel in "${ALERT_CHANNELS[@]}"; do
         local valid=false
         for valid_channel in "${valid_channels[@]}"; do
@@ -93,7 +93,7 @@ function validate_alert_channels {
                 break
             fi
         done
-        
+
         if [[ "$valid" == "false" ]]; then
             echo -e "${RED}Error: Invalid alert channel '$channel'${NC}"
             echo "Valid alert channels are: ${valid_channels[*]}"
@@ -105,25 +105,25 @@ function validate_alert_channels {
 # Function to check prerequisites
 function check_prerequisites {
     echo -e "${BLUE}Checking prerequisites...${NC}"
-    
+
     # Check for Docker if we're installing dependencies
     if [[ "$INSTALL_DEPS" == "true" ]]; then
         command -v docker >/dev/null 2>&1 || { echo -e "${RED}Error: Docker is required but not installed${NC}"; exit 1; }
         command -v docker-compose >/dev/null 2>&1 || { echo -e "${RED}Error: Docker Compose is required but not installed${NC}"; exit 1; }
     fi
-    
+
     # Check for configuration directory
     if [[ ! -d "$CONFIG_DIR" ]]; then
         echo -e "${RED}Error: Configuration directory '$CONFIG_DIR' not found${NC}"
         exit 1
     fi
-    
+
     # Check for environment configuration
     if [[ ! -f "$CONFIG_DIR/$ENVIRONMENT.yaml" ]]; then
         echo -e "${RED}Error: Environment configuration file '$CONFIG_DIR/$ENVIRONMENT.yaml' not found${NC}"
         exit 1
     fi
-    
+
     echo -e "${GREEN}All prerequisites satisfied${NC}"
 }
 
@@ -133,12 +133,12 @@ function install_monitoring_stack {
         echo -e "${YELLOW}Skipping installation of monitoring stack${NC}"
         return 0
     fi
-    
+
     echo -e "${BLUE}Installing monitoring stack...${NC}"
-    
+
     # Create monitoring directory
     mkdir -p monitoring
-    
+
     # Create docker-compose.yml for monitoring stack
     cat > monitoring/docker-compose.yml << EOF
 version: '3.8'
@@ -219,13 +219,13 @@ volumes:
   prometheus_data:
   grafana_data:
 EOF
-    
+
     # Create directories for configuration
     mkdir -p monitoring/prometheus
     mkdir -p monitoring/grafana/provisioning/datasources
     mkdir -p monitoring/grafana/provisioning/dashboards
     mkdir -p monitoring/alertmanager
-    
+
     # Create Prometheus configuration
     cat > monitoring/prometheus/prometheus.yml << EOF
 global:
@@ -254,10 +254,10 @@ scrape_configs:
     static_configs:
       - targets: ['cadvisor:8080']
 EOF
-    
+
     # Create Prometheus rules directory
     mkdir -p monitoring/prometheus/rules
-    
+
     # Create Grafana datasource
     cat > monitoring/grafana/provisioning/datasources/datasource.yml << EOF
 apiVersion: 1
@@ -270,7 +270,7 @@ datasources:
     isDefault: true
     editable: false
 EOF
-    
+
     # Create Grafana dashboard configuration
     cat > monitoring/grafana/provisioning/dashboards/dashboard.yml << EOF
 apiVersion: 1
@@ -285,7 +285,7 @@ providers:
     options:
       path: /etc/grafana/provisioning/dashboards
 EOF
-    
+
     # Create AlertManager configuration
     cat > monitoring/alertmanager/alertmanager.yml << EOF
 global:
@@ -302,24 +302,24 @@ receivers:
   - name: 'default'
     # Configure receivers based on alert channels
 EOF
-    
+
     # Start monitoring stack
     echo -e "${BLUE}Starting monitoring stack...${NC}"
     cd monitoring
     docker-compose up -d
     cd ..
-    
+
     echo -e "${GREEN}Monitoring stack installed successfully${NC}"
 }
 
 # Function to configure component monitoring
 function configure_component_monitoring {
     echo -e "${BLUE}Configuring component monitoring...${NC}"
-    
+
     # For each component, configure monitoring
     for component in "${COMPONENTS[@]}"; do
         echo -e "${BLUE}Configuring monitoring for $component...${NC}"
-        
+
         # Add component-specific scrape configuration to Prometheus
         case "$component" in
             backend)
@@ -395,23 +395,23 @@ EOF
 EOF
                 ;;
         esac
-        
+
         # Copy component-specific dashboard to Grafana
         cp "$CONFIG_DIR/dashboards/$component.json" "monitoring/grafana/provisioning/dashboards/$component-$ENVIRONMENT.json"
-        
+
         # Update dashboard with environment information
         sed -i "s/\${DS_PROMETHEUS}/Prometheus/g" "monitoring/grafana/provisioning/dashboards/$component-$ENVIRONMENT.json"
         sed -i "s/\${ENV}/$ENVIRONMENT/g" "monitoring/grafana/provisioning/dashboards/$component-$ENVIRONMENT.json"
-        
+
         # Add component-specific alert rules
         if [[ "$DASHBOARD_ONLY" != "true" ]]; then
             cp "$CONFIG_DIR/rules/$component.yml" "monitoring/prometheus/rules/$component-$ENVIRONMENT.yml"
-            
+
             # Update alert rules with environment information
             sed -i "s/\${ENV}/$ENVIRONMENT/g" "monitoring/prometheus/rules/$component-$ENVIRONMENT.yml"
         fi
     done
-    
+
     echo -e "${GREEN}Component monitoring configured successfully${NC}"
 }
 
@@ -421,9 +421,9 @@ function configure_alert_channels {
         echo -e "${YELLOW}Skipping alert channel configuration (dashboard-only mode)${NC}"
         return 0
     fi
-    
+
     echo -e "${BLUE}Configuring alert channels...${NC}"
-    
+
     # Start with empty receivers section
     cat > monitoring/alertmanager/alertmanager.yml << EOF
 global:
@@ -438,7 +438,7 @@ route:
 
 receivers:
 EOF
-    
+
     # Configure receivers based on alert channels
     local receivers=""
     for channel in "${ALERT_CHANNELS[@]}"; do
@@ -446,7 +446,7 @@ EOF
             slack)
                 # Load Slack configuration from environment file
                 source "$CONFIG_DIR/channels/slack.env"
-                
+
                 receivers+="  - name: 'slack'\n"
                 receivers+="    slack_configs:\n"
                 receivers+="      - api_url: '$SLACK_WEBHOOK_URL'\n"
@@ -456,7 +456,7 @@ EOF
             email)
                 # Load email configuration from environment file
                 source "$CONFIG_DIR/channels/email.env"
-                
+
                 receivers+="  - name: 'email'\n"
                 receivers+="    email_configs:\n"
                 receivers+="      - to: '$EMAIL_TO'\n"
@@ -469,7 +469,7 @@ EOF
             pagerduty)
                 # Load PagerDuty configuration from environment file
                 source "$CONFIG_DIR/channels/pagerduty.env"
-                
+
                 receivers+="  - name: 'pagerduty'\n"
                 receivers+="    pagerduty_configs:\n"
                 receivers+="      - service_key: '$PAGERDUTY_SERVICE_KEY'\n"
@@ -478,7 +478,7 @@ EOF
             webhook)
                 # Load webhook configuration from environment file
                 source "$CONFIG_DIR/channels/webhook.env"
-                
+
                 receivers+="  - name: 'webhook'\n"
                 receivers+="    webhook_configs:\n"
                 receivers+="      - url: '$WEBHOOK_URL'\n"
@@ -487,7 +487,7 @@ EOF
             telegram)
                 # Load Telegram configuration from environment file
                 source "$CONFIG_DIR/channels/telegram.env"
-                
+
                 receivers+="  - name: 'telegram'\n"
                 receivers+="    webhook_configs:\n"
                 receivers+="      - url: 'https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage'\n"
@@ -498,13 +498,13 @@ EOF
                 ;;
         esac
     done
-    
+
     # Add receivers to AlertManager configuration
     echo -e "$receivers" >> monitoring/alertmanager/alertmanager.yml
-    
+
     # Update route to include all receivers
     sed -i "s/receiver: 'default'/receiver: '${ALERT_CHANNELS[0]}'/" monitoring/alertmanager/alertmanager.yml
-    
+
     # Add routes for each receiver
     local routes=""
     routes+="  routes:\n"
@@ -514,33 +514,33 @@ EOF
         routes+="      match:\n"
         routes+="        severity: '$channel'\n"
     done
-    
+
     # Add routes to AlertManager configuration
     sed -i "/repeat_interval: 12h/a\\$routes" monitoring/alertmanager/alertmanager.yml
-    
+
     echo -e "${GREEN}Alert channels configured successfully${NC}"
 }
 
 # Function to reload monitoring configuration
 function reload_monitoring_configuration {
     echo -e "${BLUE}Reloading monitoring configuration...${NC}"
-    
+
     # Reload Prometheus configuration
     curl -X POST http://localhost:$PROMETHEUS_PORT/-/reload
-    
+
     # Reload AlertManager configuration
     curl -X POST http://localhost:9093/-/reload
-    
+
     echo -e "${GREEN}Monitoring configuration reloaded successfully${NC}"
 }
 
 # Function to generate monitoring documentation
 function generate_documentation {
     echo -e "${BLUE}Generating monitoring documentation...${NC}"
-    
+
     # Create documentation directory
     mkdir -p monitoring/documentation
-    
+
     # Generate main documentation file
     cat > monitoring/documentation/README.md << EOF
 # Fluxion Monitoring and Alerting
@@ -599,7 +599,7 @@ cd monitoring
 docker-compose down
 \`\`\`
 EOF
-    
+
     echo -e "${GREEN}Documentation generated successfully${NC}"
 }
 

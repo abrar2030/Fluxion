@@ -31,4 +31,4 @@ const LoadingOverlay = ({ message = 'Loading...' }) => {
   );
 };
 
-export default LoadingOverlay; 
+export default LoadingOverlay;

@@ -330,4 +330,4 @@ kubectl describe nodes
 for svc in $(kubectl get svc -o name); do
   kubectl describe $svc
 done
-``` 
+```

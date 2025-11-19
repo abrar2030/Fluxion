@@ -78,12 +78,12 @@ log "Backup compressed: $COMPRESSED_FILE"
 if [ -n "$ENCRYPTION_KEY" ]; then
     log "Encrypting backup..."
     openssl enc -aes-256-cbc -salt -in "$COMPRESSED_FILE" -out "$ENCRYPTED_FILE" -k "$ENCRYPTION_KEY"
-    
+
     if [ ! -s "$ENCRYPTED_FILE" ]; then
         log "ERROR: Encrypted file is empty or was not created"
         exit 1
     fi
-    
+
     # Remove unencrypted compressed file
     rm -f "$COMPRESSED_FILE"
     FINAL_FILE="$ENCRYPTED_FILE"
@@ -131,4 +131,3 @@ else
 fi
 
 log "Database backup process completed successfully"
-

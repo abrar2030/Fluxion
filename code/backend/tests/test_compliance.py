@@ -14,14 +14,26 @@ from uuid import uuid4
 import pytest
 from app.main import app
 from fastapi.testclient import TestClient
-from models.compliance import (BiometricData, ComplianceAlert, DocumentType,
-                               IdentityVerification, KYCLevel, KYCRecord,
-                               KYCStatus)
+from models.compliance import (
+    BiometricData,
+    ComplianceAlert,
+    DocumentType,
+    IdentityVerification,
+    KYCLevel,
+    KYCRecord,
+    KYCStatus,
+)
 from models.user import User
 from services.compliance.compliance_service import ComplianceService
 from services.compliance.enhanced_kyc_service import (
-    BiometricVerificationResult, DocumentStatus, DocumentVerificationResult,
-    EnhancedKYCService, KYCAssessment, KYCTier, RiskRating)
+    BiometricVerificationResult,
+    DocumentStatus,
+    DocumentVerificationResult,
+    EnhancedKYCService,
+    KYCAssessment,
+    KYCTier,
+    RiskRating,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

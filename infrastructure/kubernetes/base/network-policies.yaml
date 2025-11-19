@@ -273,4 +273,3 @@ spec:
       port: 3306
     - protocol: TCP
       port: 6379
-

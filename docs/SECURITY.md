@@ -15,12 +15,12 @@ This document outlines the security measures and best practices implemented in t
 contract FluxionAccessControl {
     bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
     bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");
-    
+
     modifier onlyRole(bytes32 role) {
         require(hasRole(role, msg.sender), "Unauthorized");
         _;
     }
-    
+
     function emergencyShutdown() external onlyRole(GUARDIAN_ROLE) {
         // Implementation
     }
@@ -37,7 +37,7 @@ contract FluxionAccessControl {
 contract FluxionVault {
     uint256 public constant WITHDRAWAL_LIMIT = 1000000e18;
     uint256 public constant WITHDRAWAL_WINDOW = 24 hours;
-    
+
     function validateWithdrawal(uint256 amount) internal view {
         require(amount <= WITHDRAWAL_LIMIT, "Exceeds limit");
         // Additional checks
@@ -55,7 +55,7 @@ contract FluxionVault {
 contract PriceOracle {
     uint256 public constant MAX_DEVIATION = 100; // 1%
     uint256 public constant HEARTBEAT_PERIOD = 1 hours;
-    
+
     function validatePrice(uint256 price) internal view {
         require(block.timestamp - lastUpdate <= HEARTBEAT_PERIOD, "Stale price");
         require(deviation <= MAX_DEVIATION, "Price deviation too high");
@@ -75,7 +75,7 @@ contract PriceOracle {
 # nginx.conf
 http {
     limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
-    
+
     server {
         location /api/ {
             limit_req zone=api_limit burst=20 nodelay;
@@ -97,7 +97,7 @@ server:
   ha_storage:
     type: "consul"
     path: "vault/"
-    
+
 seal:
   type: "awskms"
   region: "us-east-1"
@@ -272,4 +272,4 @@ policies:
 - [Smart Contract Best Practices](https://consensys.github.io/smart-contract-best-practices/)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [DeFi Security Best Practices](https://github.com/defi-security/best-practices)
-- [Ethereum Security Toolbox](https://github.com/ethereum/security-toolbox) 
+- [Ethereum Security Toolbox](https://github.com/ethereum/security-toolbox)

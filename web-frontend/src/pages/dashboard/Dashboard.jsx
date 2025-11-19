@@ -41,10 +41,10 @@ const Dashboard = () => {
   const borderColor = useColorModeValue('gray.700', 'gray.600');
   const textColor = useColorModeValue('white', 'white');
   const subTextColor = useColorModeValue('gray.400', 'gray.400');
-  
+
   // State for active tab
   const [activeTab, setActiveTab] = useState(0);
-  
+
   // Mock user positions
   const userPositions = [
     {
@@ -64,7 +64,7 @@ const Dashboard = () => {
       apy: '7.2%',
     },
   ];
-  
+
   // Mock recent transactions
   const recentTransactions = [
     {
@@ -96,9 +96,9 @@ const Dashboard = () => {
   return (
     <Box>
       {/* Hero Section */}
-      <Box 
-        p={8} 
-        borderRadius="xl" 
+      <Box
+        p={8}
+        borderRadius="xl"
         mb={8}
         bgGradient="linear(to-br, gray.900, gray.800)"
         boxShadow="xl"
@@ -108,27 +108,27 @@ const Dashboard = () => {
         overflow="hidden"
       >
         {/* Decorative elements */}
-        <Box 
-          position="absolute" 
-          top="-50px" 
-          right="-50px" 
-          w="200px" 
-          h="200px" 
-          borderRadius="full" 
-          bg="brand.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          top="-50px"
+          right="-50px"
+          w="200px"
+          h="200px"
+          borderRadius="full"
+          bg="brand.500"
+          opacity="0.1"
         />
-        <Box 
-          position="absolute" 
-          bottom="-30px" 
-          left="30%" 
-          w="100px" 
-          h="100px" 
-          borderRadius="full" 
-          bg="accent.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          bottom="-30px"
+          left="30%"
+          w="100px"
+          h="100px"
+          borderRadius="full"
+          bg="accent.500"
+          opacity="0.1"
         />
-        
+
         <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ base: 'flex-start', md: 'center' }}>
           <Box mb={{ base: 6, md: 0 }}>
             <Heading as="h1" size="xl" mb={4}>
@@ -138,10 +138,10 @@ const Dashboard = () => {
               The next-generation decentralized liquidity protocol. Provide liquidity, earn fees, and participate in the future of DeFi.
             </Text>
           </Box>
-          
+
           <HStack spacing={4}>
             <RouterLink to="/pools">
-              <Button 
+              <Button
                 leftIcon={<FiDroplet />}
                 colorScheme="brand"
                 size="lg"
@@ -154,9 +154,9 @@ const Dashboard = () => {
                 Explore Pools
               </Button>
             </RouterLink>
-            
+
             <RouterLink to="/pools/create">
-              <Button 
+              <Button
                 leftIcon={<FiPlus />}
                 colorScheme="brand"
                 size="lg"
@@ -193,7 +193,7 @@ const Dashboard = () => {
             </StatHelpText>
           </Stat>
         </Box>
-        
+
         <Box
           bg={cardBg}
           p={6}
@@ -211,7 +211,7 @@ const Dashboard = () => {
             </StatHelpText>
           </Stat>
         </Box>
-        
+
         <Box
           bg={cardBg}
           p={6}
@@ -229,7 +229,7 @@ const Dashboard = () => {
             </StatHelpText>
           </Stat>
         </Box>
-        
+
         <Box
           bg={cardBg}
           p={6}
@@ -275,20 +275,20 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                 <XAxis dataKey="name" stroke="#888" />
                 <YAxis stroke="#888" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(23, 25, 35, 0.9)',
                     border: '1px solid #333',
                     borderRadius: '4px',
                     color: 'white'
-                  }} 
+                  }}
                 />
                 <Area type="monotone" dataKey="tvl" stroke="#0080ff" fillOpacity={1} fill="url(#colorTvl)" />
               </AreaChart>
             </ResponsiveContainer>
           </Box>
         </Box>
-        
+
         <Box
           bg={cardBg}
           p={6}
@@ -307,13 +307,13 @@ const Dashboard = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                 <XAxis dataKey="name" stroke="#888" />
                 <YAxis stroke="#888" />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(23, 25, 35, 0.9)',
                     border: '1px solid #333',
                     borderRadius: '4px',
                     color: 'white'
-                  }} 
+                  }}
                 />
                 <Bar dataKey="volume" fill="#ff7000" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -351,18 +351,18 @@ const Dashboard = () => {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(23, 25, 35, 0.9)',
                     border: '1px solid #333',
                     borderRadius: '4px',
                     color: 'white'
-                  }} 
+                  }}
                 />
               </PieChart>
             </ResponsiveContainer>
           </Box>
-          
+
           <Box>
             <Heading size="sm" mb={4}>Top Pools by TVL</Heading>
             <VStack spacing={4} align="stretch">
@@ -399,9 +399,9 @@ const Dashboard = () => {
           border="1px solid"
           borderColor={borderColor}
         >
-          <Tabs 
-            variant="soft-rounded" 
-            colorScheme="brand" 
+          <Tabs
+            variant="soft-rounded"
+            colorScheme="brand"
             index={activeTab}
             onChange={(index) => setActiveTab(index)}
           >
@@ -410,12 +410,12 @@ const Dashboard = () => {
               <Tab>Recent Transactions</Tab>
               <Tab>Rewards</Tab>
             </TabList>
-            
+
             <TabPanels>
               <TabPanel px={0}>
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   {userPositions.map((position, index) => (
-                    <Box 
+                    <Box
                       key={index}
                       p={4}
                       borderRadius="md"
@@ -434,7 +434,7 @@ const Dashboard = () => {
                           {position.apy} APY
                         </Badge>
                       </Flex>
-                      
+
                       <SimpleGrid columns={2} spacing={4} mb={4}>
                         <Box>
                           <Text color={subTextColor}>My Liquidity</Text>
@@ -449,7 +449,7 @@ const Dashboard = () => {
                           <Text fontWeight="bold" color="green.400">{position.earnings}</Text>
                         </Box>
                       </SimpleGrid>
-                      
+
                       <HStack spacing={2} mt={4}>
                         <Button size="sm" variant="outline" flex="1">
                           Add Liquidity
@@ -462,7 +462,7 @@ const Dashboard = () => {
                   ))}
                 </SimpleGrid>
               </TabPanel>
-              
+
               <TabPanel px={0}>
                 <VStack spacing={4} align="stretch">
                   {recentTransactions.map((tx, index) => (
@@ -470,9 +470,9 @@ const Dashboard = () => {
                       <CardBody>
                         <Flex justify="space-between" align="center">
                           <HStack>
-                            <Badge 
+                            <Badge
                               colorScheme={
-                                tx.type === 'Add Liquidity' ? 'green' : 
+                                tx.type === 'Add Liquidity' ? 'green' :
                                 tx.type === 'Remove Liquidity' ? 'red' : 'blue'
                               }
                               px={2}
@@ -492,7 +492,7 @@ const Dashboard = () => {
                   ))}
                 </VStack>
               </TabPanel>
-              
+
               <TabPanel px={0}>
                 <Box textAlign="center" py={10}>
                   <Icon as={FiActivity} boxSize={12} color="brand.500" mb={4} />
@@ -520,7 +520,7 @@ const Dashboard = () => {
           <Text color={subTextColor} maxW="600px" mx="auto" mb={6}>
             Connect your wallet to view your positions, track your earnings, and participate in the Fluxion ecosystem.
           </Text>
-          <Button 
+          <Button
             size="lg"
             colorScheme="brand"
             bgGradient="linear(to-r, brand.500, accent.500)"

@@ -12,9 +12,9 @@ const ResultsScreen = ({ route, navigation }) => {
       <View style={styles.container}>
         <ResultsDisplay results={predictionData} />
         <View style={styles.buttonContainer}>
-          <Button 
-            mode="contained" 
-            onPress={() => navigation.goBack()} 
+          <Button
+            mode="contained"
+            onPress={() => navigation.goBack()}
             style={styles.button}
             labelStyle={styles.buttonLabel}
           >
@@ -50,4 +50,3 @@ const styles = StyleSheet.create({
 });
 
 export default ResultsScreen;
-

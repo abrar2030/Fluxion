@@ -68,8 +68,8 @@ const WeightEditor = ({ weights: initialWeights, onChange, assetSymbols = [] }) 
         </div>
       ))}
       {assetSymbols.length > 0 && (
-        <button 
-          onClick={distributeEqually} 
+        <button
+          onClick={distributeEqually}
           style={{ marginTop: '10px', padding: '8px 15px' }}
         >
           Distribute Equally
@@ -84,4 +84,3 @@ const WeightEditor = ({ weights: initialWeights, onChange, assetSymbols = [] }) 
 };
 
 export default WeightEditor;
-

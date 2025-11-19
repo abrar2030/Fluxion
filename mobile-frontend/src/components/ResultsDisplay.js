@@ -43,8 +43,8 @@ const ResultsDisplay = ({ results }) => {
                   <Text style={[styles.predictionValue, { color: theme.colors.primary }]}>
                     {prediction.toFixed(4)}
                   </Text>
-                  {confidence_intervals && 
-                   confidence_intervals[meterId] && 
+                  {confidence_intervals &&
+                   confidence_intervals[meterId] &&
                    confidence_intervals[meterId][index] && (
                     <Text style={[styles.confidenceInterval, { color: theme.colors.onSurfaceVariant }]}>
                       95% CI: [{confidence_intervals[meterId][index][0].toFixed(4)}, {confidence_intervals[meterId][index][1].toFixed(4)}]
@@ -122,4 +122,3 @@ const styles = StyleSheet.create({
 });
 
 export default ResultsDisplay;
-

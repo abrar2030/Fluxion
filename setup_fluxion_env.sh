@@ -75,11 +75,11 @@ else
         else
             source venv_fluxion_backend_py/bin/activate
             echo "Backend Python virtual environment created and activated."
-            
+
             echo "Installing backend Python dependencies from requirements.txt..."
             pip3 install -r requirements.txt
             echo "Backend dependencies installed (Flask based on requirements.txt)."
-            
+
             echo "To activate the backend virtual environment later, run: source ${BACKEND_CODE_DIR}/venv_fluxion_backend_py/bin/activate"
             echo "README.md mentions running backend with 'uvicorn api:app --host 0.0.0.0 --port 8000' from a 'backend' subdirectory and using Celery."
             echo "However, requirements.txt lists Flask. Please verify the correct framework and run command."

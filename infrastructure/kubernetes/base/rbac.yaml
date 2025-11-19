@@ -44,7 +44,7 @@ rules:
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get", "list"]
-  resourceNames: 
+  resourceNames:
     - "{{ .Values.appName }}-app-secrets"
     - "{{ .Values.appName }}-database-secrets"
 # Allow reading configmaps
@@ -181,4 +181,3 @@ subjects:
 - kind: ServiceAccount
   name: {{ .Values.appName }}-monitoring-sa
   namespace: {{ .Values.namespace | default "default" }}
-

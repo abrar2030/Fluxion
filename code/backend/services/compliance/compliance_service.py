@@ -9,9 +9,17 @@ from typing import Any, Dict, List, Optional
 from uuid import UUID
 
 from config.settings import settings
-from models.compliance import (AMLCheck, AMLRiskLevel, AuditLog, AuditLogLevel,
-                               ComplianceAlert, ComplianceAlertStatus,
-                               ComplianceAlertType, KYCRecord, KYCStatus)
+from models.compliance import (
+    AMLCheck,
+    AMLRiskLevel,
+    AuditLog,
+    AuditLogLevel,
+    ComplianceAlert,
+    ComplianceAlertStatus,
+    ComplianceAlertType,
+    KYCRecord,
+    KYCStatus,
+)
 from models.risk import RiskLevel, RiskProfile
 from models.transaction import Transaction, TransactionStatus, TransactionType
 from models.user import User

@@ -30,28 +30,28 @@ export function Web3Provider({ children }) {
         try {
           const provider = new ethers.providers.Web3Provider(window.ethereum);
           setProvider(provider);
-          
+
           // Get network
           const network = await provider.getNetwork();
           setChainId(network.chainId);
-          
+
           // Initialize contracts
           initializeContracts(provider);
-          
+
           // Listen for account changes
           window.ethereum.on('accountsChanged', handleAccountsChanged);
-          
+
           // Listen for chain changes
           window.ethereum.on('chainChanged', () => window.location.reload());
-          
+
         } catch (error) {
           console.error("Error initializing web3:", error);
         }
       }
     };
-    
+
     init();
-    
+
     return () => {
       if (window.ethereum) {
         window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
@@ -66,13 +66,13 @@ export function Web3Provider({ children }) {
       POOL_MANAGER_ABI,
       provider
     );
-    
+
     const factory = new ethers.Contract(
       process.env.FACTORY_ADDRESS || '0x0000000000000000000000000000000000000000',
       FACTORY_ABI,
       provider
     );
-    
+
     setContracts({ poolManager, factory });
   };
 
@@ -89,7 +89,7 @@ export function Web3Provider({ children }) {
       const signer = provider.getSigner();
       setSigner(signer);
       setIsConnected(true);
-      
+
       // Fetch pools for the connected account
       fetchPools(accounts[0]);
     }
@@ -99,8 +99,8 @@ export function Web3Provider({ children }) {
   const connectWallet = async () => {
     if (provider) {
       try {
-        const accounts = await window.ethereum.request({ 
-          method: 'eth_requestAccounts' 
+        const accounts = await window.ethereum.request({
+          method: 'eth_requestAccounts'
         });
         handleAccountsChanged(accounts);
       } catch (error) {
@@ -116,12 +116,12 @@ export function Web3Provider({ children }) {
         // Example implementation - adjust based on actual contract methods
         const poolCount = await contracts.poolManager.getUserPoolCount(address);
         const poolIds = [];
-        
+
         for (let i = 0; i < poolCount; i++) {
           const poolId = await contracts.poolManager.getUserPoolAtIndex(address, i);
           poolIds.push(poolId);
         }
-        
+
         const poolsData = await Promise.all(
           poolIds.map(async (id) => {
             const poolData = await contracts.poolManager.getPool(id);
@@ -134,7 +134,7 @@ export function Web3Provider({ children }) {
             };
           })
         );
-        
+
         setPools(poolsData);
       } catch (error) {
         console.error("Error fetching pools:", error);

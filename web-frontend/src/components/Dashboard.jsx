@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Container, 
-  Grid, 
-  Paper, 
-  Typography, 
-  Button, 
+import {
+  Box,
+  Container,
+  Grid,
+  Paper,
+  Typography,
+  Button,
   CircularProgress,
   Tabs,
   Tab,
@@ -33,27 +33,27 @@ import {
   AccountCircle as AccountIcon,
   ChevronRight as ChevronRightIcon
 } from '@mui/icons-material';
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
-  Area, 
-  BarChart, 
-  Bar, 
-  PieChart, 
-  Pie, 
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
   Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from 'recharts';
-import { 
-  MapContainer, 
-  TileLayer, 
-  Marker, 
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
   Popup,
   Polyline
 } from 'react-leaflet';
@@ -160,8 +160,8 @@ const Dashboard = () => {
           { text: 'Analytics', icon: <TimelineIcon /> },
           { text: 'Settings', icon: <SettingsIcon /> },
         ].map((item, index) => (
-          <ListItem 
-            button 
+          <ListItem
+            button
             key={item.text}
             selected={index === 0}
             sx={{
@@ -177,12 +177,12 @@ const Dashboard = () => {
             <ListItemIcon sx={{ color: index === 0 ? theme.palette.primary.main : 'inherit' }}>
               {item.icon}
             </ListItemIcon>
-            <ListItemText 
-              primary={item.text} 
-              primaryTypographyProps={{ 
+            <ListItemText
+              primary={item.text}
+              primaryTypographyProps={{
                 fontWeight: index === 0 ? 'bold' : 'normal',
                 color: index === 0 ? theme.palette.primary.main : 'inherit'
-              }} 
+              }}
             />
           </ListItem>
         ))}
@@ -212,11 +212,11 @@ const Dashboard = () => {
       {/* Main content */}
       <Box component="main" sx={{ flexGrow: 1, overflow: 'auto' }}>
         {/* App bar */}
-        <AppBar 
-          position="static" 
-          color="default" 
+        <AppBar
+          position="static"
+          color="default"
           elevation={0}
-          sx={{ 
+          sx={{
             borderBottom: `1px solid ${theme.palette.divider}`,
             backgroundColor: theme.palette.background.paper
           }}
@@ -406,20 +406,20 @@ const Dashboard = () => {
                             <Box sx={{ flex: '1 1 150px' }}>{tx.to}</Box>
                             <Box sx={{ flex: '1 1 200px' }}>{tx.timestamp}</Box>
                             <Box sx={{ flex: '1 1 100px' }}>
-                              <Box 
-                                component="span" 
-                                sx={{ 
-                                  px: 1, 
-                                  py: 0.5, 
-                                  borderRadius: 1, 
+                              <Box
+                                component="span"
+                                sx={{
+                                  px: 1,
+                                  py: 0.5,
+                                  borderRadius: 1,
                                   fontSize: '0.75rem',
-                                  backgroundColor: 
-                                    tx.status === 'Completed' ? theme.palette.success.main + '20' : 
-                                    tx.status === 'Pending' ? theme.palette.warning.main + '20' : 
+                                  backgroundColor:
+                                    tx.status === 'Completed' ? theme.palette.success.main + '20' :
+                                    tx.status === 'Pending' ? theme.palette.warning.main + '20' :
                                     theme.palette.error.main + '20',
-                                  color: 
-                                    tx.status === 'Completed' ? theme.palette.success.main : 
-                                    tx.status === 'Pending' ? theme.palette.warning.main : 
+                                  color:
+                                    tx.status === 'Completed' ? theme.palette.success.main :
+                                    tx.status === 'Pending' ? theme.palette.warning.main :
                                     theme.palette.error.main,
                                 }}
                               >

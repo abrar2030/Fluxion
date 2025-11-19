@@ -260,4 +260,3 @@
     hour: "2"
     job: "/usr/bin/aide --check"
     user: root
-

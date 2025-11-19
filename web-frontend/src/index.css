@@ -7,23 +7,23 @@
   --color-primary: #0080ff;
   --color-primary-light: #4db3ff;
   --color-primary-dark: #0066cc;
-  
+
   --color-secondary: #ff8c00;
   --color-secondary-light: #ffa31a;
   --color-secondary-dark: #cc7000;
-  
+
   --color-background: #121212;
   --color-surface: #1e1e1e;
   --color-surface-light: #2d2d2d;
-  
+
   --color-text-primary: #ffffff;
   --color-text-secondary: #b3b3b3;
-  
+
   --color-success: #00c853;
   --color-warning: #ffab00;
   --color-error: #ff5252;
   --color-info: #2196f3;
-  
+
   /* Spacing */
   --spacing-xs: 0.25rem;
   --spacing-sm: 0.5rem;
@@ -31,18 +31,18 @@
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
   --spacing-xxl: 3rem;
-  
+
   /* Border radius */
   --border-radius-sm: 4px;
   --border-radius-md: 8px;
   --border-radius-lg: 12px;
   --border-radius-xl: 16px;
-  
+
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
   --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
-  
+
   /* Transitions */
   --transition-fast: 0.15s ease;
   --transition-normal: 0.3s ease;
@@ -213,7 +213,7 @@ code, pre {
   .hide-on-mobile {
     display: initial;
   }
-  
+
   .hide-on-desktop {
     display: none;
   }
@@ -241,11 +241,11 @@ code, pre {
   .grid-2 {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .grid-3 {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .grid-4 {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -255,7 +255,7 @@ code, pre {
   .grid-3 {
     grid-template-columns: repeat(3, 1fr);
   }
-  
+
   .grid-4 {
     grid-template-columns: repeat(4, 1fr);
   }

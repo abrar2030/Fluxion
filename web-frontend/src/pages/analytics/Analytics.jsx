@@ -45,11 +45,11 @@ const Analytics = () => {
   const borderColor = useColorModeValue('gray.700', 'gray.600');
   const textColor = useColorModeValue('white', 'white');
   const subTextColor = useColorModeValue('gray.400', 'gray.400');
-  
+
   // State for chart modal
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedChart, setSelectedChart] = useState(null);
-  
+
   // Handle chart expansion
   const handleExpandChart = (chartType) => {
     setSelectedChart(chartType);
@@ -59,9 +59,9 @@ const Analytics = () => {
   return (
     <Box>
       {/* Hero Section */}
-      <Box 
-        p={8} 
-        borderRadius="xl" 
+      <Box
+        p={8}
+        borderRadius="xl"
         mb={8}
         bgGradient="linear(to-br, gray.900, gray.800)"
         boxShadow="xl"
@@ -71,27 +71,27 @@ const Analytics = () => {
         overflow="hidden"
       >
         {/* Decorative elements */}
-        <Box 
-          position="absolute" 
-          top="-50px" 
-          right="-50px" 
-          w="200px" 
-          h="200px" 
-          borderRadius="full" 
-          bg="brand.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          top="-50px"
+          right="-50px"
+          w="200px"
+          h="200px"
+          borderRadius="full"
+          bg="brand.500"
+          opacity="0.1"
         />
-        <Box 
-          position="absolute" 
-          bottom="-30px" 
-          left="30%" 
-          w="100px" 
-          h="100px" 
-          borderRadius="full" 
-          bg="accent.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          bottom="-30px"
+          left="30%"
+          w="100px"
+          h="100px"
+          borderRadius="full"
+          bg="accent.500"
+          opacity="0.1"
         />
-        
+
         <Heading as="h1" size="xl" mb={4}>
           Analytics Dashboard
         </Heading>
@@ -127,7 +127,7 @@ const Analytics = () => {
             23.36%
           </StatHelpText>
         </Stat>
-        
+
         <Stat
           px={6}
           py={5}
@@ -153,7 +153,7 @@ const Analytics = () => {
             5.14%
           </StatHelpText>
         </Stat>
-        
+
         <Stat
           px={6}
           py={5}
@@ -179,7 +179,7 @@ const Analytics = () => {
             12.05%
           </StatHelpText>
         </Stat>
-        
+
         <Stat
           px={6}
           py={5}
@@ -215,7 +215,7 @@ const Analytics = () => {
           <Tab>Volume</Tab>
           <Tab>Historical</Tab>
         </TabList>
-        
+
         <TabPanels>
           <TabPanel px={0}>
             {/* TVL and Volume Charts */}
@@ -233,9 +233,9 @@ const Analytics = () => {
                   <Heading size="md">TVL Trend (Millions $)</Heading>
                   <HStack>
                     <Tooltip label="Expand Chart" placement="top">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => handleExpandChart('tvl')}
                       >
                         <Icon as={FiExternalLink} />
@@ -248,7 +248,7 @@ const Analytics = () => {
                     </Tooltip>
                   </HStack>
                 </Flex>
-                
+
                 <Box h="300px">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
@@ -264,19 +264,19 @@ const Analytics = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                       <XAxis dataKey="name" stroke="#888" />
                       <YAxis stroke="#888" />
-                      <RechartsTooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(23, 25, 35, 0.9)',
                           border: '1px solid #333',
                           borderRadius: '4px',
                           color: 'white'
-                        }} 
+                        }}
                       />
                       <Area type="monotone" dataKey="tvl" stroke="#0080ff" fillOpacity={1} fill="url(#colorTvl)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </Box>
-                
+
                 <HStack mt={4} justify="space-between">
                   <Text color={subTextColor}>Last 6 months</Text>
                   <Badge colorScheme="green" px={2} py={1}>+67.5%</Badge>
@@ -296,9 +296,9 @@ const Analytics = () => {
                   <Heading size="md">Volume Trend (Millions $)</Heading>
                   <HStack>
                     <Tooltip label="Expand Chart" placement="top">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => handleExpandChart('volume')}
                       >
                         <Icon as={FiExternalLink} />
@@ -311,7 +311,7 @@ const Analytics = () => {
                     </Tooltip>
                   </HStack>
                 </Flex>
-                
+
                 <Box h="300px">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
@@ -321,26 +321,26 @@ const Analytics = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                       <XAxis dataKey="name" stroke="#888" />
                       <YAxis stroke="#888" />
-                      <RechartsTooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(23, 25, 35, 0.9)',
                           border: '1px solid #333',
                           borderRadius: '4px',
                           color: 'white'
-                        }} 
+                        }}
                       />
                       <Bar dataKey="volume" fill="#ff8c00" />
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
-                
+
                 <HStack mt={4} justify="space-between">
                   <Text color={subTextColor}>Last 6 months</Text>
                   <Badge colorScheme="green" px={2} py={1}>+116.7%</Badge>
                 </HStack>
               </Box>
             </SimpleGrid>
-            
+
             {/* Pool Distribution and Top Pools */}
             <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
               <Box
@@ -354,16 +354,16 @@ const Analytics = () => {
                 <Flex justify="space-between" align="center" mb={4}>
                   <Heading size="md">Pool Type Distribution</Heading>
                   <Tooltip label="Expand Chart" placement="top">
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
+                    <Button
+                      size="sm"
+                      variant="ghost"
                       onClick={() => handleExpandChart('distribution')}
                     >
                       <Icon as={FiExternalLink} />
                     </Button>
                   </Tooltip>
                 </Flex>
-                
+
                 <Box h="300px">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -381,18 +381,18 @@ const Analytics = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <RechartsTooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(23, 25, 35, 0.9)',
                           border: '1px solid #333',
                           borderRadius: '4px',
                           color: 'white'
-                        }} 
+                        }}
                       />
                     </PieChart>
                   </ResponsiveContainer>
                 </Box>
-                
+
                 <SimpleGrid columns={3} spacing={4} mt={4}>
                   {poolTypeData.map((type, index) => (
                     <Box key={index}>
@@ -405,7 +405,7 @@ const Analytics = () => {
                   ))}
                 </SimpleGrid>
               </Box>
-              
+
               <Box
                 bg={cardBg}
                 p={6}
@@ -416,8 +416,8 @@ const Analytics = () => {
               >
                 <Flex justify="space-between" align="center" mb={4}>
                   <Heading size="md">Top Performing Pools</Heading>
-                  <Button 
-                    as={RouterLink} 
+                  <Button
+                    as={RouterLink}
                     to="/pools"
                     size="sm"
                     variant="outline"
@@ -426,7 +426,7 @@ const Analytics = () => {
                     View All
                   </Button>
                 </Flex>
-                
+
                 <Table variant="simple" size="sm">
                   <Thead>
                     <Tr>
@@ -447,9 +447,9 @@ const Analytics = () => {
                             <Text fontWeight="bold" color={pool.trend === 'up' ? 'green.400' : 'red.400'}>
                               {pool.apy}
                             </Text>
-                            <Icon 
-                              as={pool.trend === 'up' ? FiTrendingUp : FiTrendingDown} 
-                              color={pool.trend === 'up' ? 'green.400' : 'red.400'} 
+                            <Icon
+                              as={pool.trend === 'up' ? FiTrendingUp : FiTrendingDown}
+                              color={pool.trend === 'up' ? 'green.400' : 'red.400'}
                             />
                           </HStack>
                         </Td>
@@ -457,9 +457,9 @@ const Analytics = () => {
                     ))}
                   </Tbody>
                 </Table>
-                
+
                 <Divider my={4} />
-                
+
                 <SimpleGrid columns={2} spacing={4}>
                   <Card bg="gray.700" variant="outline">
                     <CardBody py={3}>
@@ -471,7 +471,7 @@ const Analytics = () => {
                       </HStack>
                     </CardBody>
                   </Card>
-                  
+
                   <Card bg="gray.700" variant="outline">
                     <CardBody py={3}>
                       <Text fontSize="sm" color={subTextColor}>Highest Volume</Text>
@@ -483,24 +483,24 @@ const Analytics = () => {
               </Box>
             </SimpleGrid>
           </TabPanel>
-          
+
           <TabPanel px={0}>
             {/* Pools Tab Content */}
             <Text>Detailed pool analytics would be shown here.</Text>
           </TabPanel>
-          
+
           <TabPanel px={0}>
             {/* Volume Tab Content */}
             <Text>Detailed volume analytics would be shown here.</Text>
           </TabPanel>
-          
+
           <TabPanel px={0}>
             {/* Historical Tab Content */}
             <Text>Historical data and trends would be shown here.</Text>
           </TabPanel>
         </TabPanels>
       </Tabs>
-      
+
       {/* Chart Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="4xl">
         <ModalOverlay backdropFilter="blur(10px)" />
@@ -528,20 +528,20 @@ const Analytics = () => {
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                     <XAxis dataKey="name" stroke="#888" />
                     <YAxis stroke="#888" />
-                    <RechartsTooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                    <RechartsTooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(23, 25, 35, 0.9)',
                         border: '1px solid #333',
                         borderRadius: '4px',
                         color: 'white'
-                      }} 
+                      }}
                     />
                     <Legend />
                     <Area type="monotone" dataKey="tvl" stroke="#0080ff" fillOpacity={1} fill="url(#colorTvlModal)" />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
-              
+
               {selectedChart === 'volume' && (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -551,20 +551,20 @@ const Analytics = () => {
                     <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                     <XAxis dataKey="name" stroke="#888" />
                     <YAxis stroke="#888" />
-                    <RechartsTooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                    <RechartsTooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(23, 25, 35, 0.9)',
                         border: '1px solid #333',
                         borderRadius: '4px',
                         color: 'white'
-                      }} 
+                      }}
                     />
                     <Legend />
                     <Bar dataKey="volume" fill="#ff8c00" />
                   </BarChart>
                 </ResponsiveContainer>
               )}
-              
+
               {selectedChart === 'distribution' && (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -582,13 +582,13 @@ const Analytics = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                    <RechartsTooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(23, 25, 35, 0.9)',
                         border: '1px solid #333',
                         borderRadius: '4px',
                         color: 'white'
-                      }} 
+                      }}
                     />
                     <Legend />
                   </PieChart>
@@ -596,17 +596,17 @@ const Analytics = () => {
               )}
             </Box>
           </ModalBody>
-          
+
           <ModalFooter>
-            <Button 
-              leftIcon={<FiDownload />} 
-              colorScheme="brand" 
+            <Button
+              leftIcon={<FiDownload />}
+              colorScheme="brand"
               mr={3}
             >
               Download Data
             </Button>
-            <Button 
-              leftIcon={<FiShare2 />} 
+            <Button
+              leftIcon={<FiShare2 />}
               variant="outline"
             >
               Share

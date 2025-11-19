@@ -59,4 +59,4 @@ const NotificationCenter = ({ notifications }) => {
   );
 };
 
-export default NotificationCenter; 
+export default NotificationCenter;

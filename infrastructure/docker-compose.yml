@@ -582,4 +582,3 @@ services:
     labels:
       - "fluxion.service=nginx"
       - "fluxion.security.level=high"
-

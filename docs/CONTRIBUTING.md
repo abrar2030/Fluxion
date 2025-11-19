@@ -210,4 +210,4 @@ Contributors will be:
 - Listed in CONTRIBUTORS.md
 - Eligible for bounties
 - Given priority for grants
-- Recognized in release notes 
+- Recognized in release notes

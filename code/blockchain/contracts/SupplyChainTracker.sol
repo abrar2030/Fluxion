@@ -12,12 +12,12 @@ import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 contract SupplyChainTracker is AccessControl, ChainlinkClient {
     using Counters for Counters.Counter;
     using Chainlink for Chainlink.Request;
-    
+
     bytes32 public constant TRACKER_ROLE = keccak256("TRACKER_ROLE");
     bytes32 public constant ORACLE_ROLE = keccak256("ORACLE_ROLE");
-    
+
     Counters.Counter private _assetIdCounter;
-    
+
     struct Asset {
         uint256 id;
         string metadata;
@@ -28,7 +28,7 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
         mapping(uint256 => AssetTransfer) transfers;
         uint256 transferCount;
     }
-    
+
     struct AssetTransfer {
         address from;
         address to;
@@ -36,27 +36,27 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
         string location;
         bytes32 proofHash;
     }
-    
+
     enum AssetStatus { Created, InTransit, Delivered, Rejected, Recalled }
-    
+
     mapping(uint256 => Asset) private _assets;
     mapping(address => uint256[]) private _custodianAssets;
     mapping(bytes32 => uint256) private _requestToAsset;
-    
+
     event AssetCreated(uint256 indexed assetId, address indexed custodian, string metadata);
     event AssetTransferred(uint256 indexed assetId, address indexed from, address indexed to, string location);
     event AssetStatusUpdated(uint256 indexed assetId, AssetStatus status);
     event LocationUpdated(uint256 indexed assetId, string location);
-    
+
     constructor(address _link) {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(TRACKER_ROLE, msg.sender);
-        
+
         if(_link != address(0)) {
             setChainlinkToken(_link);
         }
     }
-    
+
     /**
      * @dev Creates a new asset in the supply chain
      * @param _metadata IPFS hash or other identifier for asset metadata
@@ -71,7 +71,7 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
     ) external onlyRole(TRACKER_ROLE) returns (uint256) {
         _assetIdCounter.increment();
         uint256 assetId = _assetIdCounter.current();
-        
+
         Asset storage asset = _assets[assetId];
         asset.id = assetId;
         asset.metadata = _metadata;
@@ -80,14 +80,14 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
         asset.status = AssetStatus.Created;
         asset.location = _location;
         asset.transferCount = 0;
-        
+
         _custodianAssets[_initialCustodian].push(assetId);
-        
+
         emit AssetCreated(assetId, _initialCustodian, _metadata);
-        
+
         return assetId;
     }
-    
+
     /**
      * @dev Transfers an asset to a new custodian
      * @param _assetId ID of the asset to transfer
@@ -105,9 +105,9 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
         require(asset.id == _assetId, "Asset does not exist");
         require(asset.currentCustodian == msg.sender, "Only current custodian can transfer");
         require(_to != address(0), "Cannot transfer to zero address");
-        
+
         address from = asset.currentCustodian;
-        
+
         // Record transfer
         uint256 transferId = asset.transferCount;
         asset.transfers[transferId] = AssetTransfer({
@@ -118,19 +118,19 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
             proofHash: _proofHash
         });
         asset.transferCount++;
-        
+
         // Update asset
         asset.currentCustodian = _to;
         asset.timestamp = block.timestamp;
         asset.status = AssetStatus.InTransit;
         asset.location = _location;
-        
+
         // Update custodian mappings
         _custodianAssets[_to].push(_assetId);
-        
+
         emit AssetTransferred(_assetId, from, _to, _location);
     }
-    
+
     /**
      * @dev Updates the status of an asset
      * @param _assetId ID of the asset
@@ -142,15 +142,15 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
     ) external {
         Asset storage asset = _assets[_assetId];
         require(asset.id == _assetId, "Asset does not exist");
-        require(asset.currentCustodian == msg.sender || hasRole(TRACKER_ROLE, msg.sender), 
+        require(asset.currentCustodian == msg.sender || hasRole(TRACKER_ROLE, msg.sender),
                 "Only current custodian or tracker can update status");
-        
+
         asset.status = _status;
         asset.timestamp = block.timestamp;
-        
+
         emit AssetStatusUpdated(_assetId, _status);
     }
-    
+
     /**
      * @dev Updates the location of an asset using Chainlink oracle
      * @param _assetId ID of the asset
@@ -165,21 +165,21 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
         uint256 _fee
     ) external onlyRole(TRACKER_ROLE) {
         require(_assets[_assetId].id == _assetId, "Asset does not exist");
-        
+
         Chainlink.Request memory req = buildChainlinkRequest(
             _jobId,
             address(this),
             this.fulfillLocationUpdate.selector
         );
-        
+
         // Add asset ID as parameter
         req.addUint("assetId", _assetId);
-        
+
         // Send request
         bytes32 requestId = sendChainlinkRequestTo(_oracle, req, _fee);
         _requestToAsset[requestId] = _assetId;
     }
-    
+
     /**
      * @dev Callback function for Chainlink location update
      * @param _requestId Request ID
@@ -191,13 +191,13 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
     ) external recordChainlinkFulfillment(_requestId) {
         uint256 assetId = _requestToAsset[_requestId];
         require(_assets[assetId].id == assetId, "Asset does not exist");
-        
+
         _assets[assetId].location = _location;
         _assets[assetId].timestamp = block.timestamp;
-        
+
         emit LocationUpdated(assetId, _location);
     }
-    
+
     /**
      * @dev Batch creates multiple assets
      * @param _metadataList List of metadata for each asset
@@ -211,13 +211,13 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
         string[] calldata _locationList
     ) external onlyRole(TRACKER_ROLE) returns (uint256[] memory) {
         require(
-            _metadataList.length == _custodianList.length && 
+            _metadataList.length == _custodianList.length &&
             _custodianList.length == _locationList.length,
             "Input arrays must have same length"
         );
-        
+
         uint256[] memory assetIds = new uint256[](_metadataList.length);
-        
+
         for (uint256 i = 0; i < _metadataList.length; i++) {
             assetIds[i] = createAsset(
                 _metadataList[i],
@@ -225,10 +225,10 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
                 _locationList[i]
             );
         }
-        
+
         return assetIds;
     }
-    
+
     /**
      * @dev Gets asset details
      * @param _assetId ID of the asset
@@ -251,7 +251,7 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
     ) {
         Asset storage asset = _assets[_assetId];
         require(asset.id == _assetId, "Asset does not exist");
-        
+
         return (
             asset.id,
             asset.metadata,
@@ -262,7 +262,7 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
             asset.transferCount
         );
     }
-    
+
     /**
      * @dev Gets transfer details for an asset
      * @param _assetId ID of the asset
@@ -279,9 +279,9 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
         Asset storage asset = _assets[_assetId];
         require(asset.id == _assetId, "Asset does not exist");
         require(_transferId < asset.transferCount, "Transfer does not exist");
-        
+
         AssetTransfer storage transfer = asset.transfers[_transferId];
-        
+
         return (
             transfer.from,
             transfer.to,
@@ -290,7 +290,7 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
             transfer.proofHash
         );
     }
-    
+
     /**
      * @dev Gets all assets for a custodian
      * @param _custodian Address of the custodian
@@ -299,7 +299,7 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
     function getCustodianAssets(address _custodian) external view returns (uint256[] memory) {
         return _custodianAssets[_custodian];
     }
-    
+
     /**
      * @dev Gets the total number of assets
      * @return Current asset count

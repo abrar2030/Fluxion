@@ -24,22 +24,22 @@ import {
   HStack
 } from '@chakra-ui/react';
 import { FiBarChart2, FiTrendingUp, FiTrendingDown, FiDollarSign } from 'react-icons/fi';
-import { 
-  LineChart, 
-  Line, 
-  AreaChart, 
+import {
+  LineChart,
+  Line,
+  AreaChart,
   Area,
   BarChart,
   Bar,
   PieChart,
   Pie,
   Cell,
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from 'recharts';
 
 // Mock data for analytics
@@ -82,7 +82,7 @@ const Analytics = () => {
       <Heading as="h1" mb={6} fontSize="3xl" color="white">
         Analytics
       </Heading>
-      
+
       <SimpleGrid columns={{ base: 1, md: 4 }} spacing={{ base: 5, lg: 8 }} mb={8}>
         <Stat
           px={{ base: 2, md: 4 }}
@@ -108,7 +108,7 @@ const Analytics = () => {
             </Box>
           </Flex>
         </Stat>
-        
+
         <Stat
           px={{ base: 2, md: 4 }}
           py="5"
@@ -133,7 +133,7 @@ const Analytics = () => {
             </Box>
           </Flex>
         </Stat>
-        
+
         <Stat
           px={{ base: 2, md: 4 }}
           py="5"
@@ -158,7 +158,7 @@ const Analytics = () => {
             </Box>
           </Flex>
         </Stat>
-        
+
         <Stat
           px={{ base: 2, md: 4 }}
           py="5"
@@ -184,7 +184,7 @@ const Analytics = () => {
           </Flex>
         </Stat>
       </SimpleGrid>
-      
+
       <Tabs variant="soft-rounded" colorScheme="blue" mb={8}>
         <TabList mb={4}>
           <Tab color="gray.300" _selected={{ color: 'white', bg: 'brand.500' }}>Volume</Tab>
@@ -192,7 +192,7 @@ const Analytics = () => {
           <Tab color="gray.300" _selected={{ color: 'white', bg: 'brand.500' }}>Pool Distribution</Tab>
           <Tab color="gray.300" _selected={{ color: 'white', bg: 'brand.500' }}>Risk Analysis</Tab>
         </TabList>
-        
+
         <TabPanels>
           <TabPanel p={0}>
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
@@ -200,11 +200,11 @@ const Analytics = () => {
                 <Flex justify="space-between" align="center" mb={4}>
                   <Heading size="md" color="white">Trading Volume</Heading>
                   <HStack>
-                    <Select 
-                      size="sm" 
-                      width="150px" 
-                      bg="gray.800" 
-                      color="white" 
+                    <Select
+                      size="sm"
+                      width="150px"
+                      bg="gray.800"
+                      color="white"
                       borderColor="gray.600"
                       defaultValue="7d"
                     >
@@ -230,12 +230,12 @@ const Analytics = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                       <XAxis dataKey="name" stroke="#999" />
                       <YAxis stroke="#999" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#333', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#333',
                           borderColor: '#555',
                           color: 'white'
-                        }} 
+                        }}
                       />
                       <Legend />
                       <Bar dataKey="volume" fill="#0080ff" name="Volume" />
@@ -245,18 +245,18 @@ const Analytics = () => {
               </CardBody>
             </Card>
           </TabPanel>
-          
+
           <TabPanel p={0}>
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
                 <Flex justify="space-between" align="center" mb={4}>
                   <Heading size="md" color="white">Total Value Locked</Heading>
                   <HStack>
-                    <Select 
-                      size="sm" 
-                      width="150px" 
-                      bg="gray.800" 
-                      color="white" 
+                    <Select
+                      size="sm"
+                      width="150px"
+                      bg="gray.800"
+                      color="white"
                       borderColor="gray.600"
                       defaultValue="7d"
                     >
@@ -282,12 +282,12 @@ const Analytics = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                       <XAxis dataKey="name" stroke="#999" />
                       <YAxis stroke="#999" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#333', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#333',
                           borderColor: '#555',
                           color: 'white'
-                        }} 
+                        }}
                       />
                       <Legend />
                       <Area type="monotone" dataKey="tvl" stroke="#0080ff" fill="#0080ff" fillOpacity={0.3} name="TVL" />
@@ -297,7 +297,7 @@ const Analytics = () => {
               </CardBody>
             </Card>
           </TabPanel>
-          
+
           <TabPanel p={0}>
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
@@ -322,12 +322,12 @@ const Analytics = () => {
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#333', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#333',
                           borderColor: '#555',
                           color: 'white'
-                        }} 
+                        }}
                       />
                       <Legend />
                     </PieChart>
@@ -336,18 +336,18 @@ const Analytics = () => {
               </CardBody>
             </Card>
           </TabPanel>
-          
+
           <TabPanel p={0}>
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
                 <Flex justify="space-between" align="center" mb={4}>
                   <Heading size="md" color="white">Risk Analysis</Heading>
                   <HStack>
-                    <Select 
-                      size="sm" 
-                      width="150px" 
-                      bg="gray.800" 
-                      color="white" 
+                    <Select
+                      size="sm"
+                      width="150px"
+                      bg="gray.800"
+                      color="white"
                       borderColor="gray.600"
                       defaultValue="all"
                     >
@@ -380,12 +380,12 @@ const Analytics = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                       <XAxis dataKey="name" stroke="#999" />
                       <YAxis stroke="#999" />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#333', 
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#333',
                           borderColor: '#555',
                           color: 'white'
-                        }} 
+                        }}
                       />
                       <Legend />
                       <Line type="monotone" dataKey="var" stroke="#0080ff" name="VaR (95%)" />
@@ -399,7 +399,7 @@ const Analytics = () => {
           </TabPanel>
         </TabPanels>
       </Tabs>
-      
+
       <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8}>
         <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
           <CardBody>
@@ -410,12 +410,12 @@ const Analytics = () => {
                 { name: 'LINK-ETH', apy: '7.3%', volume: '$120K', change: '+1.5%' },
                 { name: 'UNI-USDT', apy: '6.1%', volume: '$85K', change: '+0.8%' },
               ].map((pool, index) => (
-                <Flex 
-                  key={index} 
-                  justify="space-between" 
-                  align="center" 
-                  p={3} 
-                  borderBottom={index < 2 ? '1px solid' : 'none'} 
+                <Flex
+                  key={index}
+                  justify="space-between"
+                  align="center"
+                  p={3}
+                  borderBottom={index < 2 ? '1px solid' : 'none'}
                   borderColor="gray.600"
                 >
                   <Text color="white" fontWeight="bold">{pool.name}</Text>

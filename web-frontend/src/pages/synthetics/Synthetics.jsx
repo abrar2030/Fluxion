@@ -32,14 +32,14 @@ const Synthetics = () => {
   const borderColor = useColorModeValue('gray.700', 'gray.600');
   const textColor = useColorModeValue('white', 'white');
   const subTextColor = useColorModeValue('gray.400', 'gray.400');
-  
+
   // Modal state
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [selectedSynthetic, setSelectedSynthetic] = useState(null);
-  
+
   // State for active tab
   const [activeTab, setActiveTab] = useState(0);
-  
+
   // Mock synthetics data
   const synthetics = [
     {
@@ -103,13 +103,13 @@ const Synthetics = () => {
       description: 'Synthetic Tesla stock that tracks the price of TSLA through oracle price feeds.',
     },
   ];
-  
+
   // Handle synthetic click
   const handleSyntheticClick = (synthetic) => {
     setSelectedSynthetic(synthetic);
     onOpen();
   };
-  
+
   // Mock user positions
   const userPositions = [
     {
@@ -133,9 +133,9 @@ const Synthetics = () => {
   return (
     <Box>
       {/* Hero Section */}
-      <Box 
-        p={8} 
-        borderRadius="xl" 
+      <Box
+        p={8}
+        borderRadius="xl"
         mb={8}
         bgGradient="linear(to-br, gray.900, gray.800)"
         boxShadow="xl"
@@ -145,27 +145,27 @@ const Synthetics = () => {
         overflow="hidden"
       >
         {/* Decorative elements */}
-        <Box 
-          position="absolute" 
-          top="-50px" 
-          right="-50px" 
-          w="200px" 
-          h="200px" 
-          borderRadius="full" 
-          bg="brand.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          top="-50px"
+          right="-50px"
+          w="200px"
+          h="200px"
+          borderRadius="full"
+          bg="brand.500"
+          opacity="0.1"
         />
-        <Box 
-          position="absolute" 
-          bottom="-30px" 
-          left="30%" 
-          w="100px" 
-          h="100px" 
-          borderRadius="full" 
-          bg="accent.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          bottom="-30px"
+          left="30%"
+          w="100px"
+          h="100px"
+          borderRadius="full"
+          bg="accent.500"
+          opacity="0.1"
         />
-        
+
         <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ base: 'flex-start', md: 'center' }}>
           <Box mb={{ base: 6, md: 0 }}>
             <Heading as="h1" size="xl" mb={4}>
@@ -175,8 +175,8 @@ const Synthetics = () => {
               Trade synthetic assets that track the price of real-world assets without owning the underlying asset. Access global markets 24/7.
             </Text>
           </Box>
-          
-          <Button 
+
+          <Button
             leftIcon={<FiPlus />}
             colorScheme="brand"
             size="lg"
@@ -209,7 +209,7 @@ const Synthetics = () => {
             <Text color="green.400">+12.8% (24h)</Text>
           </HStack>
         </Box>
-        
+
         <Box
           bg={cardBg}
           p={6}
@@ -225,7 +225,7 @@ const Synthetics = () => {
             <Text color="green.400">+8.5% (24h)</Text>
           </HStack>
         </Box>
-        
+
         <Box
           bg={cardBg}
           p={6}
@@ -263,20 +263,20 @@ const Synthetics = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                 <XAxis dataKey="name" stroke="#888" />
                 <YAxis stroke="#888" />
-                <RechartsTooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(23, 25, 35, 0.9)',
                     border: '1px solid #333',
                     borderRadius: '4px',
                     color: 'white'
-                  }} 
+                  }}
                 />
                 <Line type="monotone" dataKey="price" stroke="#0080ff" strokeWidth={2} dot={{ r: 4 }} />
               </LineChart>
             </ResponsiveContainer>
           </Box>
         </Box>
-        
+
         <Box
           bg={cardBg}
           p={6}
@@ -295,13 +295,13 @@ const Synthetics = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#444" />
                 <XAxis dataKey="name" stroke="#888" />
                 <YAxis stroke="#888" />
-                <RechartsTooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: 'rgba(23, 25, 35, 0.9)',
                     border: '1px solid #333',
                     borderRadius: '4px',
                     color: 'white'
-                  }} 
+                  }}
                 />
                 <Bar dataKey="volume" fill="#ff7000" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -321,7 +321,7 @@ const Synthetics = () => {
         mb={8}
       >
         <Heading size="md" mb={6}>Available Synthetics</Heading>
-        
+
         <Box overflowX="auto">
           <Table variant="simple">
             <Thead>
@@ -337,7 +337,7 @@ const Synthetics = () => {
             </Thead>
             <Tbody>
               {synthetics.map((synthetic) => (
-                <Tr 
+                <Tr
                   key={synthetic.id}
                   _hover={{
                     bg: 'gray.700',
@@ -350,10 +350,10 @@ const Synthetics = () => {
                     <HStack>
                       <Box
                         bg={
-                          synthetic.name === 'sETH' ? 'blue.500' : 
-                          synthetic.name === 'sBTC' ? 'orange.500' : 
-                          synthetic.name === 'sGOLD' ? 'yellow.500' : 
-                          synthetic.name === 'sEUR' ? 'green.500' : 
+                          synthetic.name === 'sETH' ? 'blue.500' :
+                          synthetic.name === 'sBTC' ? 'orange.500' :
+                          synthetic.name === 'sGOLD' ? 'yellow.500' :
+                          synthetic.name === 'sEUR' ? 'green.500' :
                           'purple.500'
                         }
                         borderRadius="full"
@@ -413,9 +413,9 @@ const Synthetics = () => {
           border="1px solid"
           borderColor={borderColor}
         >
-          <Tabs 
-            variant="soft-rounded" 
-            colorScheme="brand" 
+          <Tabs
+            variant="soft-rounded"
+            colorScheme="brand"
             index={activeTab}
             onChange={(index) => setActiveTab(index)}
           >
@@ -423,12 +423,12 @@ const Synthetics = () => {
               <Tab>My Positions</Tab>
               <Tab>Transaction History</Tab>
             </TabList>
-            
+
             <TabPanels>
               <TabPanel px={0}>
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
                   {userPositions.map((position, index) => (
-                    <Box 
+                    <Box
                       key={index}
                       p={4}
                       borderRadius="md"
@@ -443,15 +443,15 @@ const Synthetics = () => {
                     >
                       <Flex justify="space-between" mb={3}>
                         <Heading size="md">{position.synthetic}</Heading>
-                        <Badge 
-                          colorScheme={position.health > 90 ? "green" : position.health > 70 ? "yellow" : "red"} 
-                          px={2} 
+                        <Badge
+                          colorScheme={position.health > 90 ? "green" : position.health > 70 ? "yellow" : "red"}
+                          px={2}
                           py={1}
                         >
                           Health: {position.health}%
                         </Badge>
                       </Flex>
-                      
+
                       <SimpleGrid columns={2} spacing={4} mb={4}>
                         <Box>
                           <Text color={subTextColor}>Amount</Text>
@@ -470,15 +470,15 @@ const Synthetics = () => {
                           <Text fontWeight="bold">{Math.round(parseInt(position.collateral.substring(1).replace(/,/g, '')) / parseInt(position.value.substring(1).replace(/,/g, '')) * 100)}%</Text>
                         </Box>
                       </SimpleGrid>
-                      
-                      <Progress 
-                        value={position.health} 
-                        colorScheme={position.health > 90 ? "green" : position.health > 70 ? "yellow" : "red"} 
-                        size="sm" 
-                        borderRadius="full" 
+
+                      <Progress
+                        value={position.health}
+                        colorScheme={position.health > 90 ? "green" : position.health > 70 ? "yellow" : "red"}
+                        size="sm"
+                        borderRadius="full"
                         mb={4}
                       />
-                      
+
                       <HStack spacing={2}>
                         <Button size="sm" colorScheme="brand" flex="1">
                           Manage
@@ -494,7 +494,7 @@ const Synthetics = () => {
                   ))}
                 </SimpleGrid>
               </TabPanel>
-              
+
               <TabPanel px={0}>
                 <VStack spacing={4} align="stretch">
                   <Card bg="gray.700" variant="outline">
@@ -513,7 +513,7 @@ const Synthetics = () => {
                       </Flex>
                     </CardBody>
                   </Card>
-                  
+
                   <Card bg="gray.700" variant="outline">
                     <CardBody>
                       <Flex justify="space-between" align="center">
@@ -530,7 +530,7 @@ const Synthetics = () => {
                       </Flex>
                     </CardBody>
                   </Card>
-                  
+
                   <Card bg="gray.700" variant="outline">
                     <CardBody>
                       <Flex justify="space-between" align="center">
@@ -547,7 +547,7 @@ const Synthetics = () => {
                       </Flex>
                     </CardBody>
                   </Card>
-                  
+
                   <Card bg="gray.700" variant="outline">
                     <CardBody>
                       <Flex justify="space-between" align="center">
@@ -584,7 +584,7 @@ const Synthetics = () => {
           <Text color={subTextColor} maxW="600px" mx="auto" mb={6}>
             Connect your wallet to mint synthetic assets, manage your positions, and trade on the Fluxion platform.
           </Text>
-          <Button 
+          <Button
             size="lg"
             colorScheme="brand"
             bgGradient="linear(to-r, brand.500, accent.500)"
@@ -598,7 +598,7 @@ const Synthetics = () => {
           </Button>
         </Box>
       )}
-      
+
       {/* Synthetic Detail Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="xl">
         <ModalOverlay backdropFilter="blur(4px)" />
@@ -607,10 +607,10 @@ const Synthetics = () => {
             <HStack>
               <Box
                 bg={
-                  selectedSynthetic?.name === 'sETH' ? 'blue.500' : 
-                  selectedSynthetic?.name === 'sBTC' ? 'orange.500' : 
-                  selectedSynthetic?.name === 'sGOLD' ? 'yellow.500' : 
-                  selectedSynthetic?.name === 'sEUR' ? 'green.500' : 
+                  selectedSynthetic?.name === 'sETH' ? 'blue.500' :
+                  selectedSynthetic?.name === 'sBTC' ? 'orange.500' :
+                  selectedSynthetic?.name === 'sGOLD' ? 'yellow.500' :
+                  selectedSynthetic?.name === 'sEUR' ? 'green.500' :
                   'purple.500'
                 }
                 borderRadius="full"
@@ -637,7 +637,7 @@ const Synthetics = () => {
                 <Tab>Stats</Tab>
                 <Tab>How It Works</Tab>
               </TabList>
-              
+
               <TabPanels>
                 <TabPanel px={0}>
                   <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={6}>
@@ -649,7 +649,7 @@ const Synthetics = () => {
                         {selectedSynthetic?.priceChange} (24h)
                       </StatHelpText>
                     </Stat>
-                    
+
                     <Stat>
                       <StatLabel>Total Value Locked</StatLabel>
                       <StatNumber>{selectedSynthetic?.tvl}</StatNumber>
@@ -658,7 +658,7 @@ const Synthetics = () => {
                         12.5% (24h)
                       </StatHelpText>
                     </Stat>
-                    
+
                     <Stat>
                       <StatLabel>24h Volume</StatLabel>
                       <StatNumber>{selectedSynthetic?.volume24h}</StatNumber>
@@ -667,7 +667,7 @@ const Synthetics = () => {
                         8.3% (24h)
                       </StatHelpText>
                     </Stat>
-                    
+
                     <Stat>
                       <StatLabel>Collateralization Ratio</StatLabel>
                       <StatNumber>{selectedSynthetic?.collateralization}</StatNumber>
@@ -676,12 +676,12 @@ const Synthetics = () => {
                       </StatHelpText>
                     </Stat>
                   </SimpleGrid>
-                  
+
                   <Box mb={6}>
                     <Heading size="sm" mb={2}>Description</Heading>
                     <Text>{selectedSynthetic?.description}</Text>
                   </Box>
-                  
+
                   <Box mb={6}>
                     <Heading size="sm" mb={2}>Price Performance</Heading>
                     <Box h="200px">
@@ -701,8 +701,8 @@ const Synthetics = () => {
                           <XAxis dataKey="date" stroke="#888" />
                           <YAxis stroke="#888" />
                           <RechartsTooltip
-                            contentStyle={{ 
-                              backgroundColor: 'rgba(23, 25, 35, 0.9)', 
+                            contentStyle={{
+                              backgroundColor: 'rgba(23, 25, 35, 0.9)',
                               border: '1px solid #333',
                               borderRadius: '4px',
                               color: 'white'
@@ -715,7 +715,7 @@ const Synthetics = () => {
                     </Box>
                   </Box>
                 </TabPanel>
-                
+
                 <TabPanel px={0}>
                   <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={6}>
                     <Box>
@@ -739,7 +739,7 @@ const Synthetics = () => {
                         </Flex>
                       </VStack>
                     </Box>
-                    
+
                     <Box>
                       <Heading size="sm" mb={4}>Protocol Stats</Heading>
                       <VStack spacing={4} align="stretch">
@@ -762,7 +762,7 @@ const Synthetics = () => {
                       </VStack>
                     </Box>
                   </SimpleGrid>
-                  
+
                   <Box mb={6}>
                     <Heading size="sm" mb={4}>Top Holders</Heading>
                     <Table variant="simple" size="sm">
@@ -803,14 +803,14 @@ const Synthetics = () => {
                     </Table>
                   </Box>
                 </TabPanel>
-                
+
                 <TabPanel px={0}>
                   <Box mb={6}>
                     <Heading size="sm" mb={4}>How Synthetic Assets Work</Heading>
                     <Text mb={4}>
                       Synthetic assets are tokenized derivatives that provide exposure to the price movement of the underlying asset without requiring you to hold the actual asset.
                     </Text>
-                    
+
                     <VStack spacing={4} align="stretch">
                       <Card bg="gray.700" variant="outline">
                         <CardBody>
@@ -838,7 +838,7 @@ const Synthetics = () => {
                           </HStack>
                         </CardBody>
                       </Card>
-                      
+
                       <Card bg="gray.700" variant="outline">
                         <CardBody>
                           <HStack align="start" spacing={4}>
@@ -865,7 +865,7 @@ const Synthetics = () => {
                           </HStack>
                         </CardBody>
                       </Card>
-                      
+
                       <Card bg="gray.700" variant="outline">
                         <CardBody>
                           <HStack align="start" spacing={4}>
@@ -892,7 +892,7 @@ const Synthetics = () => {
                           </HStack>
                         </CardBody>
                       </Card>
-                      
+
                       <Card bg="gray.700" variant="outline">
                         <CardBody>
                           <HStack align="start" spacing={4}>
@@ -921,7 +921,7 @@ const Synthetics = () => {
                       </Card>
                     </VStack>
                   </Box>
-                  
+
                   <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="yellow.400">
                     <Flex>
                       <Icon as={FiAlertTriangle} color="yellow.400" boxSize={6} mr={3} mt={1} />
@@ -940,7 +940,7 @@ const Synthetics = () => {
 
           <ModalFooter>
             <HStack spacing={4}>
-              <Button 
+              <Button
                 colorScheme="brand"
                 bgGradient="linear(to-r, brand.500, accent.500)"
                 _hover={{

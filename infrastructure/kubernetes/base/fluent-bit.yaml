@@ -156,7 +156,7 @@ data:
   security_filter.lua: |
     function add_security_metadata(tag, timestamp, record)
         local new_record = record
-        
+
         -- Add security classification based on namespace
         if record["kubernetes"] and record["kubernetes"]["namespace_name"] then
             local namespace = record["kubernetes"]["namespace_name"]
@@ -166,11 +166,11 @@ data:
                 new_record["retention_years"] = "7"
             end
         end
-        
+
         -- Detect security-related logs
         if record["log"] then
             local log_message = string.lower(record["log"])
-            if string.match(log_message, "authentication") or 
+            if string.match(log_message, "authentication") or
                string.match(log_message, "authorization") or
                string.match(log_message, "login") or
                string.match(log_message, "logout") or
@@ -180,7 +180,7 @@ data:
                 new_record["log_type"] = "security"
                 new_record["alert_required"] = "true"
             end
-            
+
             -- Detect error conditions
             if string.match(log_message, "error") or
                string.match(log_message, "exception") or
@@ -189,23 +189,23 @@ data:
                 new_record["investigation_required"] = "true"
             end
         end
-        
+
         return 1, timestamp, new_record
     end
 
   compliance_filter.lua: |
     function add_compliance_metadata(tag, timestamp, record)
         local new_record = record
-        
+
         -- Add compliance metadata
         new_record["compliance_framework"] = "financial_services"
         new_record["data_residency"] = "{{ .Values.compliance.dataResidency | default "US" }}"
         new_record["encryption_required"] = "true"
         new_record["audit_trail"] = "enabled"
-        
+
         -- Add timestamp for compliance tracking
         new_record["ingestion_timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
-        
+
         -- Mark PII detection
         if record["log"] then
             local log_message = record["log"]
@@ -217,7 +217,7 @@ data:
                 new_record["special_handling"] = "required"
             end
         end
-        
+
         return 1, timestamp, new_record
     end
 ---
@@ -371,4 +371,3 @@ spec:
   - port: 2020
     targetPort: 2020
     name: http
-

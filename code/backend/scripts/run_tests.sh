@@ -199,12 +199,12 @@ echo ""
 # Show results
 if [[ $TEST_EXIT_CODE -eq 0 ]]; then
     print_color $GREEN "=== All tests passed! ==="
-    
+
     # Show coverage report location if HTML format was used
     if [[ "$COVERAGE" == true && "$OUTPUT_FORMAT" == "html" ]]; then
         print_color $BLUE "Coverage report available at: htmlcov/index.html"
     fi
-    
+
     # Show XML report location if XML format was used
     if [[ "$COVERAGE" == true && "$OUTPUT_FORMAT" == "xml" ]]; then
         print_color $BLUE "Coverage XML report available at: coverage.xml"
@@ -228,4 +228,3 @@ fi
 echo "  Log File: logs/test_output.log"
 
 exit $TEST_EXIT_CODE
-

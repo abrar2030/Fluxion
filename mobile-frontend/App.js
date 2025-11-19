@@ -82,39 +82,38 @@ export default function App() {
             tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
             // Optional: Style the tab bar itself
             // tabBarActiveBackgroundColor: theme.colors.secondaryContainer,
-            // tabBarStyle: { backgroundColor: theme.colors.surfaceVariant }, 
+            // tabBarStyle: { backgroundColor: theme.colors.surfaceVariant },
           })}
         >
-          <Tab.Screen 
-            name="Predict" 
-            component={PredictionStack} 
-            options={{ title: 'Prediction' }} 
+          <Tab.Screen
+            name="Predict"
+            component={PredictionStack}
+            options={{ title: 'Prediction' }}
           />
-          <Tab.Screen 
-            name="Assets" 
-            component={AssetsScreen} 
-            options={{ 
+          <Tab.Screen
+            name="Assets"
+            component={AssetsScreen}
+            options={{
               title: 'Assets',
               headerShown: true, // Show header for simple screens if needed
               headerStyle: { backgroundColor: theme.colors.primary },
               headerTintColor: '#fff',
               headerTitleStyle: { fontWeight: 'bold' },
-            }} 
+            }}
           />
-          <Tab.Screen 
-            name="Pools" 
-            component={PoolsScreen} 
-            options={{ 
+          <Tab.Screen
+            name="Pools"
+            component={PoolsScreen}
+            options={{
               title: 'Pools',
               headerShown: true, // Show header for simple screens if needed
               headerStyle: { backgroundColor: theme.colors.primary },
               headerTintColor: '#fff',
               headerTitleStyle: { fontWeight: 'bold' },
-            }} 
+            }}
           />
         </Tab.Navigator>
       </NavigationContainer>
     </PaperProvider>
   );
 }
-

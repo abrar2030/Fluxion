@@ -13,17 +13,17 @@ const InputScreen = ({ navigation }) => {
   const handlePredictionSubmit = async (timestamps, meterIds, contextFeatures) => {
     setIsLoading(true);
     setError(null); // Clear previous errors
-    
+
     try {
       // Use the predictEnergy function from our API client
       const results = await predictEnergy(timestamps, meterIds, contextFeatures);
-      
+
       // Navigate to results screen with the prediction data
       navigation.navigate('Results', { predictionData: results });
     } catch (err) {
       console.error("API Error:", err);
       setError(err.message || 'Could not fetch prediction. Please check API connection.');
-      
+
       // If in development mode, provide fallback mock data for testing
       if (__DEV__) {
         console.log("Development mode: Using mock data as fallback");

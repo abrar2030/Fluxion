@@ -17,9 +17,15 @@ import numpy as np
 import pandas as pd
 from config.settings import settings
 from models.portfolio import Portfolio, PortfolioAsset
-from models.risk import (ConcentrationRisk, RiskAssessment, RiskLevel,
-                         RiskMetric, RiskProfile, StressTestResult,
-                         VaRCalculation)
+from models.risk import (
+    ConcentrationRisk,
+    RiskAssessment,
+    RiskLevel,
+    RiskMetric,
+    RiskProfile,
+    StressTestResult,
+    VaRCalculation,
+)
 from models.transaction import Transaction, TransactionStatus, TransactionType
 from models.user import User
 from sqlalchemy import and_, desc, func, or_, select

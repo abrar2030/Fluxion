@@ -16,9 +16,15 @@ from typing import Any, Dict, List, Optional, Tuple
 from uuid import UUID, uuid4
 
 from config.settings import settings
-from models.compliance import (BiometricData, ComplianceAlert, DocumentType,
-                               IdentityVerification, KYCLevel, KYCRecord,
-                               KYCStatus)
+from models.compliance import (
+    BiometricData,
+    ComplianceAlert,
+    DocumentType,
+    IdentityVerification,
+    KYCLevel,
+    KYCRecord,
+    KYCStatus,
+)
 from models.user import User
 from services.security.encryption_service import EncryptionService
 from sqlalchemy import and_, desc, func, or_, select

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Production API URL for the Fluxion backend
-const API_BASE_URL = 'https://api.fluxion.io/v1'; 
+const API_BASE_URL = 'https://api.fluxion.io/v1';
 
 // Fallback to localhost for development environment
 const isDevelopment = process.env.NODE_ENV === 'development';

@@ -99,7 +99,7 @@ describe('Synthetics Component', () => {
     renderSynthetics();
     const syntheticRow = screen.getByText('sETH').closest('tr');
     fireEvent.click(syntheticRow);
-    
+
     expect(screen.getByText('Synthetic Details')).toBeInTheDocument();
     expect(screen.getByText(/Synthetic Ethereum that tracks the price of ETH/)).toBeInTheDocument();
   });
@@ -109,4 +109,4 @@ describe('Synthetics Component', () => {
     expect(screen.getByTestId('line-chart')).toBeInTheDocument();
     expect(screen.getByTestId('area-chart')).toBeInTheDocument();
   });
-}); 
+});

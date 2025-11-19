@@ -9,7 +9,7 @@ const Settings = () => {
   const borderColor = useColorModeValue('gray.700', 'gray.600');
   const textColor = useColorModeValue('white', 'white');
   const subTextColor = useColorModeValue('gray.400', 'gray.400');
-  
+
   // State for settings
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -18,7 +18,7 @@ const Settings = () => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [language, setLanguage] = useState('en');
   const [currency, setCurrency] = useState('usd');
-  
+
   // Format account address for display
   const formatAddress = (address) => {
     if (!address) return '';
@@ -28,9 +28,9 @@ const Settings = () => {
   return (
     <Box>
       {/* Hero Section */}
-      <Box 
-        p={8} 
-        borderRadius="xl" 
+      <Box
+        p={8}
+        borderRadius="xl"
         mb={8}
         bgGradient="linear(to-br, gray.900, gray.800)"
         boxShadow="xl"
@@ -40,27 +40,27 @@ const Settings = () => {
         overflow="hidden"
       >
         {/* Decorative elements */}
-        <Box 
-          position="absolute" 
-          top="-50px" 
-          right="-50px" 
-          w="200px" 
-          h="200px" 
-          borderRadius="full" 
-          bg="brand.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          top="-50px"
+          right="-50px"
+          w="200px"
+          h="200px"
+          borderRadius="full"
+          bg="brand.500"
+          opacity="0.1"
         />
-        <Box 
-          position="absolute" 
-          bottom="-30px" 
-          left="30%" 
-          w="100px" 
-          h="100px" 
-          borderRadius="full" 
-          bg="accent.500" 
-          opacity="0.1" 
+        <Box
+          position="absolute"
+          bottom="-30px"
+          left="30%"
+          w="100px"
+          h="100px"
+          borderRadius="full"
+          bg="accent.500"
+          opacity="0.1"
         />
-        
+
         <Heading as="h1" size="xl" mb={4}>
           Settings
         </Heading>
@@ -77,7 +77,7 @@ const Settings = () => {
           <Tab><Icon as={FiShield} mr={2} /> Security</Tab>
           <Tab><Icon as={FiGlobe} mr={2} /> Network</Tab>
         </TabList>
-        
+
         <TabPanels>
           {/* Account Tab */}
           <TabPanel px={0}>
@@ -91,16 +91,16 @@ const Settings = () => {
                 borderColor={borderColor}
               >
                 <Heading size="md" mb={6}>Profile Information</Heading>
-                
+
                 <Flex direction={{ base: 'column', md: 'row' }} mb={6} align="center" gap={6}>
-                  <Avatar 
-                    size="xl" 
+                  <Avatar
+                    size="xl"
                     bgGradient="linear(to-r, brand.500, accent.500)"
                     icon={<Icon as={FiUser} fontSize="3rem" />}
                   >
                     <AvatarBadge boxSize="1.25em" bg="green.500" />
                   </Avatar>
-                  
+
                   <VStack align="flex-start" flex="1">
                     <Text fontSize="sm" color={subTextColor}>Connected Wallet</Text>
                     <HStack>
@@ -111,7 +111,7 @@ const Settings = () => {
                         <Badge colorScheme="green">Connected</Badge>
                       )}
                     </HStack>
-                    
+
                     <HStack mt={2}>
                       <Button size="sm" variant="outline" colorScheme="brand">
                         Copy Address
@@ -125,8 +125,8 @@ const Settings = () => {
                           size="sm"
                         />
                         <MenuList bg="gray.800" borderColor="gray.700">
-                          <MenuItem 
-                            icon={<FiLogOut />} 
+                          <MenuItem
+                            icon={<FiLogOut />}
                             bg="gray.800"
                             _hover={{ bg: 'gray.700' }}
                           >
@@ -137,15 +137,15 @@ const Settings = () => {
                     </HStack>
                   </VStack>
                 </Flex>
-                
+
                 <Divider mb={6} />
-                
+
                 <VStack spacing={4} align="stretch">
                   <FormControl>
                     <FormLabel>Display Name</FormLabel>
                     <Input placeholder="Enter a display name" />
                   </FormControl>
-                  
+
                   <FormControl>
                     <FormLabel>Email Address</FormLabel>
                     <Input placeholder="Enter your email (optional)" />
@@ -154,9 +154,9 @@ const Settings = () => {
                     </Text>
                   </FormControl>
                 </VStack>
-                
-                <Button 
-                  mt={6} 
+
+                <Button
+                  mt={6}
                   colorScheme="brand"
                   bgGradient="linear(to-r, brand.500, accent.500)"
                   _hover={{
@@ -168,7 +168,7 @@ const Settings = () => {
                   Save Changes
                 </Button>
               </Box>
-              
+
               <Box
                 bg={cardBg}
                 p={6}
@@ -178,7 +178,7 @@ const Settings = () => {
                 borderColor={borderColor}
               >
                 <Heading size="md" mb={6}>Account Activity</Heading>
-                
+
                 <VStack spacing={4} align="stretch" mb={6}>
                   <Card bg="gray.700" variant="outline">
                     <CardBody>
@@ -191,7 +191,7 @@ const Settings = () => {
                       </HStack>
                     </CardBody>
                   </Card>
-                  
+
                   <Card bg="gray.700" variant="outline">
                     <CardBody>
                       <HStack justify="space-between">
@@ -203,7 +203,7 @@ const Settings = () => {
                       </HStack>
                     </CardBody>
                   </Card>
-                  
+
                   <Card bg="gray.700" variant="outline">
                     <CardBody>
                       <HStack justify="space-between">
@@ -216,12 +216,12 @@ const Settings = () => {
                     </CardBody>
                   </Card>
                 </VStack>
-                
+
                 <Button variant="outline" width="full">View All Activity</Button>
               </Box>
             </SimpleGrid>
           </TabPanel>
-          
+
           {/* Preferences Tab */}
           <TabPanel px={0}>
             <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={8}>
@@ -234,25 +234,25 @@ const Settings = () => {
                 borderColor={borderColor}
               >
                 <Heading size="md" mb={6}>Appearance & Localization</Heading>
-                
+
                 <VStack spacing={6} align="stretch">
                   <FormControl display="flex" alignItems="center" justifyContent="space-between">
                     <FormLabel mb={0} display="flex" alignItems="center">
                       <Icon as={isDarkMode ? FiMoon : FiSun} mr={2} />
                       Dark Mode
                     </FormLabel>
-                    <Switch 
-                      colorScheme="brand" 
+                    <Switch
+                      colorScheme="brand"
                       isChecked={isDarkMode}
                       onChange={() => setIsDarkMode(!isDarkMode)}
                     />
                   </FormControl>
-                  
+
                   <Divider />
-                  
+
                   <FormControl>
                     <FormLabel>Language</FormLabel>
-                    <Select 
+                    <Select
                       value={language}
                       onChange={(e) => setLanguage(e.target.value)}
                     >
@@ -264,10 +264,10 @@ const Settings = () => {
                       <option value="ja">日本語</option>
                     </Select>
                   </FormControl>
-                  
+
                   <FormControl>
                     <FormLabel>Currency</FormLabel>
-                    <Select 
+                    <Select
                       value={currency}
                       onChange={(e) => setCurrency(e.target.value)}
                     >
@@ -278,21 +278,21 @@ const Settings = () => {
                       <option value="cny">CNY (¥)</option>
                     </Select>
                   </FormControl>
-                  
+
                   <FormControl display="flex" alignItems="center" justifyContent="space-between">
                     <FormLabel mb={0} display="flex" alignItems="center">
                       <Icon as={FiBell} mr={2} />
                       Notifications
                     </FormLabel>
-                    <Switch 
-                      colorScheme="brand" 
+                    <Switch
+                      colorScheme="brand"
                       isChecked={notificationsEnabled}
                       onChange={() => setNotificationsEnabled(!notificationsEnabled)}
                     />
                   </FormControl>
                 </VStack>
               </Box>
-              
+
               <Box
                 bg={cardBg}
                 p={6}
@@ -302,7 +302,7 @@ const Settings = () => {
                 borderColor={borderColor}
               >
                 <Heading size="md" mb={6}>Trading Preferences</Heading>
-                
+
                 <VStack spacing={6} align="stretch">
                   <FormControl>
                     <FormLabel>Slippage Tolerance</FormLabel>
@@ -340,12 +340,12 @@ const Settings = () => {
                       Your transaction will revert if the price changes unfavorably by more than this percentage.
                     </Text>
                   </FormControl>
-                  
+
                   <Divider />
-                  
+
                   <FormControl>
                     <FormLabel>Gas Price Preference</FormLabel>
-                    <Select 
+                    <Select
                       value={gasPreference}
                       onChange={(e) => setGasPreference(e.target.value)}
                     >
@@ -358,7 +358,7 @@ const Settings = () => {
                       Higher gas prices result in faster transaction confirmations but cost more.
                     </Text>
                   </FormControl>
-                  
+
                   <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="yellow.400">
                     <Flex>
                       <Icon as={FiAlertTriangle} color="yellow.400" boxSize={6} mr={3} mt={1} />
@@ -374,7 +374,7 @@ const Settings = () => {
               </Box>
             </SimpleGrid>
           </TabPanel>
-          
+
           {/* Security Tab */}
           <TabPanel px={0}>
             <Box
@@ -387,7 +387,7 @@ const Settings = () => {
               mb={8}
             >
               <Heading size="md" mb={6}>Security Settings</Heading>
-              
+
               <VStack spacing={6} align="stretch">
                 <FormControl display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
@@ -398,9 +398,9 @@ const Settings = () => {
                   </Box>
                   <Switch colorScheme="brand" defaultChecked />
                 </FormControl>
-                
+
                 <Divider />
-                
+
                 <FormControl display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
                     <FormLabel mb={0}>Contract Interaction Warning</FormLabel>
@@ -410,9 +410,9 @@ const Settings = () => {
                   </Box>
                   <Switch colorScheme="brand" defaultChecked />
                 </FormControl>
-                
+
                 <Divider />
-                
+
                 <FormControl display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
                     <FormLabel mb={0}>Spending Limits</FormLabel>
@@ -422,7 +422,7 @@ const Settings = () => {
                   </Box>
                   <Switch colorScheme="brand" />
                 </FormControl>
-                
+
                 <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="red.400">
                   <Flex>
                     <Icon as={FiAlertTriangle} color="red.400" boxSize={6} mr={3} mt={1} />
@@ -436,7 +436,7 @@ const Settings = () => {
                 </Box>
               </VStack>
             </Box>
-            
+
             <Box
               bg={cardBg}
               p={6}
@@ -446,7 +446,7 @@ const Settings = () => {
               borderColor={borderColor}
             >
               <Heading size="md" mb={6}>Connected Applications</Heading>
-              
+
               <VStack spacing={4} align="stretch" mb={6}>
                 <Card bg="gray.700" variant="outline">
                   <CardBody>
@@ -464,7 +464,7 @@ const Settings = () => {
                     </Flex>
                   </CardBody>
                 </Card>
-                
+
                 <Card bg="gray.700" variant="outline">
                   <CardBody>
                     <Flex justify="space-between" align="center">
@@ -482,13 +482,13 @@ const Settings = () => {
                   </CardBody>
                 </Card>
               </VStack>
-              
+
               <Button leftIcon={<FiX />} colorScheme="red" variant="outline">
                 Disconnect All Applications
               </Button>
             </Box>
           </TabPanel>
-          
+
           {/* Network Tab */}
           <TabPanel px={0}>
             <Box
@@ -500,7 +500,7 @@ const Settings = () => {
               borderColor={borderColor}
             >
               <Heading size="md" mb={6}>Network Settings</Heading>
-              
+
               <VStack spacing={6} align="stretch">
                 <FormControl>
                   <FormLabel>Current Network</FormLabel>
@@ -512,9 +512,9 @@ const Settings = () => {
                     <option value="bsc">Binance Smart Chain</option>
                   </Select>
                 </FormControl>
-                
+
                 <Divider />
-                
+
                 <FormControl>
                   <FormLabel>RPC Endpoint</FormLabel>
                   <Input placeholder="https://mainnet.infura.io/v3/your-api-key" />
@@ -522,9 +522,9 @@ const Settings = () => {
                     Custom RPC endpoint for advanced users
                   </Text>
                 </FormControl>
-                
+
                 <Divider />
-                
+
                 <FormControl display="flex" alignItems="center" justifyContent="space-between">
                   <Box>
                     <FormLabel mb={0}>Auto-detect Network</FormLabel>
@@ -534,7 +534,7 @@ const Settings = () => {
                   </Box>
                   <Switch colorScheme="brand" defaultChecked />
                 </FormControl>
-                
+
                 <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="brand.500">
                   <Flex>
                     <Icon as={FiInfo} color="brand.500" boxSize={6} mr={3} mt={1} />

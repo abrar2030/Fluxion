@@ -8,7 +8,7 @@ import { useWeb3 } from '../../lib/web3-config.jsx';
 const Navbar = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { account, isConnected, connectWallet } = useWeb3();
-  
+
   // Format account address for display
   const formatAddress = (address) => {
     if (!address) return '';
@@ -45,7 +45,7 @@ const Navbar = () => {
             aria-label={'Toggle Navigation'}
           />
         </Flex>
-        
+
         <Flex flex={{ base: 1 }} justify={{ base: 'center', md: 'start' }}>
           <RouterLink to="/">
             <Image src={logo} alt="Fluxion Logo" h="10" />
@@ -63,7 +63,7 @@ const Navbar = () => {
               color: 'white',
             }}
           />
-          
+
           {isConnected ? (
             <Menu>
               <MenuButton
@@ -90,7 +90,7 @@ const Navbar = () => {
                 bg={useColorModeValue('gray.800', 'gray.700')}
                 borderColor={useColorModeValue('gray.700', 'gray.600')}
               >
-                <MenuItem 
+                <MenuItem
                   icon={<FiUser />}
                   _hover={{
                     bg: 'gray.700',
@@ -98,7 +98,7 @@ const Navbar = () => {
                 >
                   Profile
                 </MenuItem>
-                <MenuItem 
+                <MenuItem
                   icon={<FiSettings />}
                   _hover={{
                     bg: 'gray.700',
@@ -107,7 +107,7 @@ const Navbar = () => {
                   Settings
                 </MenuItem>
                 <MenuDivider />
-                <MenuItem 
+                <MenuItem
                   icon={<FiLogOut />}
                   _hover={{
                     bg: 'gray.700',

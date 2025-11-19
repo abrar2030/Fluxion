@@ -74,4 +74,3 @@ const HeatmapChart = ({ data, x = 'x', y = 'y', value = 'value' }) => {
 };
 
 export default HeatmapChart;
-

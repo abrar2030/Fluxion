@@ -17,8 +17,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from sklearn.ensemble import IsolationForest
-from sklearn.metrics import (classification_report, confusion_matrix,
-                             roc_auc_score)
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
 from sklearn.model_selection import TimeSeriesSplit, train_test_split
 from sklearn.preprocessing import RobustScaler, StandardScaler
 

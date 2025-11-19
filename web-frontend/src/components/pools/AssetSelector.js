@@ -117,4 +117,3 @@ const AssetSelector = ({ onChange }) => {
 };
 
 export default AssetSelector;
-
