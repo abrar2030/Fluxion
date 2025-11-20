@@ -8,6 +8,7 @@ from logging.config import fileConfig
 from alembic import context
 from config.database import Base
 from config.settings import settings
+
 # Import all models to ensure they are registered with SQLAlchemy
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection

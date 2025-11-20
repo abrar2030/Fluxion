@@ -8,9 +8,15 @@ from decimal import Decimal
 from typing import Any, Dict, List
 from uuid import UUID
 
-from models.compliance import (AMLCheck, AMLRiskLevel, ComplianceAlert,
-                               ComplianceAlertStatus, ComplianceAlertType,
-                               KYCRecord, KYCStatus)
+from models.compliance import (
+    AMLCheck,
+    AMLRiskLevel,
+    ComplianceAlert,
+    ComplianceAlertStatus,
+    ComplianceAlertType,
+    KYCRecord,
+    KYCStatus,
+)
 from models.transaction import Transaction, TransactionStatus
 from models.user import User
 from sqlalchemy import and_, func, or_, select

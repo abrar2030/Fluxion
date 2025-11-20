@@ -17,8 +17,14 @@ from models.compliance import DocumentType, KYCRecord, KYCStatus
 from models.user import User
 from services.compliance.compliance_service import ComplianceService
 from services.compliance.enhanced_kyc_service import (
-    BiometricVerificationResult, DocumentStatus, DocumentVerificationResult,
-    EnhancedKYCService, KYCAssessment, KYCTier, RiskRating)
+    BiometricVerificationResult,
+    DocumentStatus,
+    DocumentVerificationResult,
+    EnhancedKYCService,
+    KYCAssessment,
+    KYCTier,
+    RiskRating,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 

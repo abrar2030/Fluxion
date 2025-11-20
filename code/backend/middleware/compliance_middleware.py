@@ -17,8 +17,9 @@ from fastapi import HTTPException, Request, Response
 from services.compliance.aml_service import AMLService
 from services.compliance.compliance_service import ComplianceService
 from services.compliance.kyc_service import KYCService
-from services.compliance.transaction_monitoring_service import \
-    TransactionMonitoringService
+from services.compliance.transaction_monitoring_service import (
+    TransactionMonitoringService,
+)
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 

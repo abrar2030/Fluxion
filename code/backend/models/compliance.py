@@ -3,13 +3,28 @@ Compliance models for Fluxion backend
 """
 
 import enum
-from code.backend.models.base import (AuditMixin, BaseModel, EncryptedMixin,
-                                      TimestampMixin)
+from code.backend.models.base import (
+    AuditMixin,
+    BaseModel,
+    EncryptedMixin,
+    TimestampMixin,
+)
 from datetime import datetime
 from typing import Optional
 
-from sqlalchemy import (JSON, Boolean, Column, DateTime, Enum, Float,
-                        ForeignKey, Index, Integer, String, Text)
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 

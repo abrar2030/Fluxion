@@ -14,8 +14,7 @@ from config.database import Base
 from fastapi.testclient import TestClient
 from models.user import KYCStatus, User, UserRole, UserStatus
 from services.auth.jwt_service import JWTService
-from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 # Test database URL (SQLite in-memory for testing)
