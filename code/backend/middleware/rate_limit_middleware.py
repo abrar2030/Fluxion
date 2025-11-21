@@ -4,14 +4,11 @@ Implements sophisticated rate limiting with multiple algorithms,
 user-based limits, and integration with threat detection.
 """
 
-import asyncio
-import json
 import logging
 import time
 from collections import defaultdict, deque
-from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Dict, Optional
 
 import redis.asyncio as redis
 from config.settings import settings
