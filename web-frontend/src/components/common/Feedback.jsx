@@ -1,7 +1,16 @@
-import React from 'react';
-import { Box, Flex, Text, Spinner, Alert, AlertIcon, AlertTitle, AlertDescription } from '@chakra-ui/react';
+import React from "react";
+import {
+  Box,
+  Flex,
+  Text,
+  Spinner,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+} from "@chakra-ui/react";
 
-const LoadingOverlay = ({ message = 'Loading...' }) => {
+const LoadingOverlay = ({ message = "Loading..." }) => {
   return (
     <Flex
       position="fixed"
@@ -36,13 +45,13 @@ const ErrorBoundary = ({ children }) => {
 
   React.useEffect(() => {
     const errorHandler = (error) => {
-      console.error('Application error:', error);
-      setError(error.message || 'An unexpected error occurred');
+      console.error("Application error:", error);
+      setError(error.message || "An unexpected error occurred");
       setHasError(true);
     };
 
-    window.addEventListener('error', errorHandler);
-    return () => window.removeEventListener('error', errorHandler);
+    window.addEventListener("error", errorHandler);
+    return () => window.removeEventListener("error", errorHandler);
   }, []);
 
   if (hasError) {
@@ -64,7 +73,8 @@ const ErrorBoundary = ({ children }) => {
             Application Error
           </AlertTitle>
           <AlertDescription maxWidth="sm">
-            {error || 'An unexpected error occurred. Please refresh the page and try again.'}
+            {error ||
+              "An unexpected error occurred. Please refresh the page and try again."}
           </AlertDescription>
         </Alert>
       </Box>
@@ -87,7 +97,7 @@ const NotificationCenter = ({ notifications }) => {
       {notifications.map((notification) => (
         <Alert
           key={notification.id}
-          status={notification.type || 'info'}
+          status={notification.type || "info"}
           variant="solid"
           mb={3}
           borderRadius="md"
@@ -99,9 +109,7 @@ const NotificationCenter = ({ notifications }) => {
             {notification.title && (
               <AlertTitle>{notification.title}</AlertTitle>
             )}
-            <AlertDescription>
-              {notification.message}
-            </AlertDescription>
+            <AlertDescription>{notification.message}</AlertDescription>
           </Box>
         </Alert>
       ))}

@@ -1,7 +1,7 @@
-import React from 'react';
-import { Box, Spinner, Text, VStack } from '@chakra-ui/react';
+import React from "react";
+import { Box, Spinner, Text, VStack } from "@chakra-ui/react";
 
-const LoadingOverlay = ({ message = 'Loading...' }) => {
+const LoadingOverlay = ({ message = "Loading..." }) => {
   return (
     <Box
       position="fixed"

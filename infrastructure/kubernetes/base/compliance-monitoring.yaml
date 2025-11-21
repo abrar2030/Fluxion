@@ -295,7 +295,7 @@ metadata:
   name: compliance-report-generator
   namespace: monitoring
 spec:
-  schedule: "0 2 * * *"  # Daily at 2 AM
+  schedule: "0 2 * * *" # Daily at 2 AM
   jobTemplate:
     spec:
       template:
@@ -309,50 +309,50 @@ spec:
             runAsUser: 1000
             fsGroup: 1000
           containers:
-          - name: compliance-report
-            image: python:3.11-slim
-            securityContext:
-              allowPrivilegeEscalation: false
-              readOnlyRootFilesystem: true
-              capabilities:
-                drop:
-                - ALL
-            env:
-            - name: ELASTICSEARCH_URL
-              value: "https://elasticsearch.logging.svc.cluster.local:9200"
-            - name: PROMETHEUS_URL
-              value: "http://prometheus.monitoring.svc.cluster.local:9090"
-            - name: REPORT_DATE
-              value: "$(date -d 'yesterday' +%Y-%m-%d)"
-            command:
-            - /bin/sh
-            - -c
-            - |
-              pip install requests elasticsearch prometheus-api-client
-              python3 /scripts/generate_compliance_report.py
-            volumeMounts:
-            - name: compliance-scripts
-              mountPath: /scripts
-            - name: reports-output
-              mountPath: /reports
-            - name: tmp
-              mountPath: /tmp
-            resources:
-              requests:
-                memory: "256Mi"
-                cpu: "100m"
-              limits:
-                memory: "512Mi"
-                cpu: "200m"
+            - name: compliance-report
+              image: python:3.11-slim
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop:
+                    - ALL
+              env:
+                - name: ELASTICSEARCH_URL
+                  value: "https://elasticsearch.logging.svc.cluster.local:9200"
+                - name: PROMETHEUS_URL
+                  value: "http://prometheus.monitoring.svc.cluster.local:9090"
+                - name: REPORT_DATE
+                  value: "$(date -d 'yesterday' +%Y-%m-%d)"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  pip install requests elasticsearch prometheus-api-client
+                  python3 /scripts/generate_compliance_report.py
+              volumeMounts:
+                - name: compliance-scripts
+                  mountPath: /scripts
+                - name: reports-output
+                  mountPath: /reports
+                - name: tmp
+                  mountPath: /tmp
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "200m"
           volumes:
-          - name: compliance-scripts
-            configMap:
-              name: compliance-scripts
-          - name: reports-output
-            persistentVolumeClaim:
-              claimName: compliance-reports
-          - name: tmp
-            emptyDir: {}
+            - name: compliance-scripts
+              configMap:
+                name: compliance-scripts
+            - name: reports-output
+              persistentVolumeClaim:
+                claimName: compliance-reports
+            - name: tmp
+              emptyDir: {}
           restartPolicy: OnFailure
 ---
 apiVersion: v1
@@ -558,7 +558,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: {{ .Values.storage.className | default "gp2" }}
+  storageClassName: { { .Values.storage.className | default "gp2" } }
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -572,12 +572,12 @@ metadata:
   namespace: monitoring
   name: compliance-monitor
 rules:
-- apiGroups: [""]
-  resources: ["pods", "services", "endpoints"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -585,9 +585,9 @@ metadata:
   name: compliance-monitor
   namespace: monitoring
 subjects:
-- kind: ServiceAccount
-  name: compliance-monitor
-  namespace: monitoring
+  - kind: ServiceAccount
+    name: compliance-monitor
+    namespace: monitoring
 roleRef:
   kind: Role
   name: compliance-monitor

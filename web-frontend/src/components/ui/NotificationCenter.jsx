@@ -1,7 +1,19 @@
-import React from 'react';
-import { Box, Flex, Text, Icon, CloseButton, useColorModeValue } from '@chakra-ui/react';
-import { FiCheckCircle, FiAlertCircle, FiInfo, FiAlertTriangle } from 'react-icons/fi';
-import { useUI } from '../../lib/ui-context';
+import React from "react";
+import {
+  Box,
+  Flex,
+  Text,
+  Icon,
+  CloseButton,
+  useColorModeValue,
+} from "@chakra-ui/react";
+import {
+  FiCheckCircle,
+  FiAlertCircle,
+  FiInfo,
+  FiAlertTriangle,
+} from "react-icons/fi";
+import { useUI } from "../../lib/ui-context";
 
 const NotificationCenter = () => {
   const { notifications, dismissNotification } = useUI();
@@ -31,28 +43,28 @@ const NotificationCenter = () => {
 };
 
 const NotificationItem = ({ notification, onDismiss }) => {
-  const { title, message, type = 'info' } = notification;
+  const { title, message, type = "info" } = notification;
 
   const bgColor = useColorModeValue(
     {
-      success: 'green.500',
-      error: 'red.500',
-      warning: 'yellow.500',
-      info: 'blue.500'
+      success: "green.500",
+      error: "red.500",
+      warning: "yellow.500",
+      info: "blue.500",
     }[type],
     {
-      success: 'green.600',
-      error: 'red.600',
-      warning: 'yellow.600',
-      info: 'blue.600'
-    }[type]
+      success: "green.600",
+      error: "red.600",
+      warning: "yellow.600",
+      info: "blue.600",
+    }[type],
   );
 
   const IconComponent = {
     success: FiCheckCircle,
     error: FiAlertCircle,
     warning: FiAlertTriangle,
-    info: FiInfo
+    info: FiInfo,
   }[type];
 
   return (

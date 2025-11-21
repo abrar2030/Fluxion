@@ -63,69 +63,69 @@ spec:
         runAsUser: 1000
         fsGroup: 1000
       containers:
-      - name: elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
-        env:
-        - name: discovery.type
-          value: single-node
-        - name: ES_JAVA_OPTS
-          value: "-Xms512m -Xmx512m"
-        - name: ELASTIC_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: elasticsearch-credentials
-              key: password
-        ports:
-        - containerPort: 9200
-          name: http
-        - containerPort: 9300
-          name: transport
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          capabilities:
-            drop:
-            - ALL
-        volumeMounts:
-        - name: elasticsearch-data
-          mountPath: /usr/share/elasticsearch/data
+        - name: elasticsearch
+          image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: ES_JAVA_OPTS
+              value: "-Xms512m -Xmx512m"
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-credentials
+                  key: password
+          ports:
+            - containerPort: 9200
+              name: http
+            - containerPort: 9300
+              name: transport
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: elasticsearch-data
+              mountPath: /usr/share/elasticsearch/data
+            - name: elasticsearch-config
+              mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
+              subPath: elasticsearch.yml
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: 9200
+              scheme: HTTPS
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /_cluster/health
+              port: 9200
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
         - name: elasticsearch-config
-          mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
-          subPath: elasticsearch.yml
+          configMap:
+            name: elasticsearch-config
+  volumeClaimTemplates:
+    - metadata:
+        name: elasticsearch-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1000m"
-        livenessProbe:
-          httpGet:
-            path: /_cluster/health
-            port: 9200
-            scheme: HTTPS
-          initialDelaySeconds: 60
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /_cluster/health
-            port: 9200
-            scheme: HTTPS
-          initialDelaySeconds: 30
-          periodSeconds: 10
-      volumes:
-      - name: elasticsearch-config
-        configMap:
-          name: elasticsearch-config
-  volumeClaimTemplates:
-  - metadata:
-      name: elasticsearch-data
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 100Gi
-      storageClassName: {{ .Values.storage.className | default "gp2" }}
+            storage: 100Gi
+        storageClassName: { { .Values.storage.className | default "gp2" } }
 ---
 apiVersion: v1
 kind: Service
@@ -138,12 +138,12 @@ spec:
   selector:
     app: elasticsearch
   ports:
-  - port: 9200
-    targetPort: 9200
-    name: http
-  - port: 9300
-    targetPort: 9300
-    name: transport
+    - port: 9200
+      targetPort: 9200
+      name: http
+    - port: 9300
+      targetPort: 9300
+      name: transport
 ---
 apiVersion: v1
 kind: Secret
@@ -152,8 +152,8 @@ metadata:
   namespace: logging
 type: Opaque
 data:
-  password: {{ .Values.elasticsearch.password | b64enc }}
-  username: {{ .Values.elasticsearch.username | default "elastic" | b64enc }}
+  password: { { .Values.elasticsearch.password | b64enc } }
+  username: { { .Values.elasticsearch.username | default "elastic" | b64enc } }
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -289,59 +289,59 @@ spec:
         runAsUser: 1000
         fsGroup: 1000
       containers:
-      - name: logstash
-        image: docker.elastic.co/logstash/logstash:8.8.0
-        env:
-        - name: ELASTIC_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: elasticsearch-credentials
-              key: password
-        ports:
-        - containerPort: 5044
-          name: beats
-        - containerPort: 9600
-          name: http
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          capabilities:
-            drop:
-            - ALL
-        volumeMounts:
-        - name: logstash-config
-          mountPath: /usr/share/logstash/config/logstash.yml
-          subPath: logstash.yml
-        - name: logstash-config
-          mountPath: /usr/share/logstash/pipeline/pipeline.conf
-          subPath: pipeline.conf
-        - name: tmp
-          mountPath: /tmp
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1000m"
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 9600
-          initialDelaySeconds: 60
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 9600
-          initialDelaySeconds: 30
-          periodSeconds: 10
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:8.8.0
+          env:
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-credentials
+                  key: password
+          ports:
+            - containerPort: 5044
+              name: beats
+            - containerPort: 9600
+              name: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: logstash-config
+              mountPath: /usr/share/logstash/config/logstash.yml
+              subPath: logstash.yml
+            - name: logstash-config
+              mountPath: /usr/share/logstash/pipeline/pipeline.conf
+              subPath: pipeline.conf
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 30
+            periodSeconds: 10
       volumes:
-      - name: logstash-config
-        configMap:
-          name: logstash-config
-      - name: tmp
-        emptyDir: {}
+        - name: logstash-config
+          configMap:
+            name: logstash-config
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -354,12 +354,12 @@ spec:
   selector:
     app: logstash
   ports:
-  - port: 5044
-    targetPort: 5044
-    name: beats
-  - port: 9600
-    targetPort: 9600
-    name: http
+    - port: 5044
+      targetPort: 5044
+      name: beats
+    - port: 9600
+      targetPort: 9600
+      name: http
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -411,59 +411,59 @@ spec:
         runAsUser: 1000
         fsGroup: 1000
       containers:
-      - name: kibana
-        image: docker.elastic.co/kibana/kibana:8.8.0
-        env:
-        - name: ELASTIC_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: elasticsearch-credentials
-              key: password
-        - name: KIBANA_ENCRYPTION_KEY
-          valueFrom:
-            secretKeyRef:
-              name: kibana-credentials
-              key: encryption_key
-        ports:
-        - containerPort: 5601
-          name: http
-        securityContext:
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          capabilities:
-            drop:
-            - ALL
-        volumeMounts:
-        - name: kibana-config
-          mountPath: /usr/share/kibana/config/kibana.yml
-          subPath: kibana.yml
-        - name: tmp
-          mountPath: /tmp
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "2Gi"
-            cpu: "1000m"
-        livenessProbe:
-          httpGet:
-            path: /api/status
-            port: 5601
-          initialDelaySeconds: 120
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /api/status
-            port: 5601
-          initialDelaySeconds: 60
-          periodSeconds: 10
+        - name: kibana
+          image: docker.elastic.co/kibana/kibana:8.8.0
+          env:
+            - name: ELASTIC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-credentials
+                  key: password
+            - name: KIBANA_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: kibana-credentials
+                  key: encryption_key
+          ports:
+            - containerPort: 5601
+              name: http
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: kibana-config
+              mountPath: /usr/share/kibana/config/kibana.yml
+              subPath: kibana.yml
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 120
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/status
+              port: 5601
+            initialDelaySeconds: 60
+            periodSeconds: 10
       volumes:
-      - name: kibana-config
-        configMap:
-          name: kibana-config
-      - name: tmp
-        emptyDir: {}
+        - name: kibana-config
+          configMap:
+            name: kibana-config
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -476,9 +476,9 @@ spec:
   selector:
     app: kibana
   ports:
-  - port: 5601
-    targetPort: 5601
-    name: http
+    - port: 5601
+      targetPort: 5601
+      name: http
 ---
 apiVersion: v1
 kind: Secret
@@ -487,4 +487,4 @@ metadata:
   namespace: logging
 type: Opaque
 data:
-  encryption_key: {{ .Values.kibana.encryptionKey | b64enc }}
+  encryption_key: { { .Values.kibana.encryptionKey | b64enc } }

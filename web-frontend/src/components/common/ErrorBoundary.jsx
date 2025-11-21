@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, Text, Button, VStack } from '@chakra-ui/react';
+import React from "react";
+import { Box, Text, Button, VStack } from "@chakra-ui/react";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -14,7 +14,7 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     this.setState({
       error: error,
-      errorInfo: errorInfo
+      errorInfo: errorInfo,
     });
   }
 
@@ -29,10 +29,7 @@ class ErrorBoundary extends React.Component {
             <Text color="gray.600">
               {this.state.error && this.state.error.toString()}
             </Text>
-            <Button
-              colorScheme="red"
-              onClick={() => window.location.reload()}
-            >
+            <Button colorScheme="red" onClick={() => window.location.reload()}>
               Reload Page
             </Button>
           </VStack>

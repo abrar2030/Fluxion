@@ -1,5 +1,5 @@
-import React from 'react';
-import { createContext, useContext, useState } from 'react';
+import React from "react";
+import { createContext, useContext, useState } from "react";
 
 // Create context
 const UIContext = createContext(null);
@@ -28,7 +28,7 @@ export const UIProvider = ({ children }) => {
     const newNotification = {
       id,
       ...notification,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     setNotifications([newNotification, ...notifications]);
@@ -45,37 +45,37 @@ export const UIProvider = ({ children }) => {
 
   // Dismiss notification
   const dismissNotification = (id) => {
-    setNotifications(notifications.filter(n => n.id !== id));
+    setNotifications(notifications.filter((n) => n.id !== id));
   };
 
   // Set loading state
   const setLoadingState = (key, isLoading) => {
-    setLoading(prev => ({
+    setLoading((prev) => ({
       ...prev,
-      [key]: isLoading
+      [key]: isLoading,
     }));
   };
 
   // Set error state
   const setErrorState = (key, error) => {
-    setErrors(prev => ({
+    setErrors((prev) => ({
       ...prev,
-      [key]: error
+      [key]: error,
     }));
 
     if (error) {
       addNotification({
-        title: 'Error',
+        title: "Error",
         message: error,
-        type: 'error',
-        duration: 8000
+        type: "error",
+        duration: 8000,
       });
     }
   };
 
   // Clear error state
   const clearErrorState = (key) => {
-    setErrors(prev => {
+    setErrors((prev) => {
       const newErrors = { ...prev };
       delete newErrors[key];
       return newErrors;
@@ -95,21 +95,17 @@ export const UIProvider = ({ children }) => {
     setLoadingState,
     errors,
     setErrorState,
-    clearErrorState
+    clearErrorState,
   };
 
-  return (
-    <UIContext.Provider value={value}>
-      {children}
-    </UIContext.Provider>
-  );
+  return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
 };
 
 // Custom hook to use the UI context
 export const useUI = () => {
   const context = useContext(UIContext);
   if (!context) {
-    throw new Error('useUI must be used within a UIProvider');
+    throw new Error("useUI must be used within a UIProvider");
   }
   return context;
 };

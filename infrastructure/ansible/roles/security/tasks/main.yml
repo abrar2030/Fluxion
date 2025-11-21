@@ -38,14 +38,14 @@
     line: "{{ item.line }}"
     backup: yes
   loop:
-    - { regexp: '^#?\s*minlen', line: 'minlen = 14' }
-    - { regexp: '^#?\s*minclass', line: 'minclass = 4' }
-    - { regexp: '^#?\s*maxrepeat', line: 'maxrepeat = 2' }
-    - { regexp: '^#?\s*maxclassrepeat', line: 'maxclassrepeat = 2' }
-    - { regexp: '^#?\s*lcredit', line: 'lcredit = -1' }
-    - { regexp: '^#?\s*ucredit', line: 'ucredit = -1' }
-    - { regexp: '^#?\s*dcredit', line: 'dcredit = -1' }
-    - { regexp: '^#?\s*ocredit', line: 'ocredit = -1' }
+    - { regexp: '^#?\s*minlen', line: "minlen = 14" }
+    - { regexp: '^#?\s*minclass', line: "minclass = 4" }
+    - { regexp: '^#?\s*maxrepeat', line: "maxrepeat = 2" }
+    - { regexp: '^#?\s*maxclassrepeat', line: "maxclassrepeat = 2" }
+    - { regexp: '^#?\s*lcredit', line: "lcredit = -1" }
+    - { regexp: '^#?\s*ucredit', line: "ucredit = -1" }
+    - { regexp: '^#?\s*dcredit', line: "dcredit = -1" }
+    - { regexp: '^#?\s*ocredit', line: "ocredit = -1" }
 
 - name: Configure account lockout policy
   lineinfile:
@@ -55,8 +55,16 @@
     insertafter: "{{ item.insertafter | default(omit) }}"
     backup: yes
   loop:
-    - { regexp: '^auth.*pam_faillock.so.*preauth', line: 'auth required pam_faillock.so preauth silent audit deny=5 unlock_time=900', insertafter: '^#%PAM-1.0' }
-    - { regexp: '^auth.*pam_faillock.so.*authfail', line: 'auth [default=die] pam_faillock.so authfail audit deny=5 unlock_time=900', insertafter: 'auth.*pam_unix.so' }
+    - {
+        regexp: "^auth.*pam_faillock.so.*preauth",
+        line: "auth required pam_faillock.so preauth silent audit deny=5 unlock_time=900",
+        insertafter: "^#%PAM-1.0",
+      }
+    - {
+        regexp: "^auth.*pam_faillock.so.*authfail",
+        line: "auth [default=die] pam_faillock.so authfail audit deny=5 unlock_time=900",
+        insertafter: "auth.*pam_unix.so",
+      }
   when: ansible_os_family == "Debian"
 
 - name: Configure SSH hardening
@@ -66,19 +74,28 @@
     line: "{{ item.line }}"
     backup: yes
   loop:
-    - { regexp: '^#?Protocol', line: 'Protocol 2' }
-    - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
-    - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
-    - { regexp: '^#?PermitEmptyPasswords', line: 'PermitEmptyPasswords no' }
-    - { regexp: '^#?X11Forwarding', line: 'X11Forwarding no' }
-    - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
-    - { regexp: '^#?ClientAliveInterval', line: 'ClientAliveInterval 300' }
-    - { regexp: '^#?ClientAliveCountMax', line: 'ClientAliveCountMax 2' }
-    - { regexp: '^#?LoginGraceTime', line: 'LoginGraceTime 60' }
-    - { regexp: '^#?Banner', line: 'Banner /etc/issue.net' }
-    - { regexp: '^#?Ciphers', line: 'Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr' }
-    - { regexp: '^#?MACs', line: 'MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha2-512' }
-    - { regexp: '^#?KexAlgorithms', line: 'KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group14-sha256' }
+    - { regexp: "^#?Protocol", line: "Protocol 2" }
+    - { regexp: "^#?PermitRootLogin", line: "PermitRootLogin no" }
+    - { regexp: "^#?PasswordAuthentication", line: "PasswordAuthentication no" }
+    - { regexp: "^#?PermitEmptyPasswords", line: "PermitEmptyPasswords no" }
+    - { regexp: "^#?X11Forwarding", line: "X11Forwarding no" }
+    - { regexp: "^#?MaxAuthTries", line: "MaxAuthTries 3" }
+    - { regexp: "^#?ClientAliveInterval", line: "ClientAliveInterval 300" }
+    - { regexp: "^#?ClientAliveCountMax", line: "ClientAliveCountMax 2" }
+    - { regexp: "^#?LoginGraceTime", line: "LoginGraceTime 60" }
+    - { regexp: "^#?Banner", line: "Banner /etc/issue.net" }
+    - {
+        regexp: "^#?Ciphers",
+        line: "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr",
+      }
+    - {
+        regexp: "^#?MACs",
+        line: "MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha2-512",
+      }
+    - {
+        regexp: "^#?KexAlgorithms",
+        line: "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group14-sha256",
+      }
   notify: restart sshd
 
 - name: Create SSH banner
@@ -104,7 +121,7 @@
     dest: /etc/issue.net
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
 
 - name: Configure kernel parameters for security
   sysctl:
@@ -114,29 +131,29 @@
     reload: yes
     sysctl_file: /etc/sysctl.d/99-security.conf
   loop:
-    - { name: 'net.ipv4.ip_forward', value: '0' }
-    - { name: 'net.ipv4.conf.all.send_redirects', value: '0' }
-    - { name: 'net.ipv4.conf.default.send_redirects', value: '0' }
-    - { name: 'net.ipv4.conf.all.accept_source_route', value: '0' }
-    - { name: 'net.ipv4.conf.default.accept_source_route', value: '0' }
-    - { name: 'net.ipv4.conf.all.accept_redirects', value: '0' }
-    - { name: 'net.ipv4.conf.default.accept_redirects', value: '0' }
-    - { name: 'net.ipv4.conf.all.secure_redirects', value: '0' }
-    - { name: 'net.ipv4.conf.default.secure_redirects', value: '0' }
-    - { name: 'net.ipv4.conf.all.log_martians', value: '1' }
-    - { name: 'net.ipv4.conf.default.log_martians', value: '1' }
-    - { name: 'net.ipv4.icmp_echo_ignore_broadcasts', value: '1' }
-    - { name: 'net.ipv4.icmp_ignore_bogus_error_responses', value: '1' }
-    - { name: 'net.ipv4.tcp_syncookies', value: '1' }
-    - { name: 'net.ipv6.conf.all.accept_ra', value: '0' }
-    - { name: 'net.ipv6.conf.default.accept_ra', value: '0' }
-    - { name: 'net.ipv6.conf.all.accept_redirects', value: '0' }
-    - { name: 'net.ipv6.conf.default.accept_redirects', value: '0' }
-    - { name: 'kernel.randomize_va_space', value: '2' }
-    - { name: 'kernel.exec-shield', value: '1' }
-    - { name: 'kernel.dmesg_restrict', value: '1' }
-    - { name: 'kernel.kptr_restrict', value: '2' }
-    - { name: 'fs.suid_dumpable', value: '0' }
+    - { name: "net.ipv4.ip_forward", value: "0" }
+    - { name: "net.ipv4.conf.all.send_redirects", value: "0" }
+    - { name: "net.ipv4.conf.default.send_redirects", value: "0" }
+    - { name: "net.ipv4.conf.all.accept_source_route", value: "0" }
+    - { name: "net.ipv4.conf.default.accept_source_route", value: "0" }
+    - { name: "net.ipv4.conf.all.accept_redirects", value: "0" }
+    - { name: "net.ipv4.conf.default.accept_redirects", value: "0" }
+    - { name: "net.ipv4.conf.all.secure_redirects", value: "0" }
+    - { name: "net.ipv4.conf.default.secure_redirects", value: "0" }
+    - { name: "net.ipv4.conf.all.log_martians", value: "1" }
+    - { name: "net.ipv4.conf.default.log_martians", value: "1" }
+    - { name: "net.ipv4.icmp_echo_ignore_broadcasts", value: "1" }
+    - { name: "net.ipv4.icmp_ignore_bogus_error_responses", value: "1" }
+    - { name: "net.ipv4.tcp_syncookies", value: "1" }
+    - { name: "net.ipv6.conf.all.accept_ra", value: "0" }
+    - { name: "net.ipv6.conf.default.accept_ra", value: "0" }
+    - { name: "net.ipv6.conf.all.accept_redirects", value: "0" }
+    - { name: "net.ipv6.conf.default.accept_redirects", value: "0" }
+    - { name: "kernel.randomize_va_space", value: "2" }
+    - { name: "kernel.exec-shield", value: "1" }
+    - { name: "kernel.dmesg_restrict", value: "1" }
+    - { name: "kernel.kptr_restrict", value: "2" }
+    - { name: "fs.suid_dumpable", value: "0" }
 
 - name: Configure auditd rules
   template:
@@ -144,7 +161,7 @@
     dest: /etc/audit/rules.d/audit.rules
     owner: root
     group: root
-    mode: '0640'
+    mode: "0640"
     backup: yes
   notify: restart auditd
 
@@ -154,7 +171,7 @@
     dest: /etc/fail2ban/jail.local
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
     backup: yes
   notify: restart fail2ban
 
@@ -194,17 +211,22 @@
     group: "{{ item.group }}"
     mode: "{{ item.mode }}"
   loop:
-    - { path: '/etc/passwd', owner: 'root', group: 'root', mode: '0644' }
-    - { path: '/etc/shadow', owner: 'root', group: 'shadow', mode: '0640' }
-    - { path: '/etc/group', owner: 'root', group: 'root', mode: '0644' }
-    - { path: '/etc/gshadow', owner: 'root', group: 'shadow', mode: '0640' }
-    - { path: '/etc/ssh/sshd_config', owner: 'root', group: 'root', mode: '0600' }
-    - { path: '/etc/crontab', owner: 'root', group: 'root', mode: '0600' }
-    - { path: '/etc/cron.hourly', owner: 'root', group: 'root', mode: '0700' }
-    - { path: '/etc/cron.daily', owner: 'root', group: 'root', mode: '0700' }
-    - { path: '/etc/cron.weekly', owner: 'root', group: 'root', mode: '0700' }
-    - { path: '/etc/cron.monthly', owner: 'root', group: 'root', mode: '0700' }
-    - { path: '/etc/cron.d', owner: 'root', group: 'root', mode: '0700' }
+    - { path: "/etc/passwd", owner: "root", group: "root", mode: "0644" }
+    - { path: "/etc/shadow", owner: "root", group: "shadow", mode: "0640" }
+    - { path: "/etc/group", owner: "root", group: "root", mode: "0644" }
+    - { path: "/etc/gshadow", owner: "root", group: "shadow", mode: "0640" }
+    - {
+        path: "/etc/ssh/sshd_config",
+        owner: "root",
+        group: "root",
+        mode: "0600",
+      }
+    - { path: "/etc/crontab", owner: "root", group: "root", mode: "0600" }
+    - { path: "/etc/cron.hourly", owner: "root", group: "root", mode: "0700" }
+    - { path: "/etc/cron.daily", owner: "root", group: "root", mode: "0700" }
+    - { path: "/etc/cron.weekly", owner: "root", group: "root", mode: "0700" }
+    - { path: "/etc/cron.monthly", owner: "root", group: "root", mode: "0700" }
+    - { path: "/etc/cron.d", owner: "root", group: "root", mode: "0700" }
 
 - name: Configure automatic security updates (Debian/Ubuntu)
   template:
@@ -212,7 +234,7 @@
     dest: /etc/apt/apt.conf.d/50unattended-upgrades
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   when: ansible_os_family == "Debian"
 
 - name: Enable automatic security updates (Debian/Ubuntu)
@@ -221,7 +243,7 @@
     dest: /etc/apt/apt.conf.d/20auto-upgrades
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   when: ansible_os_family == "Debian"
 
 - name: Configure yum-cron for automatic updates (RHEL/CentOS)
@@ -230,7 +252,7 @@
     dest: /etc/yum/yum-cron.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   when: ansible_os_family == "RedHat"
 
 - name: Start and enable security services

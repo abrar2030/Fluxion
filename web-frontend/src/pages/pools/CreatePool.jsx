@@ -1,29 +1,81 @@
-import React, { useState } from 'react';
-import { Box, Flex, Heading, Text, SimpleGrid, Button, HStack, VStack, Icon, useColorModeValue, Badge, Tabs, TabList, TabPanels, Tab, TabPanel, Input, FormControl, FormLabel, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Select, Slider, SliderTrack, SliderFilledTrack, SliderThumb, Tooltip, Divider, Card, CardBody, Stack, Image, useToast } from '@chakra-ui/react';
-import { FiTrendingUp, FiDroplet, FiDollarSign, FiActivity, FiPlus, FiInfo, FiCheck, FiAlertTriangle } from 'react-icons/fi';
-import { useWeb3 } from '../../lib/web3-config.jsx';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+import React, { useState } from "react";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  SimpleGrid,
+  Button,
+  HStack,
+  VStack,
+  Icon,
+  useColorModeValue,
+  Badge,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  Input,
+  FormControl,
+  FormLabel,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  Select,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
+  Tooltip,
+  Divider,
+  Card,
+  CardBody,
+  Stack,
+  Image,
+  useToast,
+} from "@chakra-ui/react";
+import {
+  FiTrendingUp,
+  FiDroplet,
+  FiDollarSign,
+  FiActivity,
+  FiPlus,
+  FiInfo,
+  FiCheck,
+  FiAlertTriangle,
+} from "react-icons/fi";
+import { useWeb3 } from "../../lib/web3-config.jsx";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+} from "recharts";
 
 const CreatePool = () => {
   const { isConnected } = useWeb3();
-  const cardBg = useColorModeValue('gray.800', 'gray.700');
-  const borderColor = useColorModeValue('gray.700', 'gray.600');
-  const textColor = useColorModeValue('white', 'white');
-  const subTextColor = useColorModeValue('gray.400', 'gray.400');
+  const cardBg = useColorModeValue("gray.800", "gray.700");
+  const borderColor = useColorModeValue("gray.700", "gray.600");
+  const textColor = useColorModeValue("white", "white");
+  const subTextColor = useColorModeValue("gray.400", "gray.400");
   const toast = useToast();
 
   // State for pool creation
-  const [poolType, setPoolType] = useState('weighted');
+  const [poolType, setPoolType] = useState("weighted");
   const [assets, setAssets] = useState([
-    { token: 'ETH', weight: 50, amount: 0 },
-    { token: 'USDC', weight: 50, amount: 0 }
+    { token: "ETH", weight: 50, amount: 0 },
+    { token: "USDC", weight: 50, amount: 0 },
   ]);
   const [swapFee, setSwapFee] = useState(0.3);
   const [showTooltip, setShowTooltip] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
   // Colors for pie chart
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
   // Handle weight change
   const handleWeightChange = (index, value) => {
@@ -31,8 +83,10 @@ const CreatePool = () => {
     newAssets[index].weight = value;
 
     // Adjust other weights to ensure total is 100%
-    const totalOtherWeights = newAssets.reduce((sum, asset, i) =>
-      i !== index ? sum + asset.weight : sum, 0);
+    const totalOtherWeights = newAssets.reduce(
+      (sum, asset, i) => (i !== index ? sum + asset.weight : sum),
+      0,
+    );
 
     if (totalOtherWeights + value !== 100) {
       const remainingWeight = 100 - value;
@@ -45,7 +99,10 @@ const CreatePool = () => {
       });
 
       // Adjust for rounding errors
-      const finalTotal = newAssets.reduce((sum, asset) => sum + asset.weight, 0);
+      const finalTotal = newAssets.reduce(
+        (sum, asset) => sum + asset.weight,
+        0,
+      );
       if (finalTotal !== 100) {
         const diff = 100 - finalTotal;
         for (let i = 0; i < newAssets.length; i++) {
@@ -88,17 +145,17 @@ const CreatePool = () => {
     }
 
     const newWeight = Math.floor(100 / (assets.length + 1));
-    const remainingWeight = 100 - (newWeight * (assets.length + 1));
+    const remainingWeight = 100 - newWeight * (assets.length + 1);
 
     const newAssets = assets.map((asset, index) => ({
       ...asset,
-      weight: newWeight + (index === 0 ? remainingWeight : 0)
+      weight: newWeight + (index === 0 ? remainingWeight : 0),
     }));
 
     newAssets.push({
       token: getNextAvailableToken(),
       weight: newWeight,
-      amount: 0
+      amount: 0,
     });
 
     setAssets(newAssets);
@@ -122,7 +179,7 @@ const CreatePool = () => {
 
     // Redistribute weight
     const weightPerAsset = Math.floor(removedWeight / newAssets.length);
-    const remainingWeight = removedWeight - (weightPerAsset * newAssets.length);
+    const remainingWeight = removedWeight - weightPerAsset * newAssets.length;
 
     newAssets.forEach((asset, i) => {
       asset.weight += weightPerAsset + (i === 0 ? remainingWeight : 0);
@@ -133,9 +190,18 @@ const CreatePool = () => {
 
   // Get next available token
   const getNextAvailableToken = () => {
-    const usedTokens = assets.map(a => a.token);
-    const allTokens = ['ETH', 'WBTC', 'USDC', 'DAI', 'LINK', 'UNI', 'AAVE', 'SNX'];
-    return allTokens.find(token => !usedTokens.includes(token)) || 'ETH';
+    const usedTokens = assets.map((a) => a.token);
+    const allTokens = [
+      "ETH",
+      "WBTC",
+      "USDC",
+      "DAI",
+      "LINK",
+      "UNI",
+      "AAVE",
+      "SNX",
+    ];
+    return allTokens.find((token) => !usedTokens.includes(token)) || "ETH";
   };
 
   // Create pool
@@ -152,18 +218,18 @@ const CreatePool = () => {
   // Calculate total value
   const calculateTotalValue = () => {
     const tokenPrices = {
-      'ETH': 1700,
-      'WBTC': 42000,
-      'USDC': 1,
-      'DAI': 1,
-      'LINK': 15,
-      'UNI': 8,
-      'AAVE': 80,
-      'SNX': 3
+      ETH: 1700,
+      WBTC: 42000,
+      USDC: 1,
+      DAI: 1,
+      LINK: 15,
+      UNI: 8,
+      AAVE: 80,
+      SNX: 3,
     };
 
     return assets.reduce((total, asset) => {
-      return total + (asset.amount * tokenPrices[asset.token]);
+      return total + asset.amount * tokenPrices[asset.token];
     }, 0);
   };
 
@@ -207,7 +273,8 @@ const CreatePool = () => {
           Create Liquidity Pool
         </Heading>
         <Text fontSize="lg" color={subTextColor} maxW="800px">
-          Design your custom liquidity pool by selecting assets, setting weights, and configuring parameters.
+          Design your custom liquidity pool by selecting assets, setting
+          weights, and configuring parameters.
         </Text>
       </Box>
 
@@ -223,13 +290,17 @@ const CreatePool = () => {
             borderColor={borderColor}
             mb={8}
           >
-            <Heading size="md" mb={6}>Pool Type</Heading>
+            <Heading size="md" mb={6}>
+              Pool Type
+            </Heading>
 
             <Tabs
               variant="soft-rounded"
               colorScheme="brand"
               mb={6}
-              onChange={(index) => setPoolType(index === 0 ? 'weighted' : 'stable')}
+              onChange={(index) =>
+                setPoolType(index === 0 ? "weighted" : "stable")
+              }
             >
               <TabList>
                 <Tab>Weighted Pool</Tab>
@@ -238,14 +309,16 @@ const CreatePool = () => {
               <TabPanels>
                 <TabPanel px={0} pt={4}>
                   <Text>
-                    Weighted pools allow for custom weight allocations between different tokens.
-                    Ideal for creating index funds or expressing specific market views.
+                    Weighted pools allow for custom weight allocations between
+                    different tokens. Ideal for creating index funds or
+                    expressing specific market views.
                   </Text>
                 </TabPanel>
                 <TabPanel px={0} pt={4}>
                   <Text>
-                    Stable pools are optimized for assets that are expected to trade at similar values.
-                    Perfect for stablecoins or synthetic assets pegged to the same value.
+                    Stable pools are optimized for assets that are expected to
+                    trade at similar values. Perfect for stablecoins or
+                    synthetic assets pegged to the same value.
                   </Text>
                 </TabPanel>
               </TabPanels>
@@ -288,13 +361,20 @@ const CreatePool = () => {
               </Text>
             </FormControl>
 
-            <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="brand.500">
+            <Box
+              p={4}
+              bg="gray.700"
+              borderRadius="md"
+              borderLeft="4px solid"
+              borderLeftColor="brand.500"
+            >
               <Flex>
                 <Icon as={FiInfo} color="brand.500" boxSize={6} mr={3} mt={1} />
                 <Box>
                   <Text fontWeight="bold">Pool Creation Fee</Text>
                   <Text fontSize="sm">
-                    Creating a new pool requires a one-time fee of 0.01 ETH to prevent spam.
+                    Creating a new pool requires a one-time fee of 0.01 ETH to
+                    prevent spam.
                   </Text>
                 </Box>
               </Flex>
@@ -330,7 +410,9 @@ const CreatePool = () => {
                         <FormLabel>Token</FormLabel>
                         <Select
                           value={asset.token}
-                          onChange={(e) => handleTokenChange(index, e.target.value)}
+                          onChange={(e) =>
+                            handleTokenChange(index, e.target.value)
+                          }
                         >
                           <option value="ETH">ETH</option>
                           <option value="WBTC">WBTC</option>
@@ -344,17 +426,22 @@ const CreatePool = () => {
                       </FormControl>
 
                       <FormControl>
-                        <FormLabel>Weight {poolType === 'weighted' ? `(${asset.weight}%)` : ''}</FormLabel>
-                        {poolType === 'weighted' ? (
+                        <FormLabel>
+                          Weight{" "}
+                          {poolType === "weighted" ? `(${asset.weight}%)` : ""}
+                        </FormLabel>
+                        {poolType === "weighted" ? (
                           <Slider
                             min={1}
                             max={99}
                             value={asset.weight}
                             onChange={(val) => handleWeightChange(index, val)}
-                            isDisabled={poolType !== 'weighted'}
+                            isDisabled={poolType !== "weighted"}
                           >
                             <SliderTrack bg="gray.600">
-                              <SliderFilledTrack bg={COLORS[index % COLORS.length]} />
+                              <SliderFilledTrack
+                                bg={COLORS[index % COLORS.length]}
+                              />
                             </SliderTrack>
                             <SliderThumb boxSize={6} />
                           </Slider>
@@ -409,7 +496,9 @@ const CreatePool = () => {
             position="sticky"
             top="80px"
           >
-            <Heading size="md" mb={6}>Pool Preview</Heading>
+            <Heading size="md" mb={6}>
+              Pool Preview
+            </Heading>
 
             <Tabs
               variant="soft-rounded"
@@ -438,17 +527,23 @@ const CreatePool = () => {
                           label={({ token, weight }) => `${token} ${weight}%`}
                         >
                           {assets.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
                           ))}
                         </Pie>
                         <RechartsTooltip
                           contentStyle={{
-                            backgroundColor: 'rgba(23, 25, 35, 0.9)',
-                            border: '1px solid #333',
-                            borderRadius: '4px',
-                            color: 'white'
+                            backgroundColor: "rgba(23, 25, 35, 0.9)",
+                            border: "1px solid #333",
+                            borderRadius: "4px",
+                            color: "white",
                           }}
-                          formatter={(value, name, props) => [`${value}%`, props.payload.token]}
+                          formatter={(value, name, props) => [
+                            `${value}%`,
+                            props.payload.token,
+                          ]}
                         />
                       </PieChart>
                     </ResponsiveContainer>
@@ -476,7 +571,9 @@ const CreatePool = () => {
                   <VStack spacing={4} align="stretch" mb={6}>
                     <Flex justify="space-between">
                       <Text color={subTextColor}>Pool Type</Text>
-                      <Text fontWeight="bold" textTransform="capitalize">{poolType}</Text>
+                      <Text fontWeight="bold" textTransform="capitalize">
+                        {poolType}
+                      </Text>
                     </Flex>
 
                     <Flex justify="space-between">
@@ -491,22 +588,41 @@ const CreatePool = () => {
 
                     <Flex justify="space-between">
                       <Text color={subTextColor}>Total Value</Text>
-                      <Text fontWeight="bold">${calculateTotalValue().toLocaleString()}</Text>
+                      <Text fontWeight="bold">
+                        ${calculateTotalValue().toLocaleString()}
+                      </Text>
                     </Flex>
 
                     <Flex justify="space-between">
                       <Text color={subTextColor}>Estimated APY</Text>
-                      <Text fontWeight="bold" color="green.400">7.2% - 12.5%</Text>
+                      <Text fontWeight="bold" color="green.400">
+                        7.2% - 12.5%
+                      </Text>
                     </Flex>
                   </VStack>
 
-                  <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="yellow.400" mb={6}>
+                  <Box
+                    p={4}
+                    bg="gray.700"
+                    borderRadius="md"
+                    borderLeft="4px solid"
+                    borderLeftColor="yellow.400"
+                    mb={6}
+                  >
                     <Flex>
-                      <Icon as={FiAlertTriangle} color="yellow.400" boxSize={6} mr={3} mt={1} />
+                      <Icon
+                        as={FiAlertTriangle}
+                        color="yellow.400"
+                        boxSize={6}
+                        mr={3}
+                        mt={1}
+                      />
                       <Box>
                         <Text fontWeight="bold">Important Note</Text>
                         <Text fontSize="sm">
-                          APY is an estimate based on current market conditions and may vary. Past performance is not indicative of future results.
+                          APY is an estimate based on current market conditions
+                          and may vary. Past performance is not indicative of
+                          future results.
                         </Text>
                       </Box>
                     </Flex>
@@ -523,10 +639,10 @@ const CreatePool = () => {
               _hover={{
                 bgGradient: "linear(to-r, brand.600, accent.600)",
                 transform: "translateY(-2px)",
-                boxShadow: "lg"
+                boxShadow: "lg",
               }}
               onClick={createPool}
-              isDisabled={!isConnected || assets.some(a => a.amount <= 0)}
+              isDisabled={!isConnected || assets.some((a) => a.amount <= 0)}
             >
               Create Pool
             </Button>
@@ -537,7 +653,7 @@ const CreatePool = () => {
               </Text>
             )}
 
-            {assets.some(a => a.amount <= 0) && (
+            {assets.some((a) => a.amount <= 0) && (
               <Text fontSize="sm" color="yellow.300" textAlign="center" mt={2}>
                 All assets must have an amount greater than zero
               </Text>

@@ -1,11 +1,13 @@
 # System Architecture
 
 ## Overview
+
 Fluxion is built on a microservices architecture leveraging ZK-Rollups for scalability and AI for liquidity optimization. The system is composed of several key components that work together to provide a robust synthetic asset trading platform.
 
 ## System Components
 
 ### 1. Frontend Layer
+
 - **React Application**
   - Real-time trading interface
   - WebSocket-based market data streaming
@@ -14,6 +16,7 @@ Fluxion is built on a microservices architecture leveraging ZK-Rollups for scala
   - Responsive design for multiple devices
 
 ### 2. API Gateway
+
 - **FastAPI Backend**
   - RESTful API endpoints
   - WebSocket server for real-time updates
@@ -22,6 +25,7 @@ Fluxion is built on a microservices architecture leveraging ZK-Rollups for scala
   - Load balancing and routing
 
 ### 3. Blockchain Layer
+
 - **Smart Contracts (Polygon zkEVM)**
   - Synthetic asset minting and burning
   - Liquidity pool management
@@ -30,6 +34,7 @@ Fluxion is built on a microservices architecture leveraging ZK-Rollups for scala
   - Governance and upgrade mechanisms
 
 ### 4. Liquidity Engine
+
 - **Core Components**
   - Hybrid AMM implementation
   - Dynamic fee adjustment system
@@ -38,6 +43,7 @@ Fluxion is built on a microservices architecture leveraging ZK-Rollups for scala
   - Slippage protection
 
 ### 5. Risk Management System
+
 - **Key Features**
   - Real-time risk monitoring
   - Value at Risk (VaR) calculations
@@ -46,6 +52,7 @@ Fluxion is built on a microservices architecture leveraging ZK-Rollups for scala
   - Liquidation triggers
 
 ### 6. AI/ML Pipeline
+
 ```mermaid
 graph LR
     A[Data Collection] --> B[Feature Engineering]
@@ -62,6 +69,7 @@ graph LR
   - Performance monitoring
 
 ### 7. Data Layer
+
 - **Storage Solutions**
   - TimescaleDB for time-series data
   - Redis for caching and real-time data
@@ -71,6 +79,7 @@ graph LR
 ## Infrastructure
 
 ### Deployment Architecture
+
 ```mermaid
 graph TD
     A[Load Balancer] --> B[API Cluster]
@@ -82,6 +91,7 @@ graph TD
 ```
 
 ### Scaling Strategy
+
 - Horizontal scaling of API nodes
 - Read replicas for databases
 - Distributed caching
@@ -89,6 +99,7 @@ graph TD
 - ZK-Rollup for blockchain scalability
 
 ### Monitoring & DevOps
+
 - Prometheus metrics collection
 - Grafana dashboards
 - ELK stack for logging
@@ -98,6 +109,7 @@ graph TD
 ## Security Measures
 
 ### Smart Contract Security
+
 - Formal verification
 - Multiple audit rounds
 - Time-locked upgrades
@@ -105,6 +117,7 @@ graph TD
 - Bug bounty program
 
 ### Infrastructure Security
+
 - Multi-factor authentication
 - Network segmentation
 - Regular security audits
@@ -112,6 +125,7 @@ graph TD
 - Key rotation policies
 
 ## Disaster Recovery
+
 - Multi-region deployment
 - Automated backups
 - Failover procedures
@@ -119,6 +133,7 @@ graph TD
 - Business continuity planning
 
 ## Future Improvements
+
 1. Layer 3 scaling solution integration
 2. Advanced MEV protection
 3. Cross-chain liquidity aggregation

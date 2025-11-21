@@ -1,6 +1,6 @@
 /* Global styles for Fluxion UI */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono&display=swap");
 
 :root {
   /* Color variables */
@@ -56,13 +56,18 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background-color: var(--color-background);
   color: var(--color-text-primary);
   line-height: 1.6;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 600;
   line-height: 1.3;
   margin-bottom: var(--spacing-md);
@@ -106,8 +111,9 @@ a:hover {
   color: var(--color-primary-light);
 }
 
-code, pre {
-  font-family: 'Roboto Mono', monospace;
+code,
+pre {
+  font-family: "Roboto Mono", monospace;
 }
 
 /* Custom scrollbar */
@@ -167,7 +173,9 @@ code, pre {
   border-radius: var(--border-radius-md);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-md);
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal);
 }
 
 .card:hover {

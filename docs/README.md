@@ -19,6 +19,7 @@ The `docs` directory contains comprehensive documentation for the Fluxion synthe
 ### API Specification
 
 The `API_SPEC.md` file provides comprehensive documentation of all API endpoints, including:
+
 - Request and response formats
 - Authentication requirements
 - Rate limiting information
@@ -28,6 +29,7 @@ The `API_SPEC.md` file provides comprehensive documentation of all API endpoints
 ### Architecture Overview
 
 The `ARCHITECTURE.md` file describes the overall system architecture, including:
+
 - Component interactions
 - Data flow diagrams
 - Technology stack details
@@ -37,6 +39,7 @@ The `ARCHITECTURE.md` file describes the overall system architecture, including:
 ### Contribution Guidelines
 
 The `CONTRIBUTING.md` file outlines how to contribute to the Fluxion project, covering:
+
 - Code style and standards
 - Pull request process
 - Issue reporting guidelines
@@ -46,6 +49,7 @@ The `CONTRIBUTING.md` file outlines how to contribute to the Fluxion project, co
 ### Deployment Guide
 
 The `DEPLOYMENT.md` file provides instructions for deploying Fluxion, including:
+
 - Environment requirements
 - Configuration options
 - Deployment procedures for different environments
@@ -55,6 +59,7 @@ The `DEPLOYMENT.md` file provides instructions for deploying Fluxion, including:
 ### Liquidity Model
 
 The `LIQUIDITY_MODEL.md` file explains the mathematical models and algorithms used for:
+
 - Synthetic asset pricing
 - Liquidity pool management
 - Risk assessment
@@ -64,6 +69,7 @@ The `LIQUIDITY_MODEL.md` file explains the mathematical models and algorithms us
 ### Security Documentation
 
 The `SECURITY.md` file covers security aspects of the platform, including:
+
 - Security model and assumptions
 - Audit reports and findings
 - Vulnerability disclosure policy

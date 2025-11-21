@@ -52,16 +52,19 @@ Key configuration files include:
 ## Development Setup
 
 1. Install dependencies:
+
    ```bash
    yarn install
    ```
 
 2. Start the development server:
+
    ```bash
    yarn start
    ```
 
 3. Run on iOS simulator:
+
    ```bash
    yarn ios
    ```
@@ -93,6 +96,7 @@ The mobile application can be tested using:
 - Manual testing on physical devices
 
 Run tests with:
+
 ```bash
 yarn test
 ```
@@ -102,6 +106,7 @@ yarn test
 To create production builds:
 
 1. For iOS:
+
    ```bash
    expo build:ios
    ```

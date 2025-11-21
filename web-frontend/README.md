@@ -41,6 +41,7 @@ Key configuration files include:
 ### Testing
 
 The `__mocks__` directory contains mock implementations for:
+
 - External services
 - API responses
 - Web3 providers
@@ -49,16 +50,19 @@ The `__mocks__` directory contains mock implementations for:
 ## Development Setup
 
 1. Install dependencies:
+
    ```bash
    npm install
    ```
 
 2. Start the development server:
+
    ```bash
    npm run dev
    ```
 
 3. Run tests:
+
    ```bash
    npm test
    ```

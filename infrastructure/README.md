@@ -5,6 +5,7 @@ This directory contains the comprehensive infrastructure configuration for the F
 ## 🏛️ Financial Compliance Features
 
 ### Security Features
+
 - **Multi-layered Security**: OS hardening, network segmentation, and application-level security
 - **Zero Trust Architecture**: Comprehensive RBAC, network policies, and least privilege access
 - **Secrets Management**: HashiCorp Vault integration for secure credential management
@@ -12,6 +13,7 @@ This directory contains the comprehensive infrastructure configuration for the F
 - **Vulnerability Management**: Automated scanning and remediation workflows
 
 ### Compliance Standards
+
 - **Data Retention**: 7-year retention policy for financial data
 - **Audit Logging**: Immutable audit trails with real-time monitoring
 - **Access Controls**: Multi-factor authentication and session management
@@ -62,6 +64,7 @@ infrastructure/
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Kubernetes cluster (local or cloud)
 - Terraform >= 1.0
@@ -70,6 +73,7 @@ infrastructure/
 - AWS CLI (for cloud deployment)
 
 ### Local Development
+
 ```bash
 # Start the complete development stack
 docker-compose up -d
@@ -88,6 +92,7 @@ docker-compose ps
 ### Production Deployment
 
 #### 1. Infrastructure Provisioning
+
 ```bash
 cd terraform/
 terraform init
@@ -96,18 +101,21 @@ terraform apply -var-file="environments/prod.tfvars"
 ```
 
 #### 2. Configuration Management
+
 ```bash
 cd ansible/
 ansible-playbook -i inventory/production playbooks/main.yml
 ```
 
 #### 3. Application Deployment
+
 ```bash
 cd kubernetes/
 kubectl apply -k overlays/production/
 ```
 
 #### 4. Validation
+
 ```bash
 # Run compliance validation
 python3 ci-cd/scripts/compliance-validator.py --framework financial
@@ -119,6 +127,7 @@ python3 ci-cd/scripts/deployment-validator.py --environment production
 ## 🔒 Security Configuration
 
 ### Secrets Management
+
 All sensitive data is managed through HashiCorp Vault:
 
 ```bash
@@ -133,12 +142,14 @@ vault kv put secret/encryption key="your-encryption-key"
 ```
 
 ### Network Security
+
 - **Network Policies**: Kubernetes network segmentation
 - **Security Groups**: AWS VPC security controls
 - **Firewall Rules**: OS-level traffic filtering
 - **TLS/SSL**: End-to-end encryption
 
 ### Access Control
+
 - **RBAC**: Role-based access control in Kubernetes
 - **IAM**: AWS Identity and Access Management
 - **MFA**: Multi-factor authentication required
@@ -147,21 +158,25 @@ vault kv put secret/encryption key="your-encryption-key"
 ## 📊 Monitoring & Observability
 
 ### Metrics Collection
+
 - **Prometheus**: Metrics aggregation and alerting
 - **Grafana**: Visualization and dashboards
 - **Custom Metrics**: Application-specific monitoring
 
 ### Centralized Logging
+
 - **Elasticsearch**: Log storage and indexing
 - **Logstash**: Log processing and enrichment
 - **Kibana**: Log visualization and analysis
 - **Fluent Bit**: Log collection and forwarding
 
 ### Distributed Tracing
+
 - **Jaeger**: Request tracing across services
 - **OpenTelemetry**: Standardized observability
 
 ### Alerting
+
 - **Prometheus Alertmanager**: Alert routing and management
 - **Slack Integration**: Real-time notifications
 - **PagerDuty**: Incident escalation
@@ -169,6 +184,7 @@ vault kv put secret/encryption key="your-encryption-key"
 ## 🏥 Health Checks & Monitoring
 
 ### Application Health
+
 ```bash
 # Backend API health
 curl http://localhost:5000/health
@@ -181,6 +197,7 @@ curl http://localhost:5000/health/database
 ```
 
 ### Infrastructure Health
+
 ```bash
 # Kubernetes cluster status
 kubectl get nodes
@@ -194,12 +211,14 @@ kubectl get pods -n logging
 ## 🔄 Backup & Recovery
 
 ### Automated Backups
+
 - **Database**: Daily automated backups with 7-year retention
 - **Application Data**: Continuous backup to S3
 - **Configuration**: Infrastructure state backup
 - **Logs**: Long-term log archival
 
 ### Disaster Recovery
+
 - **RTO**: 4 hours (Recovery Time Objective)
 - **RPO**: 1 hour (Recovery Point Objective)
 - **Multi-AZ**: High availability across availability zones
@@ -208,13 +227,16 @@ kubectl get pods -n logging
 ## 📋 Compliance & Auditing
 
 ### Audit Logging
+
 All system and application activities are logged:
+
 - User authentication and authorization
 - Data access and modifications
 - System configuration changes
 - Security events and incidents
 
 ### Compliance Reports
+
 ```bash
 # Generate compliance report
 python3 ci-cd/scripts/compliance-validator.py --output compliance-report.json
@@ -225,6 +247,7 @@ python3 ci-cd/scripts/compliance-validator.py --output compliance-report.json
 ```
 
 ### Data Retention
+
 - **Financial Data**: 7 years minimum retention
 - **Audit Logs**: 7 years immutable storage
 - **Backup Data**: Automated lifecycle management
@@ -235,6 +258,7 @@ python3 ci-cd/scripts/compliance-validator.py --output compliance-report.json
 ### Common Issues
 
 #### Services Not Starting
+
 ```bash
 # Check service logs
 docker-compose logs [service-name]
@@ -247,6 +271,7 @@ docker-compose up -d --build [service-name]
 ```
 
 #### Database Connection Issues
+
 ```bash
 # Check database status
 docker-compose exec postgres pg_isready
@@ -260,6 +285,7 @@ docker-compose up -d postgres
 ```
 
 #### Kubernetes Issues
+
 ```bash
 # Check pod status
 kubectl get pods -o wide
@@ -278,16 +304,19 @@ kubectl top pods
 ### Performance Tuning
 
 #### Database Optimization
+
 - Connection pooling configuration
 - Query optimization and indexing
 - Memory and storage tuning
 
 #### Application Scaling
+
 - Horizontal pod autoscaling
 - Resource requests and limits
 - Load balancer configuration
 
 #### Monitoring Optimization
+
 - Metrics retention policies
 - Log sampling and filtering
 - Alert threshold tuning

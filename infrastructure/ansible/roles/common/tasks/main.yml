@@ -9,7 +9,7 @@
 
 - name: Update all packages (RHEL/CentOS)
   yum:
-    name: '*'
+    name: "*"
     state: latest
     update_only: yes
   when: ansible_os_family == "RedHat"
@@ -79,10 +79,10 @@
 - name: Configure sudo for fluxion user
   lineinfile:
     path: /etc/sudoers.d/fluxion
-    line: 'fluxion ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart fluxion*, /usr/bin/systemctl stop fluxion*, /usr/bin/systemctl start fluxion*'
+    line: "fluxion ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart fluxion*, /usr/bin/systemctl stop fluxion*, /usr/bin/systemctl start fluxion*"
     create: yes
-    mode: '0440'
-    validate: 'visudo -cf %s'
+    mode: "0440"
+    validate: "visudo -cf %s"
 
 - name: Configure firewall (RHEL/CentOS)
   firewalld:
@@ -118,7 +118,7 @@
     port: "{{ item }}"
     proto: tcp
   loop:
-    - '22'  # SSH
+    - "22" # SSH
   when: ansible_os_family == "Debian"
 
 - name: Configure UFW for HTTP/HTTPS (Debian/Ubuntu)
@@ -127,8 +127,8 @@
     port: "{{ item }}"
     proto: tcp
   loop:
-    - '80'   # HTTP
-    - '443'  # HTTPS
+    - "80" # HTTP
+    - "443" # HTTPS
   when: ansible_os_family == "Debian" and inventory_hostname in groups['webservers']
 
 - name: Enable UFW firewall (Debian/Ubuntu)
@@ -144,7 +144,7 @@
     dest: /etc/logrotate.d/fluxion
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
 
 - name: Create application directories
   file:
@@ -152,7 +152,7 @@
     state: directory
     owner: fluxion
     group: fluxion
-    mode: '0755'
+    mode: "0755"
   loop:
     - /opt/fluxion
     - /opt/fluxion/logs
@@ -166,7 +166,7 @@
     state: directory
     owner: fluxion
     group: fluxion
-    mode: '0750'
+    mode: "0750"
 
 - name: Configure rsyslog for application logging
   template:
@@ -174,7 +174,7 @@
     dest: /etc/rsyslog.d/10-fluxion.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
   notify: restart rsyslog
 
 - name: Ensure rsyslog is running

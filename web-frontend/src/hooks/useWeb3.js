@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import { useState, useEffect } from "react";
+import { ethers } from "ethers";
 
 export const useWeb3 = () => {
   const [provider, setProvider] = useState(null);
@@ -17,7 +17,7 @@ export const useWeb3 = () => {
           setProvider(provider);
 
           // Request account access
-          const accounts = await provider.send('eth_requestAccounts', []);
+          const accounts = await provider.send("eth_requestAccounts", []);
           setAccount(accounts[0]);
 
           // Get signer
@@ -29,17 +29,17 @@ export const useWeb3 = () => {
           setChainId(network.chainId);
 
           // Listen for account changes
-          window.ethereum.on('accountsChanged', (accounts) => {
+          window.ethereum.on("accountsChanged", (accounts) => {
             setAccount(accounts[0]);
           });
 
           // Listen for chain changes
-          window.ethereum.on('chainChanged', (chainId) => {
+          window.ethereum.on("chainChanged", (chainId) => {
             setChainId(chainId);
             window.location.reload();
           });
         } else {
-          setError(new Error('Please install MetaMask'));
+          setError(new Error("Please install MetaMask"));
         }
       } catch (err) {
         setError(err);

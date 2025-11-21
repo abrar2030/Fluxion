@@ -35,6 +35,7 @@ Each script includes detailed help information accessible via the `--help` flag:
 Automates the deployment of Fluxion to multiple environments (development, staging, production) and across multiple blockchain networks.
 
 **Key Features:**
+
 - Multi-environment support
 - Multi-chain deployment
 - Component-specific deployment options
@@ -42,6 +43,7 @@ Automates the deployment of Fluxion to multiple environments (development, stagi
 - Deployment registry for tracking
 
 **Example:**
+
 ```bash
 ./deploy_multi_env.sh -e staging -n ethereum,polygon,arbitrum
 ```
@@ -51,6 +53,7 @@ Automates the deployment of Fluxion to multiple environments (development, stagi
 Automates testing of Fluxion's cross-chain functionality across multiple blockchain networks.
 
 **Key Features:**
+
 - Multi-network testing
 - Various test types (unit, integration, e2e, messaging)
 - Parallel test execution
@@ -58,6 +61,7 @@ Automates testing of Fluxion's cross-chain functionality across multiple blockch
 - Local blockchain simulation
 
 **Example:**
+
 ```bash
 ./cross_chain_test.sh -n ethereum,polygon -t unit,integration -p
 ```
@@ -67,6 +71,7 @@ Automates testing of Fluxion's cross-chain functionality across multiple blockch
 Automates the training, evaluation, and deployment of AI/ML models used in Fluxion's liquidity prediction, market making, and risk management.
 
 **Key Features:**
+
 - Multiple model type support
 - Data source configuration
 - GPU acceleration option
@@ -75,6 +80,7 @@ Automates the training, evaluation, and deployment of AI/ML models used in Fluxi
 - Model evaluation and deployment
 
 **Example:**
+
 ```bash
 ./ai_ml_pipeline.sh -m liquidity_prediction,price_forecasting --gpu --deploy
 ```
@@ -84,6 +90,7 @@ Automates the training, evaluation, and deployment of AI/ML models used in Fluxi
 Sets up and manages monitoring for Fluxion components across multiple environments and blockchain networks.
 
 **Key Features:**
+
 - Multi-component monitoring
 - Multiple alert channels
 - Dashboard generation
@@ -91,6 +98,7 @@ Sets up and manages monitoring for Fluxion components across multiple environmen
 - Comprehensive documentation
 
 **Example:**
+
 ```bash
 ./monitoring_setup.sh -e production -c backend,blockchain,database -a slack,email
 ```
@@ -98,6 +106,7 @@ Sets up and manages monitoring for Fluxion components across multiple environmen
 ## Validation
 
 All scripts have been validated for:
+
 - Syntax correctness
 - Documentation quality
 - Basic functionality
@@ -108,6 +117,7 @@ See the validation report in the `validation` directory for details.
 ## Customization
 
 Each script uses configuration files that should be placed in specific directories:
+
 - Deployment configs: `./infrastructure/deployment/configs/`
 - Test configs: `./infrastructure/test/configs/`
 - AI/ML configs: `./code/ai/configs/`

@@ -35,12 +35,14 @@ pre-commit install
 ### 3. Development Workflow
 
 1. Create a new branch
+
 ```bash
 git checkout -b feature/your-feature-name
 ```
 
 2. Make your changes
 3. Run tests
+
 ```bash
 # Smart Contracts
 forge test
@@ -65,6 +67,7 @@ npm test
 ## Coding Standards
 
 ### Solidity
+
 - Follow [Solidity Style Guide](https://docs.soliditylang.org/en/latest/style-guide.html)
 - Use latest stable Solidity version
 - Document functions with NatSpec
@@ -84,6 +87,7 @@ function calculateOptimalSwap(
 ```
 
 ### Python
+
 - Follow PEP 8
 - Use type hints
 - Document with docstrings
@@ -110,6 +114,7 @@ def calculate_liquidity_score(
 ```
 
 ### TypeScript/React
+
 - Use ESLint and Prettier
 - Follow Airbnb Style Guide
 - Use functional components
@@ -134,18 +139,21 @@ const TradingView: React.FC<TradingViewProps> = ({
 ## Testing Guidelines
 
 ### Smart Contract Testing
+
 - Unit tests for each function
 - Integration tests for complex flows
 - Fuzzing tests for edge cases
 - Gas optimization tests
 
 ### Backend Testing
+
 - Unit tests with pytest
 - Integration tests with TestClient
 - Mock external services
 - Performance benchmarks
 
 ### Frontend Testing
+
 - Unit tests with Jest
 - Component tests with React Testing Library
 - E2E tests with Cypress
@@ -154,6 +162,7 @@ const TradingView: React.FC<TradingViewProps> = ({
 ## Documentation
 
 ### Required Documentation
+
 1. Technical specifications
 2. API documentation
 3. Architecture diagrams
@@ -161,6 +170,7 @@ const TradingView: React.FC<TradingViewProps> = ({
 5. Security considerations
 
 ### Documentation Style
+
 - Clear and concise
 - Include examples
 - Keep up-to-date
@@ -169,6 +179,7 @@ const TradingView: React.FC<TradingViewProps> = ({
 ## Review Process
 
 ### Code Review Checklist
+
 - [ ] Follows coding standards
 - [ ] Includes tests
 - [ ] Updates documentation
@@ -177,6 +188,7 @@ const TradingView: React.FC<TradingViewProps> = ({
 - [ ] Proper error handling
 
 ### Security Review
+
 - Smart contract audits
 - Dependency scanning
 - Static analysis
@@ -185,12 +197,14 @@ const TradingView: React.FC<TradingViewProps> = ({
 ## Release Process
 
 ### Version Control
+
 - Semantic versioning
 - Changelog updates
 - Release notes
 - Migration guides
 
 ### Deployment
+
 1. Test on testnet
 2. Security audit
 3. Community review
@@ -207,6 +221,7 @@ const TradingView: React.FC<TradingViewProps> = ({
 ## Recognition
 
 Contributors will be:
+
 - Listed in CONTRIBUTORS.md
 - Eligible for bounties
 - Given priority for grants

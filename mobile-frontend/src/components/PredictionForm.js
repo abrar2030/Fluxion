@@ -1,13 +1,28 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
-import { TextInput, Button, HelperText, useTheme, Card, Text, Chip, IconButton } from 'react-native-paper';
+import React, { useState } from "react";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
+import {
+  TextInput,
+  Button,
+  HelperText,
+  useTheme,
+  Card,
+  Text,
+  Chip,
+  IconButton,
+} from "react-native-paper";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { format } from 'date-fns'; // Using date-fns for reliable formatting
+import { format } from "date-fns"; // Using date-fns for reliable formatting
 
 const PredictionForm = ({ onSubmit, isLoading }) => {
   const [selectedTimestamps, setSelectedTimestamps] = useState([]);
-  const [meterIds, setMeterIds] = useState('');
-  const [contextFeatures, setContextFeatures] = useState('');
+  const [meterIds, setMeterIds] = useState("");
+  const [contextFeatures, setContextFeatures] = useState("");
   const [errors, setErrors] = useState({});
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const theme = useTheme();
@@ -22,29 +37,32 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
 
   const handleConfirm = (date) => {
     // Add the selected date and sort them
-    setSelectedTimestamps(prev => [...prev, date].sort((a, b) => a - b));
+    setSelectedTimestamps((prev) => [...prev, date].sort((a, b) => a - b));
     hideDatePicker();
     // Clear timestamp error if present
     if (errors.timestamps) {
-      setErrors(prev => ({ ...prev, timestamps: null }));
+      setErrors((prev) => ({ ...prev, timestamps: null }));
     }
   };
 
   const removeTimestamp = (indexToRemove) => {
-    setSelectedTimestamps(prev => prev.filter((_, index) => index !== indexToRemove));
+    setSelectedTimestamps((prev) =>
+      prev.filter((_, index) => index !== indexToRemove),
+    );
   };
 
   const validateInput = () => {
     const newErrors = {};
-    if (selectedTimestamps.length === 0) newErrors.timestamps = 'At least one timestamp is required.';
-    if (!meterIds.trim()) newErrors.meterIds = 'Meter IDs are required.';
+    if (selectedTimestamps.length === 0)
+      newErrors.timestamps = "At least one timestamp is required.";
+    if (!meterIds.trim()) newErrors.meterIds = "Meter IDs are required.";
     if (!contextFeatures.trim()) {
-      newErrors.contextFeatures = 'Context Features are required.';
+      newErrors.contextFeatures = "Context Features are required.";
     } else {
       try {
         JSON.parse(contextFeatures);
       } catch (e) {
-        newErrors.contextFeatures = 'Context Features must be valid JSON.';
+        newErrors.contextFeatures = "Context Features must be valid JSON.";
       }
     }
     setErrors(newErrors);
@@ -58,23 +76,39 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
 
     try {
       // Format timestamps to ISO 8601 strings
-      const timestampArray = selectedTimestamps.map(date => format(date, "yyyy-MM-dd'T'HH:mm:ss"));
-      const meterIdArray = meterIds.split(',').map(id => id.trim()).filter(id => id); // Filter empty strings
+      const timestampArray = selectedTimestamps.map((date) =>
+        format(date, "yyyy-MM-dd'T'HH:mm:ss"),
+      );
+      const meterIdArray = meterIds
+        .split(",")
+        .map((id) => id.trim())
+        .filter((id) => id); // Filter empty strings
       const contextFeaturesObj = JSON.parse(contextFeatures);
       onSubmit(timestampArray, meterIdArray, contextFeaturesObj);
     } catch (error) {
-      setErrors({ form: error.message || 'An unexpected error occurred during submission.' });
+      setErrors({
+        form:
+          error.message || "An unexpected error occurred during submission.",
+      });
     }
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       <Card style={styles.card}>
         <Card.Content>
           {/* Timestamp Input */}
           <View style={styles.timestampContainer}>
             <Text style={styles.label}>Timestamps</Text>
-            <Button icon="calendar-plus" mode="outlined" onPress={showDatePicker} style={styles.addButton}>
+            <Button
+              icon="calendar-plus"
+              mode="outlined"
+              onPress={showDatePicker}
+              style={styles.addButton}
+            >
               Add Timestamp
             </Button>
           </View>
@@ -141,7 +175,7 @@ const PredictionForm = ({ onSubmit, isLoading }) => {
             style={styles.button}
             labelStyle={styles.buttonLabel}
           >
-            {isLoading ? 'Getting Prediction...' : 'Get Prediction'}
+            {isLoading ? "Getting Prediction..." : "Get Prediction"}
           </Button>
           <HelperText type="error" visible={!!errors.form}>
             {errors.form}
@@ -165,21 +199,21 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 8,
-    color: '#333', // Adjust color as needed
-    fontWeight: 'bold',
+    color: "#333", // Adjust color as needed
+    fontWeight: "bold",
   },
   timestampContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 8,
   },
   addButton: {
     // Style for the add button if needed
   },
   chipContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginBottom: 8,
   },
   chip: {
@@ -191,7 +225,7 @@ const styles = StyleSheet.create({
   },
   jsonInput: {
     height: 120,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   button: {
     marginTop: 16,

@@ -1,22 +1,22 @@
-import React from 'react';
-import { render } from '@testing-library/react-native';
-import App from '../../App';
-import { NavigationContainer } from '@react-navigation/native';
-import { Provider as PaperProvider } from 'react-native-paper';
+import React from "react";
+import { render } from "@testing-library/react-native";
+import App from "../../App";
+import { NavigationContainer } from "@react-navigation/native";
+import { Provider as PaperProvider } from "react-native-paper";
 
 // Mock the navigation components
-jest.mock('@react-navigation/native', () => ({
+jest.mock("@react-navigation/native", () => ({
   NavigationContainer: ({ children }) => children,
 }));
 
-jest.mock('@react-navigation/native-stack', () => ({
+jest.mock("@react-navigation/native-stack", () => ({
   createNativeStackNavigator: () => ({
     Navigator: ({ children }) => children,
     Screen: ({ children }) => children,
   }),
 }));
 
-jest.mock('@react-navigation/bottom-tabs', () => ({
+jest.mock("@react-navigation/bottom-tabs", () => ({
   createBottomTabNavigator: () => ({
     Navigator: ({ children }) => children,
     Screen: ({ children }) => children,
@@ -24,22 +24,22 @@ jest.mock('@react-navigation/bottom-tabs', () => ({
 }));
 
 // Mock the screens
-jest.mock('../../src/screens/InputScreen', () => 'InputScreen');
-jest.mock('../../src/screens/ResultsScreen', () => 'ResultsScreen');
-jest.mock('../../src/screens/AssetsScreen', () => 'AssetsScreen');
-jest.mock('../../src/screens/PoolsScreen', () => 'PoolsScreen');
+jest.mock("../../src/screens/InputScreen", () => "InputScreen");
+jest.mock("../../src/screens/ResultsScreen", () => "ResultsScreen");
+jest.mock("../../src/screens/AssetsScreen", () => "AssetsScreen");
+jest.mock("../../src/screens/PoolsScreen", () => "PoolsScreen");
 
-describe('App Component', () => {
-  it('renders without crashing', () => {
+describe("App Component", () => {
+  it("renders without crashing", () => {
     const { getByText } = render(<App />);
-    expect(getByText('Prediction')).toBeTruthy();
-    expect(getByText('Assets')).toBeTruthy();
-    expect(getByText('Pools')).toBeTruthy();
+    expect(getByText("Prediction")).toBeTruthy();
+    expect(getByText("Assets")).toBeTruthy();
+    expect(getByText("Pools")).toBeTruthy();
   });
 
-  it('has correct theme colors', () => {
+  it("has correct theme colors", () => {
     const { getByText } = render(<App />);
-    const predictionTab = getByText('Prediction');
+    const predictionTab = getByText("Prediction");
     expect(predictionTab).toBeTruthy();
     // Add more theme-related tests as needed
   });

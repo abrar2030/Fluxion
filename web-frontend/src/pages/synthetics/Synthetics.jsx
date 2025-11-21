@@ -1,37 +1,130 @@
-import React, { useState } from 'react';
-import { Box, Flex, Heading, Text, SimpleGrid, Button, HStack, VStack, Icon, useColorModeValue, Badge, Tabs, TabList, TabPanels, Tab, TabPanel, FormControl, FormLabel, Input, Switch, Select, Slider, SliderTrack, SliderFilledTrack, SliderThumb, Tooltip, Divider, Card, CardBody, Avatar, AvatarBadge, Menu, MenuButton, MenuList, MenuItem, IconButton, Table, Thead, Tbody, Tr, Th, Td, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, Progress, Stat, StatLabel, StatNumber, StatHelpText, StatArrow } from '@chakra-ui/react';
-import { FiTrendingUp, FiTrendingDown, FiDroplet, FiDollarSign, FiActivity, FiPlus, FiInfo, FiAlertTriangle, FiCheck, FiX, FiChevronDown, FiLogOut, FiMoon, FiSun, FiBell } from 'react-icons/fi';
-import { Link as RouterLink } from 'react-router-dom';
-import { useWeb3 } from '../../lib/web3-config.jsx';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import React, { useState } from "react";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  SimpleGrid,
+  Button,
+  HStack,
+  VStack,
+  Icon,
+  useColorModeValue,
+  Badge,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  FormControl,
+  FormLabel,
+  Input,
+  Switch,
+  Select,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
+  Tooltip,
+  Divider,
+  Card,
+  CardBody,
+  Avatar,
+  AvatarBadge,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
+  Progress,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
+  StatArrow,
+} from "@chakra-ui/react";
+import {
+  FiTrendingUp,
+  FiTrendingDown,
+  FiDroplet,
+  FiDollarSign,
+  FiActivity,
+  FiPlus,
+  FiInfo,
+  FiAlertTriangle,
+  FiCheck,
+  FiX,
+  FiChevronDown,
+  FiLogOut,
+  FiMoon,
+  FiSun,
+  FiBell,
+} from "react-icons/fi";
+import { Link as RouterLink } from "react-router-dom";
+import { useWeb3 } from "../../lib/web3-config.jsx";
+import {
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 // Mock data for charts
 const priceData = [
-  { name: 'Jan', price: 100 },
-  { name: 'Feb', price: 120 },
-  { name: 'Mar', price: 110 },
-  { name: 'Apr', price: 140 },
-  { name: 'May', price: 130 },
-  { name: 'Jun', price: 160 },
-  { name: 'Jul', price: 170 },
+  { name: "Jan", price: 100 },
+  { name: "Feb", price: 120 },
+  { name: "Mar", price: 110 },
+  { name: "Apr", price: 140 },
+  { name: "May", price: 130 },
+  { name: "Jun", price: 160 },
+  { name: "Jul", price: 170 },
 ];
 
 const volumeData = [
-  { name: 'Jan', volume: 2400 },
-  { name: 'Feb', volume: 1398 },
-  { name: 'Mar', volume: 9800 },
-  { name: 'Apr', volume: 3908 },
-  { name: 'May', volume: 4800 },
-  { name: 'Jun', volume: 3800 },
-  { name: 'Jul', volume: 4300 },
+  { name: "Jan", volume: 2400 },
+  { name: "Feb", volume: 1398 },
+  { name: "Mar", volume: 9800 },
+  { name: "Apr", volume: 3908 },
+  { name: "May", volume: 4800 },
+  { name: "Jun", volume: 3800 },
+  { name: "Jul", volume: 4300 },
 ];
 
 const Synthetics = () => {
   const { isConnected } = useWeb3();
-  const cardBg = useColorModeValue('gray.800', 'gray.700');
-  const borderColor = useColorModeValue('gray.700', 'gray.600');
-  const textColor = useColorModeValue('white', 'white');
-  const subTextColor = useColorModeValue('gray.400', 'gray.400');
+  const cardBg = useColorModeValue("gray.800", "gray.700");
+  const borderColor = useColorModeValue("gray.700", "gray.600");
+  const textColor = useColorModeValue("white", "white");
+  const subTextColor = useColorModeValue("gray.400", "gray.400");
 
   // Modal state
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -43,64 +136,69 @@ const Synthetics = () => {
   // Mock synthetics data
   const synthetics = [
     {
-      id: 'synth-1',
-      name: 'sETH',
-      baseAsset: 'ETH',
-      price: '$1,720.45',
-      priceChange: '+2.4%',
+      id: "synth-1",
+      name: "sETH",
+      baseAsset: "ETH",
+      price: "$1,720.45",
+      priceChange: "+2.4%",
       isUp: true,
-      tvl: '$42.5M',
-      volume24h: '$8.2M',
-      collateralization: '150%',
-      description: 'Synthetic Ethereum that tracks the price of ETH through oracle price feeds.',
+      tvl: "$42.5M",
+      volume24h: "$8.2M",
+      collateralization: "150%",
+      description:
+        "Synthetic Ethereum that tracks the price of ETH through oracle price feeds.",
     },
     {
-      id: 'synth-2',
-      name: 'sBTC',
-      baseAsset: 'BTC',
-      price: '$42,350.78',
-      priceChange: '+1.8%',
+      id: "synth-2",
+      name: "sBTC",
+      baseAsset: "BTC",
+      price: "$42,350.78",
+      priceChange: "+1.8%",
       isUp: true,
-      tvl: '$68.3M',
-      volume24h: '$12.5M',
-      collateralization: '150%',
-      description: 'Synthetic Bitcoin that tracks the price of BTC through oracle price feeds.',
+      tvl: "$68.3M",
+      volume24h: "$12.5M",
+      collateralization: "150%",
+      description:
+        "Synthetic Bitcoin that tracks the price of BTC through oracle price feeds.",
     },
     {
-      id: 'synth-3',
-      name: 'sGOLD',
-      baseAsset: 'GOLD',
-      price: '$1,845.20',
-      priceChange: '-0.5%',
+      id: "synth-3",
+      name: "sGOLD",
+      baseAsset: "GOLD",
+      price: "$1,845.20",
+      priceChange: "-0.5%",
       isUp: false,
-      tvl: '$15.7M',
-      volume24h: '$3.2M',
-      collateralization: '175%',
-      description: 'Synthetic Gold that tracks the price of gold through oracle price feeds.',
+      tvl: "$15.7M",
+      volume24h: "$3.2M",
+      collateralization: "175%",
+      description:
+        "Synthetic Gold that tracks the price of gold through oracle price feeds.",
     },
     {
-      id: 'synth-4',
-      name: 'sEUR',
-      baseAsset: 'EUR',
-      price: '$1.08',
-      priceChange: '+0.2%',
+      id: "synth-4",
+      name: "sEUR",
+      baseAsset: "EUR",
+      price: "$1.08",
+      priceChange: "+0.2%",
       isUp: true,
-      tvl: '$22.1M',
-      volume24h: '$5.4M',
-      collateralization: '120%',
-      description: 'Synthetic Euro that tracks the price of EUR through oracle price feeds.',
+      tvl: "$22.1M",
+      volume24h: "$5.4M",
+      collateralization: "120%",
+      description:
+        "Synthetic Euro that tracks the price of EUR through oracle price feeds.",
     },
     {
-      id: 'synth-5',
-      name: 'sTSLA',
-      baseAsset: 'TSLA',
-      price: '$248.50',
-      priceChange: '-1.2%',
+      id: "synth-5",
+      name: "sTSLA",
+      baseAsset: "TSLA",
+      price: "$248.50",
+      priceChange: "-1.2%",
       isUp: false,
-      tvl: '$8.9M',
-      volume24h: '$2.1M',
-      collateralization: '200%',
-      description: 'Synthetic Tesla stock that tracks the price of TSLA through oracle price feeds.',
+      tvl: "$8.9M",
+      volume24h: "$2.1M",
+      collateralization: "200%",
+      description:
+        "Synthetic Tesla stock that tracks the price of TSLA through oracle price feeds.",
     },
   ];
 
@@ -113,19 +211,19 @@ const Synthetics = () => {
   // Mock user positions
   const userPositions = [
     {
-      id: 'position-1',
-      synthetic: 'sETH',
-      amount: '5.2',
-      value: '$8,946.34',
-      collateral: '$13,419.51',
+      id: "position-1",
+      synthetic: "sETH",
+      amount: "5.2",
+      value: "$8,946.34",
+      collateral: "$13,419.51",
       health: 85,
     },
     {
-      id: 'position-2',
-      synthetic: 'sBTC',
-      amount: '0.25',
-      value: '$10,587.70',
-      collateral: '$15,881.55',
+      id: "position-2",
+      synthetic: "sBTC",
+      amount: "0.25",
+      value: "$10,587.70",
+      collateral: "$15,881.55",
       health: 92,
     },
   ];
@@ -166,13 +264,18 @@ const Synthetics = () => {
           opacity="0.1"
         />
 
-        <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ base: 'flex-start', md: 'center' }}>
+        <Flex
+          direction={{ base: "column", md: "row" }}
+          justify="space-between"
+          align={{ base: "flex-start", md: "center" }}
+        >
           <Box mb={{ base: 6, md: 0 }}>
             <Heading as="h1" size="xl" mb={4}>
               Synthetic Assets
             </Heading>
             <Text fontSize="lg" color={subTextColor} maxW="600px">
-              Trade synthetic assets that track the price of real-world assets without owning the underlying asset. Access global markets 24/7.
+              Trade synthetic assets that track the price of real-world assets
+              without owning the underlying asset. Access global markets 24/7.
             </Text>
           </Box>
 
@@ -184,7 +287,7 @@ const Synthetics = () => {
             _hover={{
               bgGradient: "linear(to-r, brand.600, accent.600)",
               transform: "translateY(-2px)",
-              boxShadow: "lg"
+              boxShadow: "lg",
             }}
           >
             Mint Synthetic
@@ -202,8 +305,12 @@ const Synthetics = () => {
           border="1px solid"
           borderColor={borderColor}
         >
-          <Heading size="md" mb={4}>Total Value Locked</Heading>
-          <Heading size="2xl" mb={2}>$157.5M</Heading>
+          <Heading size="md" mb={4}>
+            Total Value Locked
+          </Heading>
+          <Heading size="2xl" mb={2}>
+            $157.5M
+          </Heading>
           <HStack>
             <Icon as={FiTrendingUp} color="green.400" />
             <Text color="green.400">+12.8% (24h)</Text>
@@ -218,8 +325,12 @@ const Synthetics = () => {
           border="1px solid"
           borderColor={borderColor}
         >
-          <Heading size="md" mb={4}>24h Trading Volume</Heading>
-          <Heading size="2xl" mb={2}>$31.4M</Heading>
+          <Heading size="md" mb={4}>
+            24h Trading Volume
+          </Heading>
+          <Heading size="2xl" mb={2}>
+            $31.4M
+          </Heading>
           <HStack>
             <Icon as={FiTrendingUp} color="green.400" />
             <Text color="green.400">+8.5% (24h)</Text>
@@ -234,8 +345,12 @@ const Synthetics = () => {
           border="1px solid"
           borderColor={borderColor}
         >
-          <Heading size="md" mb={4}>Active Synthetics</Heading>
-          <Heading size="2xl" mb={2}>15</Heading>
+          <Heading size="md" mb={4}>
+            Active Synthetics
+          </Heading>
+          <Heading size="2xl" mb={2}>
+            15
+          </Heading>
           <HStack>
             <Icon as={FiTrendingUp} color="green.400" />
             <Text color="green.400">+2 new</Text>
@@ -253,7 +368,9 @@ const Synthetics = () => {
           border="1px solid"
           borderColor={borderColor}
         >
-          <Heading size="md" mb={6}>Price Performance</Heading>
+          <Heading size="md" mb={6}>
+            Price Performance
+          </Heading>
           <Box h="300px">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
@@ -265,13 +382,19 @@ const Synthetics = () => {
                 <YAxis stroke="#888" />
                 <RechartsTooltip
                   contentStyle={{
-                    backgroundColor: 'rgba(23, 25, 35, 0.9)',
-                    border: '1px solid #333',
-                    borderRadius: '4px',
-                    color: 'white'
+                    backgroundColor: "rgba(23, 25, 35, 0.9)",
+                    border: "1px solid #333",
+                    borderRadius: "4px",
+                    color: "white",
                   }}
                 />
-                <Line type="monotone" dataKey="price" stroke="#0080ff" strokeWidth={2} dot={{ r: 4 }} />
+                <Line
+                  type="monotone"
+                  dataKey="price"
+                  stroke="#0080ff"
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </Box>
@@ -285,7 +408,9 @@ const Synthetics = () => {
           border="1px solid"
           borderColor={borderColor}
         >
-          <Heading size="md" mb={6}>Trading Volume</Heading>
+          <Heading size="md" mb={6}>
+            Trading Volume
+          </Heading>
           <Box h="300px">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
@@ -297,10 +422,10 @@ const Synthetics = () => {
                 <YAxis stroke="#888" />
                 <RechartsTooltip
                   contentStyle={{
-                    backgroundColor: 'rgba(23, 25, 35, 0.9)',
-                    border: '1px solid #333',
-                    borderRadius: '4px',
-                    color: 'white'
+                    backgroundColor: "rgba(23, 25, 35, 0.9)",
+                    border: "1px solid #333",
+                    borderRadius: "4px",
+                    color: "white",
                   }}
                 />
                 <Bar dataKey="volume" fill="#ff7000" radius={[4, 4, 0, 0]} />
@@ -320,7 +445,9 @@ const Synthetics = () => {
         borderColor={borderColor}
         mb={8}
       >
-        <Heading size="md" mb={6}>Available Synthetics</Heading>
+        <Heading size="md" mb={6}>
+          Available Synthetics
+        </Heading>
 
         <Box overflowX="auto">
           <Table variant="simple">
@@ -340,9 +467,9 @@ const Synthetics = () => {
                 <Tr
                   key={synthetic.id}
                   _hover={{
-                    bg: 'gray.700',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    bg: "gray.700",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
                   }}
                   onClick={() => handleSyntheticClick(synthetic)}
                 >
@@ -350,11 +477,15 @@ const Synthetics = () => {
                     <HStack>
                       <Box
                         bg={
-                          synthetic.name === 'sETH' ? 'blue.500' :
-                          synthetic.name === 'sBTC' ? 'orange.500' :
-                          synthetic.name === 'sGOLD' ? 'yellow.500' :
-                          synthetic.name === 'sEUR' ? 'green.500' :
-                          'purple.500'
+                          synthetic.name === "sETH"
+                            ? "blue.500"
+                            : synthetic.name === "sBTC"
+                              ? "orange.500"
+                              : synthetic.name === "sGOLD"
+                                ? "yellow.500"
+                                : synthetic.name === "sEUR"
+                                  ? "green.500"
+                                  : "purple.500"
                         }
                         borderRadius="full"
                         w="30px"
@@ -377,9 +508,14 @@ const Synthetics = () => {
                       </VStack>
                     </HStack>
                   </Td>
-                  <Td isNumeric fontWeight="medium">{synthetic.price}</Td>
+                  <Td isNumeric fontWeight="medium">
+                    {synthetic.price}
+                  </Td>
                   <Td isNumeric>
-                    <Text fontWeight="bold" color={synthetic.isUp ? "green.400" : "red.400"}>
+                    <Text
+                      fontWeight="bold"
+                      color={synthetic.isUp ? "green.400" : "red.400"}
+                    >
                       {synthetic.priceChange}
                     </Text>
                   </Td>
@@ -444,7 +580,13 @@ const Synthetics = () => {
                       <Flex justify="space-between" mb={3}>
                         <Heading size="md">{position.synthetic}</Heading>
                         <Badge
-                          colorScheme={position.health > 90 ? "green" : position.health > 70 ? "yellow" : "red"}
+                          colorScheme={
+                            position.health > 90
+                              ? "green"
+                              : position.health > 70
+                                ? "yellow"
+                                : "red"
+                          }
                           px={2}
                           py={1}
                         >
@@ -455,7 +597,9 @@ const Synthetics = () => {
                       <SimpleGrid columns={2} spacing={4} mb={4}>
                         <Box>
                           <Text color={subTextColor}>Amount</Text>
-                          <Text fontWeight="bold">{position.amount} {position.synthetic}</Text>
+                          <Text fontWeight="bold">
+                            {position.amount} {position.synthetic}
+                          </Text>
                         </Box>
                         <Box>
                           <Text color={subTextColor}>Value</Text>
@@ -467,13 +611,32 @@ const Synthetics = () => {
                         </Box>
                         <Box>
                           <Text color={subTextColor}>C-Ratio</Text>
-                          <Text fontWeight="bold">{Math.round(parseInt(position.collateral.substring(1).replace(/,/g, '')) / parseInt(position.value.substring(1).replace(/,/g, '')) * 100)}%</Text>
+                          <Text fontWeight="bold">
+                            {Math.round(
+                              (parseInt(
+                                position.collateral
+                                  .substring(1)
+                                  .replace(/,/g, ""),
+                              ) /
+                                parseInt(
+                                  position.value.substring(1).replace(/,/g, ""),
+                                )) *
+                                100,
+                            )}
+                            %
+                          </Text>
                         </Box>
                       </SimpleGrid>
 
                       <Progress
                         value={position.health}
-                        colorScheme={position.health > 90 ? "green" : position.health > 70 ? "yellow" : "red"}
+                        colorScheme={
+                          position.health > 90
+                            ? "green"
+                            : position.health > 70
+                              ? "yellow"
+                              : "red"
+                        }
                         size="sm"
                         borderRadius="full"
                         mb={4}
@@ -486,7 +649,12 @@ const Synthetics = () => {
                         <Button size="sm" variant="outline" flex="1">
                           Add Collateral
                         </Button>
-                        <Button size="sm" colorScheme="red" variant="outline" flex="1">
+                        <Button
+                          size="sm"
+                          colorScheme="red"
+                          variant="outline"
+                          flex="1"
+                        >
                           Close
                         </Button>
                       </HStack>
@@ -506,7 +674,9 @@ const Synthetics = () => {
                           </Badge>
                           <VStack align="start" spacing={0}>
                             <Text fontWeight="bold">5.0 sETH</Text>
-                            <Text fontSize="sm" color={subTextColor}>Today, 10:23 AM</Text>
+                            <Text fontSize="sm" color={subTextColor}>
+                              Today, 10:23 AM
+                            </Text>
                           </VStack>
                         </HStack>
                         <Text>$8,602.25</Text>
@@ -523,7 +693,9 @@ const Synthetics = () => {
                           </Badge>
                           <VStack align="start" spacing={0}>
                             <Text fontWeight="bold">0.25 sBTC → 6.2 sETH</Text>
-                            <Text fontSize="sm" color={subTextColor}>Yesterday, 3:45 PM</Text>
+                            <Text fontSize="sm" color={subTextColor}>
+                              Yesterday, 3:45 PM
+                            </Text>
                           </VStack>
                         </HStack>
                         <Text>$10,587.70</Text>
@@ -539,8 +711,12 @@ const Synthetics = () => {
                             Add Collateral
                           </Badge>
                           <VStack align="start" spacing={0}>
-                            <Text fontWeight="bold">+2.5 ETH to sETH position</Text>
-                            <Text fontSize="sm" color={subTextColor}>Apr 10, 2025, 11:32 AM</Text>
+                            <Text fontWeight="bold">
+                              +2.5 ETH to sETH position
+                            </Text>
+                            <Text fontSize="sm" color={subTextColor}>
+                              Apr 10, 2025, 11:32 AM
+                            </Text>
                           </VStack>
                         </HStack>
                         <Text>$4,301.13</Text>
@@ -557,7 +733,9 @@ const Synthetics = () => {
                           </Badge>
                           <VStack align="start" spacing={0}>
                             <Text fontWeight="bold">1.0 sETH</Text>
-                            <Text fontSize="sm" color={subTextColor}>Apr 8, 2025, 9:15 AM</Text>
+                            <Text fontSize="sm" color={subTextColor}>
+                              Apr 8, 2025, 9:15 AM
+                            </Text>
                           </VStack>
                         </HStack>
                         <Text>$1,720.45</Text>
@@ -580,9 +758,12 @@ const Synthetics = () => {
           textAlign="center"
         >
           <Icon as={FiDollarSign} boxSize={12} color="brand.500" mb={4} />
-          <Heading size="lg" mb={4}>Connect Your Wallet</Heading>
+          <Heading size="lg" mb={4}>
+            Connect Your Wallet
+          </Heading>
           <Text color={subTextColor} maxW="600px" mx="auto" mb={6}>
-            Connect your wallet to mint synthetic assets, manage your positions, and trade on the Fluxion platform.
+            Connect your wallet to mint synthetic assets, manage your positions,
+            and trade on the Fluxion platform.
           </Text>
           <Button
             size="lg"
@@ -591,7 +772,7 @@ const Synthetics = () => {
             _hover={{
               bgGradient: "linear(to-r, brand.600, accent.600)",
               transform: "translateY(-2px)",
-              boxShadow: "lg"
+              boxShadow: "lg",
             }}
           >
             Connect Wallet
@@ -607,11 +788,15 @@ const Synthetics = () => {
             <HStack>
               <Box
                 bg={
-                  selectedSynthetic?.name === 'sETH' ? 'blue.500' :
-                  selectedSynthetic?.name === 'sBTC' ? 'orange.500' :
-                  selectedSynthetic?.name === 'sGOLD' ? 'yellow.500' :
-                  selectedSynthetic?.name === 'sEUR' ? 'green.500' :
-                  'purple.500'
+                  selectedSynthetic?.name === "sETH"
+                    ? "blue.500"
+                    : selectedSynthetic?.name === "sBTC"
+                      ? "orange.500"
+                      : selectedSynthetic?.name === "sGOLD"
+                        ? "yellow.500"
+                        : selectedSynthetic?.name === "sEUR"
+                          ? "green.500"
+                          : "purple.500"
                 }
                 borderRadius="full"
                 w="30px"
@@ -645,7 +830,11 @@ const Synthetics = () => {
                       <StatLabel>Current Price</StatLabel>
                       <StatNumber>{selectedSynthetic?.price}</StatNumber>
                       <StatHelpText>
-                        <StatArrow type={selectedSynthetic?.isUp ? "increase" : "decrease"} />
+                        <StatArrow
+                          type={
+                            selectedSynthetic?.isUp ? "increase" : "decrease"
+                          }
+                        />
                         {selectedSynthetic?.priceChange} (24h)
                       </StatHelpText>
                     </Stat>
@@ -670,31 +859,35 @@ const Synthetics = () => {
 
                     <Stat>
                       <StatLabel>Collateralization Ratio</StatLabel>
-                      <StatNumber>{selectedSynthetic?.collateralization}</StatNumber>
-                      <StatHelpText>
-                        Minimum required
-                      </StatHelpText>
+                      <StatNumber>
+                        {selectedSynthetic?.collateralization}
+                      </StatNumber>
+                      <StatHelpText>Minimum required</StatHelpText>
                     </Stat>
                   </SimpleGrid>
 
                   <Box mb={6}>
-                    <Heading size="sm" mb={2}>Description</Heading>
+                    <Heading size="sm" mb={2}>
+                      Description
+                    </Heading>
                     <Text>{selectedSynthetic?.description}</Text>
                   </Box>
 
                   <Box mb={6}>
-                    <Heading size="sm" mb={2}>Price Performance</Heading>
+                    <Heading size="sm" mb={2}>
+                      Price Performance
+                    </Heading>
                     <Box h="200px">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart
                           data={[
-                            { date: 'Apr 5', price: 1650 },
-                            { date: 'Apr 6', price: 1680 },
-                            { date: 'Apr 7', price: 1700 },
-                            { date: 'Apr 8', price: 1690 },
-                            { date: 'Apr 9', price: 1710 },
-                            { date: 'Apr 10', price: 1715 },
-                            { date: 'Apr 11', price: 1720 },
+                            { date: "Apr 5", price: 1650 },
+                            { date: "Apr 6", price: 1680 },
+                            { date: "Apr 7", price: 1700 },
+                            { date: "Apr 8", price: 1690 },
+                            { date: "Apr 9", price: 1710 },
+                            { date: "Apr 10", price: 1715 },
+                            { date: "Apr 11", price: 1720 },
                           ]}
                         >
                           <CartesianGrid strokeDasharray="3 3" stroke="#444" />
@@ -702,14 +895,23 @@ const Synthetics = () => {
                           <YAxis stroke="#888" />
                           <RechartsTooltip
                             contentStyle={{
-                              backgroundColor: 'rgba(23, 25, 35, 0.9)',
-                              border: '1px solid #333',
-                              borderRadius: '4px',
-                              color: 'white'
+                              backgroundColor: "rgba(23, 25, 35, 0.9)",
+                              border: "1px solid #333",
+                              borderRadius: "4px",
+                              color: "white",
                             }}
-                            formatter={(value) => [`$${value.toFixed(2)}`, 'Price']}
+                            formatter={(value) => [
+                              `$${value.toFixed(2)}`,
+                              "Price",
+                            ]}
                           />
-                          <Line type="monotone" dataKey="price" stroke="#0080ff" strokeWidth={2} dot={{ r: 4 }} />
+                          <Line
+                            type="monotone"
+                            dataKey="price"
+                            stroke="#0080ff"
+                            strokeWidth={2}
+                            dot={{ r: 4 }}
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     </Box>
@@ -719,7 +921,9 @@ const Synthetics = () => {
                 <TabPanel px={0}>
                   <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={6}>
                     <Box>
-                      <Heading size="sm" mb={4}>Market Stats</Heading>
+                      <Heading size="sm" mb={4}>
+                        Market Stats
+                      </Heading>
                       <VStack spacing={4} align="stretch">
                         <Flex justify="space-between">
                           <Text color={subTextColor}>Market Cap</Text>
@@ -727,7 +931,9 @@ const Synthetics = () => {
                         </Flex>
                         <Flex justify="space-between">
                           <Text color={subTextColor}>Circulating Supply</Text>
-                          <Text fontWeight="bold">72,365 {selectedSynthetic?.name}</Text>
+                          <Text fontWeight="bold">
+                            72,365 {selectedSynthetic?.name}
+                          </Text>
                         </Flex>
                         <Flex justify="space-between">
                           <Text color={subTextColor}>All-Time High</Text>
@@ -741,14 +947,18 @@ const Synthetics = () => {
                     </Box>
 
                     <Box>
-                      <Heading size="sm" mb={4}>Protocol Stats</Heading>
+                      <Heading size="sm" mb={4}>
+                        Protocol Stats
+                      </Heading>
                       <VStack spacing={4} align="stretch">
                         <Flex justify="space-between">
                           <Text color={subTextColor}>Oracle Provider</Text>
                           <Text fontWeight="bold">Chainlink</Text>
                         </Flex>
                         <Flex justify="space-between">
-                          <Text color={subTextColor}>Liquidation Threshold</Text>
+                          <Text color={subTextColor}>
+                            Liquidation Threshold
+                          </Text>
                           <Text fontWeight="bold">120%</Text>
                         </Flex>
                         <Flex justify="space-between">
@@ -764,7 +974,9 @@ const Synthetics = () => {
                   </SimpleGrid>
 
                   <Box mb={6}>
-                    <Heading size="sm" mb={4}>Top Holders</Heading>
+                    <Heading size="sm" mb={4}>
+                      Top Holders
+                    </Heading>
                     <Table variant="simple" size="sm">
                       <Thead>
                         <Tr>
@@ -806,9 +1018,13 @@ const Synthetics = () => {
 
                 <TabPanel px={0}>
                   <Box mb={6}>
-                    <Heading size="sm" mb={4}>How Synthetic Assets Work</Heading>
+                    <Heading size="sm" mb={4}>
+                      How Synthetic Assets Work
+                    </Heading>
                     <Text mb={4}>
-                      Synthetic assets are tokenized derivatives that provide exposure to the price movement of the underlying asset without requiring you to hold the actual asset.
+                      Synthetic assets are tokenized derivatives that provide
+                      exposure to the price movement of the underlying asset
+                      without requiring you to hold the actual asset.
                     </Text>
 
                     <VStack spacing={4} align="stretch">
@@ -830,9 +1046,15 @@ const Synthetics = () => {
                               1
                             </Box>
                             <Box>
-                              <Heading size="sm" mb={2}>Collateralization</Heading>
+                              <Heading size="sm" mb={2}>
+                                Collateralization
+                              </Heading>
                               <Text fontSize="sm">
-                                To mint synthetic assets, users must provide collateral in excess of the value of the synthetic assets they wish to create. This over-collateralization ensures the stability of the system.
+                                To mint synthetic assets, users must provide
+                                collateral in excess of the value of the
+                                synthetic assets they wish to create. This
+                                over-collateralization ensures the stability of
+                                the system.
                               </Text>
                             </Box>
                           </HStack>
@@ -857,9 +1079,15 @@ const Synthetics = () => {
                               2
                             </Box>
                             <Box>
-                              <Heading size="sm" mb={2}>Price Oracles</Heading>
+                              <Heading size="sm" mb={2}>
+                                Price Oracles
+                              </Heading>
                               <Text fontSize="sm">
-                                Price feeds from trusted oracles (like Chainlink) provide real-time price data for the underlying assets, ensuring that synthetic assets accurately track their real-world counterparts.
+                                Price feeds from trusted oracles (like
+                                Chainlink) provide real-time price data for the
+                                underlying assets, ensuring that synthetic
+                                assets accurately track their real-world
+                                counterparts.
                               </Text>
                             </Box>
                           </HStack>
@@ -884,9 +1112,14 @@ const Synthetics = () => {
                               3
                             </Box>
                             <Box>
-                              <Heading size="sm" mb={2}>Liquidation</Heading>
+                              <Heading size="sm" mb={2}>
+                                Liquidation
+                              </Heading>
                               <Text fontSize="sm">
-                                If the value of your collateral falls below the required ratio, your position may be liquidated. This means your collateral will be sold to repay the synthetic assets you've minted.
+                                If the value of your collateral falls below the
+                                required ratio, your position may be liquidated.
+                                This means your collateral will be sold to repay
+                                the synthetic assets you've minted.
                               </Text>
                             </Box>
                           </HStack>
@@ -911,9 +1144,13 @@ const Synthetics = () => {
                               4
                             </Box>
                             <Box>
-                              <Heading size="sm" mb={2}>Trading</Heading>
+                              <Heading size="sm" mb={2}>
+                                Trading
+                              </Heading>
                               <Text fontSize="sm">
-                                Once minted, synthetic assets can be freely traded on decentralized exchanges or used in other DeFi protocols, just like any other token.
+                                Once minted, synthetic assets can be freely
+                                traded on decentralized exchanges or used in
+                                other DeFi protocols, just like any other token.
                               </Text>
                             </Box>
                           </HStack>
@@ -922,13 +1159,29 @@ const Synthetics = () => {
                     </VStack>
                   </Box>
 
-                  <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="yellow.400">
+                  <Box
+                    p={4}
+                    bg="gray.700"
+                    borderRadius="md"
+                    borderLeft="4px solid"
+                    borderLeftColor="yellow.400"
+                  >
                     <Flex>
-                      <Icon as={FiAlertTriangle} color="yellow.400" boxSize={6} mr={3} mt={1} />
+                      <Icon
+                        as={FiAlertTriangle}
+                        color="yellow.400"
+                        boxSize={6}
+                        mr={3}
+                        mt={1}
+                      />
                       <Box>
                         <Text fontWeight="bold">Risk Warning</Text>
                         <Text fontSize="sm">
-                          Synthetic assets involve risk. Price volatility of the underlying asset can lead to liquidations if collateral ratios are not maintained. Always monitor your positions and maintain healthy collateralization ratios.
+                          Synthetic assets involve risk. Price volatility of the
+                          underlying asset can lead to liquidations if
+                          collateral ratios are not maintained. Always monitor
+                          your positions and maintain healthy collateralization
+                          ratios.
                         </Text>
                       </Box>
                     </Flex>
@@ -946,7 +1199,7 @@ const Synthetics = () => {
                 _hover={{
                   bgGradient: "linear(to-r, brand.600, accent.600)",
                   transform: "translateY(-2px)",
-                  boxShadow: "lg"
+                  boxShadow: "lg",
                 }}
               >
                 Trade

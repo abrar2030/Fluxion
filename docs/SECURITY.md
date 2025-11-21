@@ -1,11 +1,13 @@
 # Security Guidelines
 
 ## Overview
+
 This document outlines the security measures and best practices implemented in the Fluxion protocol to ensure the safety of user funds and data.
 
 ## Smart Contract Security
 
 ### 1. Access Control
+
 - Role-based access control (RBAC) implementation
 - Time-locked admin functions
 - Multi-signature requirements for critical operations
@@ -28,6 +30,7 @@ contract FluxionAccessControl {
 ```
 
 ### 2. Asset Security
+
 - Secure vault architecture
 - Rate limiting on withdrawals
 - Price oracle validation
@@ -46,6 +49,7 @@ contract FluxionVault {
 ```
 
 ### 3. Oracle Security
+
 - Multiple oracle sources
 - Median price selection
 - Heartbeat checks
@@ -66,6 +70,7 @@ contract PriceOracle {
 ## Infrastructure Security
 
 ### 1. Network Security
+
 - DDoS protection
 - Rate limiting
 - WAF rules
@@ -74,18 +79,19 @@ contract PriceOracle {
 ```yaml
 # nginx.conf
 http {
-    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=10r/s;
 
-    server {
-        location /api/ {
-            limit_req zone=api_limit burst=20 nodelay;
-            proxy_pass http://backend;
-        }
-    }
+server {
+location /api/ {
+limit_req zone=api_limit burst=20 nodelay;
+proxy_pass http://backend;
+}
+}
 }
 ```
 
 ### 2. Key Management
+
 - Hardware security modules (HSM)
 - Key rotation policies
 - Secure secret storage
@@ -105,6 +111,7 @@ seal:
 ```
 
 ### 3. Monitoring
+
 - Real-time alerts
 - Anomaly detection
 - Transaction monitoring
@@ -123,6 +130,7 @@ def monitor_transactions(tx_hash: str):
 ## Application Security
 
 ### 1. Authentication
+
 - Multi-factor authentication
 - JWT with short expiry
 - Session management
@@ -130,14 +138,15 @@ def monitor_transactions(tx_hash: str):
 
 ```typescript
 interface AuthConfig {
-  jwtExpiry: '15m',
-  mfaRequired: true,
-  maxFailedAttempts: 3,
-  lockoutDuration: '1h'
+  jwtExpiry: "15m";
+  mfaRequired: true;
+  maxFailedAttempts: 3;
+  lockoutDuration: "1h";
 }
 ```
 
 ### 2. API Security
+
 - Input validation
 - Request signing
 - Rate limiting
@@ -153,6 +162,7 @@ async def validate_request(request: Request, call_next):
 ```
 
 ### 3. Data Protection
+
 - Encryption at rest
 - Encryption in transit
 - Data minimization
@@ -170,6 +180,7 @@ CREATE TABLE user_data (
 ## Operational Security
 
 ### 1. Incident Response
+
 1. Detection
 2. Analysis
 3. Containment
@@ -178,6 +189,7 @@ CREATE TABLE user_data (
 6. Lessons learned
 
 ### 2. Security Updates
+
 - Regular dependency updates
 - Security patch management
 - Vulnerability scanning
@@ -197,6 +209,7 @@ dependabot config:
 ```
 
 ### 3. Access Management
+
 - Principle of least privilege
 - Regular access reviews
 - Audit logging
@@ -219,18 +232,21 @@ policies:
 ## Compliance
 
 ### 1. Audit Requirements
+
 - Regular security audits
 - Code reviews
 - Penetration testing
 - Vulnerability assessments
 
 ### 2. Regulatory Compliance
+
 - GDPR compliance
 - KYC/AML procedures
 - Data protection
 - Privacy policies
 
 ### 3. Documentation
+
 - Security policies
 - Incident response plans
 - Disaster recovery
@@ -239,18 +255,21 @@ policies:
 ## Security Checklist
 
 ### Smart Contracts
+
 - [ ] Formal verification completed
 - [ ] Multiple audits performed
 - [ ] Upgrade mechanism tested
 - [ ] Emergency procedures documented
 
 ### Infrastructure
+
 - [ ] Network segmentation implemented
 - [ ] Encryption at rest enabled
 - [ ] Access controls configured
 - [ ] Monitoring systems active
 
 ### Application
+
 - [ ] Input validation implemented
 - [ ] Authentication mechanisms tested
 - [ ] Rate limiting configured
@@ -259,16 +278,19 @@ policies:
 ## Reporting Security Issues
 
 ### Responsible Disclosure
+
 1. Email: security@fluxion.exchange
 2. Bug bounty program: https://bounty.fluxion.exchange
 3. PGP key for encrypted communication
 
 ### Security Contacts
+
 - Security Team: security@fluxion.exchange
 - Emergency Hotline: +1-XXX-XXX-XXXX
 - PGP Key ID: 0xDEADBEEF
 
 ## Security Resources
+
 - [Smart Contract Best Practices](https://consensys.github.io/smart-contract-best-practices/)
 - [OWASP Top 10](https://owasp.org/www-project-top-ten/)
 - [DeFi Security Best Practices](https://github.com/defi-security/best-practices)

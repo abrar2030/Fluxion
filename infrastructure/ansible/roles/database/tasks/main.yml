@@ -26,7 +26,7 @@
     dest: "{{ '/etc/my.cnf.d/server.cnf' if ansible_os_family == 'RedHat' else '/etc/mysql/mariadb.conf.d/50-server.cnf' }}"
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
     backup: yes
   notify: restart mariadb
 
@@ -36,7 +36,7 @@
     dest: "{{ '/etc/my.cnf.d/security.cnf' if ansible_os_family == 'RedHat' else '/etc/mysql/mariadb.conf.d/60-security.cnf' }}"
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
     backup: yes
   notify: restart mariadb
 
@@ -62,12 +62,12 @@
     dest: /root/.my.cnf
     owner: root
     group: root
-    mode: '0600'
+    mode: "0600"
   no_log: true
 
 - name: Remove anonymous users
   mysql_user:
-    name: ''
+    name: ""
     host_all: yes
     state: absent
     login_user: root
@@ -131,7 +131,7 @@
     state: directory
     owner: fluxion
     group: fluxion
-    mode: '0750'
+    mode: "0750"
 
 - name: Configure database backup script
   template:
@@ -139,7 +139,7 @@
     dest: /opt/fluxion/bin/db-backup.sh
     owner: fluxion
     group: fluxion
-    mode: '0750'
+    mode: "0750"
 
 - name: Create backup script directory
   file:
@@ -147,7 +147,7 @@
     state: directory
     owner: fluxion
     group: fluxion
-    mode: '0755'
+    mode: "0755"
 
 - name: Schedule database backups
   cron:
@@ -170,7 +170,7 @@
 - name: Configure UFW for database (Debian/Ubuntu)
   ufw:
     rule: allow
-    port: '3306'
+    port: "3306"
     proto: tcp
     src: "{{ item }}"
   loop: "{{ db_firewall_sources | default(['127.0.0.1']) }}"

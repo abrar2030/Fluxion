@@ -1,6 +1,14 @@
-import React, { useEffect } from 'react';
-import { Box, VStack, Alert, AlertIcon, AlertTitle, AlertDescription, CloseButton } from '@chakra-ui/react';
-import { useUI } from '../../contexts/UIContext';
+import React, { useEffect } from "react";
+import {
+  Box,
+  VStack,
+  Alert,
+  AlertIcon,
+  AlertTitle,
+  AlertDescription,
+  CloseButton,
+} from "@chakra-ui/react";
+import { useUI } from "../../contexts/UIContext";
 
 const NotificationCenter = ({ notifications }) => {
   const { removeNotification } = useUI();
@@ -33,7 +41,7 @@ const NotificationCenter = ({ notifications }) => {
         {notifications.map((notification) => (
           <Alert
             key={notification.id}
-            status={notification.type || 'info'}
+            status={notification.type || "info"}
             variant="solid"
             borderRadius="md"
           >

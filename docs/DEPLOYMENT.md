@@ -3,6 +3,7 @@
 ## Prerequisites
 
 ### System Requirements
+
 - CPU: 8+ cores
 - RAM: 32GB+
 - Storage: 500GB+ SSD
@@ -10,6 +11,7 @@
 - GPU: NVIDIA A100 or similar (for AI models)
 
 ### Software Requirements
+
 - Docker 24.0+
 - Kubernetes 1.28+
 - Helm 3.12+
@@ -104,15 +106,15 @@ spec:
   template:
     spec:
       containers:
-      - name: api
-        image: fluxion/api:latest
-        resources:
-          requests:
-            memory: "4Gi"
-            cpu: "2"
-          limits:
-            memory: "8Gi"
-            cpu: "4"
+        - name: api
+          image: fluxion/api:latest
+          resources:
+            requests:
+              memory: "4Gi"
+              cpu: "2"
+            limits:
+              memory: "8Gi"
+              cpu: "4"
 ```
 
 ### 2. AI Service
@@ -127,11 +129,11 @@ spec:
   template:
     spec:
       containers:
-      - name: ai
-        image: fluxion/ai:latest
-        resources:
-          limits:
-            nvidia.com/gpu: 1
+        - name: ai
+          image: fluxion/ai:latest
+          resources:
+            limits:
+              nvidia.com/gpu: 1
 ```
 
 ### 3. Worker Service
@@ -147,8 +149,8 @@ spec:
   template:
     spec:
       containers:
-      - name: worker
-        image: fluxion/worker:latest
+        - name: worker
+          image: fluxion/worker:latest
 ```
 
 ## Frontend Deployment
@@ -210,10 +212,10 @@ spec:
     matchLabels:
       app: fluxion-api
   ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: frontend
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
 ```
 
 ### 2. Secret Management
@@ -280,6 +282,7 @@ data:
 ### Common Issues
 
 1. Node Connection Issues
+
 ```bash
 # Check node status
 kubectl exec -it zkevm-0 -- curl localhost:8545
@@ -289,6 +292,7 @@ kubectl logs -f zkevm-0
 ```
 
 2. Database Performance
+
 ```bash
 # Monitor queries
 kubectl exec -it timescaledb-0 -- \\
@@ -296,6 +300,7 @@ kubectl exec -it timescaledb-0 -- \\
 ```
 
 3. API Errors
+
 ```bash
 # Check API logs
 kubectl logs -f -l app=fluxion-api

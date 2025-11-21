@@ -1,7 +1,7 @@
-import React from 'react';
-import { Box, Flex, Text, Icon, Spinner } from '@chakra-ui/react';
+import React from "react";
+import { Box, Flex, Text, Icon, Spinner } from "@chakra-ui/react";
 
-const LoadingOverlay = ({ message = 'Loading...' }) => {
+const LoadingOverlay = ({ message = "Loading..." }) => {
   return (
     <Flex
       position="fixed"

@@ -1,12 +1,15 @@
 # API Specification
 
 ## Base URL
+
 ```
 https://api.fluxion.exchange/v1
 ```
 
 ## Authentication
+
 All API endpoints require authentication using JWT tokens. Include the token in the Authorization header:
+
 ```
 Authorization: Bearer <your_jwt_token>
 ```
@@ -16,11 +19,13 @@ Authorization: Bearer <your_jwt_token>
 ### Trading Operations
 
 #### Create Synthetic Asset Order
+
 ```http
 POST /order
 ```
 
 **Request Body:**
+
 ```json
 {
   "asset_id": "string",
@@ -33,6 +38,7 @@ POST /order
 ```
 
 **Response:**
+
 ```json
 {
   "order_id": "string",
@@ -42,6 +48,7 @@ POST /order
 ```
 
 #### Get Order Status
+
 ```http
 GET /order/{order_id}
 ```
@@ -49,11 +56,13 @@ GET /order/{order_id}
 ### Liquidity Operations
 
 #### Get Pool Statistics
+
 ```http
 GET /pool/{pool_id}/stats
 ```
 
 **Response:**
+
 ```json
 {
   "tvl": "string",
@@ -64,6 +73,7 @@ GET /pool/{pool_id}/stats
 ```
 
 #### Add Liquidity
+
 ```http
 POST /pool/{pool_id}/deposit
 ```
@@ -71,11 +81,13 @@ POST /pool/{pool_id}/deposit
 ### Risk Management
 
 #### Get Risk Metrics
+
 ```http
 GET /risk/metrics
 ```
 
 **Response:**
+
 ```json
 {
   "var_95": "string",
@@ -88,11 +100,13 @@ GET /risk/metrics
 ### AI Model Endpoints
 
 #### Get Price Predictions
+
 ```http
 GET /ai/predictions/{asset_id}
 ```
 
 **Response:**
+
 ```json
 {
   "predictions": [
@@ -106,11 +120,13 @@ GET /ai/predictions/{asset_id}
 ```
 
 ## Rate Limits
+
 - 100 requests per minute for regular endpoints
 - 1000 requests per minute for market data endpoints
 - 10 requests per minute for AI prediction endpoints
 
 ## Error Codes
+
 - 400: Bad Request
 - 401: Unauthorized
 - 403: Forbidden
@@ -121,11 +137,13 @@ GET /ai/predictions/{asset_id}
 ## Websocket API
 
 ### Connection
+
 ```
 wss://api.fluxion.exchange/ws/v1
 ```
 
 ### Market Data Stream
+
 ```json
 {
   "type": "subscribe",
@@ -135,6 +153,7 @@ wss://api.fluxion.exchange/ws/v1
 ```
 
 ## SDK Examples
+
 ```python
 from fluxion_sdk import FluxionClient
 

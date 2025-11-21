@@ -1,17 +1,23 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { time, loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const {
+  time,
+  loadFixture,
+} = require("@nomicfoundation/hardhat-network-helpers");
 
 describe("AdvancedGovernanceToken", function () {
   // Fixture for deploying the contract
   async function deployTokenFixture() {
-    const [owner, treasury, user1, user2, user3, compliance] = await ethers.getSigners();
+    const [owner, treasury, user1, user2, user3, compliance] =
+      await ethers.getSigners();
 
-    const AdvancedGovernanceToken = await ethers.getContractFactory("AdvancedGovernanceToken");
+    const AdvancedGovernanceToken = await ethers.getContractFactory(
+      "AdvancedGovernanceToken",
+    );
     const token = await AdvancedGovernanceToken.deploy(
       "Fluxion Governance Token",
       "FGT",
-      treasury.address
+      treasury.address,
     );
 
     await token.deployed();
@@ -37,7 +43,7 @@ describe("AdvancedGovernanceToken", function () {
       BURNER_ROLE,
       PAUSER_ROLE,
       TREASURY_ROLE,
-      COMPLIANCE_ROLE
+      COMPLIANCE_ROLE,
     };
   }
 
@@ -48,15 +54,23 @@ describe("AdvancedGovernanceToken", function () {
       expect(await token.name()).to.equal("Fluxion Governance Token");
       expect(await token.symbol()).to.equal("FGT");
       expect(await token.treasury()).to.equal(treasury.address);
-      expect(await token.totalSupply()).to.equal(ethers.utils.parseEther("100000000")); // 100M initial
-      expect(await token.balanceOf(owner.address)).to.equal(ethers.utils.parseEther("100000000"));
+      expect(await token.totalSupply()).to.equal(
+        ethers.utils.parseEther("100000000"),
+      ); // 100M initial
+      expect(await token.balanceOf(owner.address)).to.equal(
+        ethers.utils.parseEther("100000000"),
+      );
     });
 
     it("Should have correct role assignments", async function () {
-      const { token, owner, compliance, DEFAULT_ADMIN_ROLE, COMPLIANCE_ROLE } = await loadFixture(deployTokenFixture);
+      const { token, owner, compliance, DEFAULT_ADMIN_ROLE, COMPLIANCE_ROLE } =
+        await loadFixture(deployTokenFixture);
 
-      expect(await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), owner.address)).to.be.true;
-      expect(await token.hasRole(COMPLIANCE_ROLE, compliance.address)).to.be.true;
+      expect(
+        await token.hasRole(await token.DEFAULT_ADMIN_ROLE(), owner.address),
+      ).to.be.true;
+      expect(await token.hasRole(COMPLIANCE_ROLE, compliance.address)).to.be
+        .true;
     });
 
     it("Should have correct initial configuration", async function () {
@@ -64,7 +78,9 @@ describe("AdvancedGovernanceToken", function () {
 
       expect(await token.rewardRate()).to.equal(1000); // 10% APY
       expect(await token.treasuryFeeRate()).to.equal(500); // 5%
-      expect(await token.proposalThreshold()).to.equal(ethers.utils.parseEther("1000000")); // 1M tokens
+      expect(await token.proposalThreshold()).to.equal(
+        ethers.utils.parseEther("1000000"),
+      ); // 1M tokens
       expect(await token.votingDelay()).to.equal(86400); // 1 day
       expect(await token.votingPeriod()).to.equal(604800); // 7 days
       expect(await token.quorumPercentage()).to.equal(4); // 4%
@@ -103,7 +119,7 @@ describe("AdvancedGovernanceToken", function () {
       await token.connect(user1).stake(stakeAmount, lockPeriod);
 
       await expect(
-        token.connect(user1).unstake(stakeAmount)
+        token.connect(user1).unstake(stakeAmount),
       ).to.be.revertedWith("Tokens are still locked");
     });
 
@@ -145,7 +161,10 @@ describe("AdvancedGovernanceToken", function () {
 
       // Should receive approximately 10% APY (allowing for some precision loss)
       const expectedRewards = stakeAmount.mul(1000).div(10000); // 10%
-      expect(rewards).to.be.closeTo(expectedRewards, ethers.utils.parseEther("10"));
+      expect(rewards).to.be.closeTo(
+        expectedRewards,
+        ethers.utils.parseEther("10"),
+      );
     });
 
     it("Should handle multiple stakers correctly", async function () {
@@ -160,7 +179,9 @@ describe("AdvancedGovernanceToken", function () {
       await token.connect(user1).stake(stakeAmount1, 0);
       await token.connect(user2).stake(stakeAmount2, 0);
 
-      expect(await token.totalStaked()).to.equal(stakeAmount1.add(stakeAmount2));
+      expect(await token.totalStaked()).to.equal(
+        stakeAmount1.add(stakeAmount2),
+      );
 
       const stakingInfo1 = await token.stakingInfo(user1.address);
       const stakingInfo2 = await token.stakingInfo(user2.address);
@@ -185,7 +206,7 @@ describe("AdvancedGovernanceToken", function () {
         startTime,
         duration,
         cliffDuration,
-        false // Not revocable
+        false, // Not revocable
       );
 
       expect(await token.getVestingScheduleCount(user1.address)).to.equal(1);
@@ -209,13 +230,16 @@ describe("AdvancedGovernanceToken", function () {
         startTime,
         duration,
         cliffDuration,
-        false
+        false,
       );
 
       // Try to release before cliff
       await time.increase(30 * 24 * 3600); // 30 days
 
-      const releasableAmount = await token.calculateReleasableAmount(user1.address, 0);
+      const releasableAmount = await token.calculateReleasableAmount(
+        user1.address,
+        0,
+      );
       expect(releasableAmount).to.equal(0);
     });
 
@@ -233,17 +257,23 @@ describe("AdvancedGovernanceToken", function () {
         startTime,
         duration,
         cliffDuration,
-        false
+        false,
       );
 
       // Fast forward to 6 months (3 months after cliff)
       await time.increase(6 * 30 * 24 * 3600);
 
-      const releasableAmount = await token.calculateReleasableAmount(user1.address, 0);
+      const releasableAmount = await token.calculateReleasableAmount(
+        user1.address,
+        0,
+      );
 
       // Should be able to release 50% of tokens (6 months out of 12)
       const expectedAmount = vestingAmount.div(2);
-      expect(releasableAmount).to.be.closeTo(expectedAmount, ethers.utils.parseEther("100"));
+      expect(releasableAmount).to.be.closeTo(
+        expectedAmount,
+        ethers.utils.parseEther("100"),
+      );
     });
 
     it("Should release vested tokens to beneficiary", async function () {
@@ -260,7 +290,7 @@ describe("AdvancedGovernanceToken", function () {
         startTime,
         duration,
         cliffDuration,
-        false
+        false,
       );
 
       // Fast forward past cliff
@@ -274,7 +304,8 @@ describe("AdvancedGovernanceToken", function () {
     });
 
     it("Should revoke vesting schedule if revocable", async function () {
-      const { token, owner, user1, treasury } = await loadFixture(deployTokenFixture);
+      const { token, owner, user1, treasury } =
+        await loadFixture(deployTokenFixture);
 
       const vestingAmount = ethers.utils.parseEther("10000");
       const startTime = await time.latest();
@@ -287,7 +318,7 @@ describe("AdvancedGovernanceToken", function () {
         startTime,
         duration,
         cliffDuration,
-        true // Revocable
+        true, // Revocable
       );
 
       // Fast forward and revoke
@@ -304,7 +335,8 @@ describe("AdvancedGovernanceToken", function () {
 
   describe("Compliance Features", function () {
     it("Should allow compliance officer to blacklist addresses", async function () {
-      const { token, compliance, user1 } = await loadFixture(deployTokenFixture);
+      const { token, compliance, user1 } =
+        await loadFixture(deployTokenFixture);
 
       await token.connect(compliance).updateBlacklist(user1.address, true);
 
@@ -312,7 +344,8 @@ describe("AdvancedGovernanceToken", function () {
     });
 
     it("Should prevent blacklisted addresses from transferring", async function () {
-      const { token, owner, compliance, user1, user2 } = await loadFixture(deployTokenFixture);
+      const { token, owner, compliance, user1, user2 } =
+        await loadFixture(deployTokenFixture);
 
       const transferAmount = ethers.utils.parseEther("1000");
 
@@ -324,12 +357,13 @@ describe("AdvancedGovernanceToken", function () {
 
       // User1 should not be able to transfer
       await expect(
-        token.connect(user1).transfer(user2.address, transferAmount)
+        token.connect(user1).transfer(user2.address, transferAmount),
       ).to.be.revertedWith("Address is blacklisted");
     });
 
     it("Should enforce whitelist when enabled", async function () {
-      const { token, compliance, user1, user2 } = await loadFixture(deployTokenFixture);
+      const { token, compliance, user1, user2 } =
+        await loadFixture(deployTokenFixture);
 
       const transferAmount = ethers.utils.parseEther("1000");
 
@@ -341,7 +375,7 @@ describe("AdvancedGovernanceToken", function () {
 
       // Should not be able to transfer without whitelist
       await expect(
-        token.connect(user1).transfer(user2.address, transferAmount)
+        token.connect(user1).transfer(user2.address, transferAmount),
       ).to.be.revertedWith("Address not whitelisted");
 
       // Whitelist both addresses
@@ -349,13 +383,13 @@ describe("AdvancedGovernanceToken", function () {
       await token.connect(compliance).updateWhitelist(user2.address, true);
 
       // Now transfer should work
-      await expect(
-        token.connect(user1).transfer(user2.address, transferAmount)
-      ).to.not.be.reverted;
+      await expect(token.connect(user1).transfer(user2.address, transferAmount))
+        .to.not.be.reverted;
     });
 
     it("Should enforce transfer amount limits", async function () {
-      const { token, compliance, user1, user2 } = await loadFixture(deployTokenFixture);
+      const { token, compliance, user1, user2 } =
+        await loadFixture(deployTokenFixture);
 
       const maxTransfer = ethers.utils.parseEther("5000");
       const transferAmount = ethers.utils.parseEther("10000");
@@ -368,17 +402,17 @@ describe("AdvancedGovernanceToken", function () {
 
       // Should not be able to transfer more than limit
       await expect(
-        token.connect(user1).transfer(user2.address, transferAmount)
+        token.connect(user1).transfer(user2.address, transferAmount),
       ).to.be.revertedWith("Transfer amount exceeds limit");
 
       // Should be able to transfer within limit
-      await expect(
-        token.connect(user1).transfer(user2.address, maxTransfer)
-      ).to.not.be.reverted;
+      await expect(token.connect(user1).transfer(user2.address, maxTransfer)).to
+        .not.be.reverted;
     });
 
     it("Should enforce daily transfer limits", async function () {
-      const { token, compliance, user1, user2 } = await loadFixture(deployTokenFixture);
+      const { token, compliance, user1, user2 } =
+        await loadFixture(deployTokenFixture);
 
       const dailyLimit = ethers.utils.parseEther("2000");
       const transferAmount = ethers.utils.parseEther("1500");
@@ -394,12 +428,13 @@ describe("AdvancedGovernanceToken", function () {
 
       // Second transfer should exceed daily limit
       await expect(
-        token.connect(user1).transfer(user2.address, transferAmount)
+        token.connect(user1).transfer(user2.address, transferAmount),
       ).to.be.revertedWith("Daily transfer limit exceeded");
     });
 
     it("Should collect treasury fees on transfers", async function () {
-      const { token, treasury, user1, user2 } = await loadFixture(deployTokenFixture);
+      const { token, treasury, user1, user2 } =
+        await loadFixture(deployTokenFixture);
 
       const transferAmount = ethers.utils.parseEther("1000");
       const expectedFee = transferAmount.mul(500).div(10000); // 5% fee
@@ -429,7 +464,7 @@ describe("AdvancedGovernanceToken", function () {
         newProposalThreshold,
         newVotingDelay,
         newVotingPeriod,
-        newQuorumPercentage
+        newQuorumPercentage,
       );
 
       expect(await token.proposalThreshold()).to.equal(newProposalThreshold);
@@ -447,8 +482,8 @@ describe("AdvancedGovernanceToken", function () {
           ethers.utils.parseEther("1000000"),
           86400,
           604800,
-          25 // 25% quorum - too high
-        )
+          25, // 25% quorum - too high
+        ),
       ).to.be.revertedWith("Quorum cannot exceed 20%");
 
       // Voting period too short
@@ -457,15 +492,16 @@ describe("AdvancedGovernanceToken", function () {
           ethers.utils.parseEther("1000000"),
           86400,
           3600, // 1 hour - too short
-          4
-        )
+          4,
+        ),
       ).to.be.revertedWith("Voting period too short");
     });
   });
 
   describe("Admin Functions", function () {
     it("Should allow minting by minter role", async function () {
-      const { token, owner, user1, MINTER_ROLE } = await loadFixture(deployTokenFixture);
+      const { token, owner, user1, MINTER_ROLE } =
+        await loadFixture(deployTokenFixture);
 
       const mintAmount = ethers.utils.parseEther("1000000");
 
@@ -481,13 +517,14 @@ describe("AdvancedGovernanceToken", function () {
       const currentSupply = await token.totalSupply();
       const excessAmount = maxSupply.sub(currentSupply).add(1);
 
-      await expect(
-        token.mint(user1.address, excessAmount)
-      ).to.be.revertedWith("Would exceed maximum supply");
+      await expect(token.mint(user1.address, excessAmount)).to.be.revertedWith(
+        "Would exceed maximum supply",
+      );
     });
 
     it("Should allow burning by burner role", async function () {
-      const { token, owner, BURNER_ROLE } = await loadFixture(deployTokenFixture);
+      const { token, owner, BURNER_ROLE } =
+        await loadFixture(deployTokenFixture);
 
       const burnAmount = ethers.utils.parseEther("1000000");
       const initialSupply = await token.totalSupply();
@@ -499,7 +536,8 @@ describe("AdvancedGovernanceToken", function () {
     });
 
     it("Should allow pausing by pauser role", async function () {
-      const { token, owner, user1, PAUSER_ROLE } = await loadFixture(deployTokenFixture);
+      const { token, owner, user1, PAUSER_ROLE } =
+        await loadFixture(deployTokenFixture);
 
       await token.pause();
 
@@ -507,7 +545,7 @@ describe("AdvancedGovernanceToken", function () {
 
       // Transfers should be blocked when paused
       await expect(
-        token.transfer(user1.address, ethers.utils.parseEther("1000"))
+        token.transfer(user1.address, ethers.utils.parseEther("1000")),
       ).to.be.revertedWith("Pausable: paused");
 
       // Unpause
@@ -525,14 +563,15 @@ describe("AdvancedGovernanceToken", function () {
 
       // Should not allow rate above 50%
       await expect(
-        token.updateRewardRate(6000) // 60%
+        token.updateRewardRate(6000), // 60%
       ).to.be.revertedWith("Reward rate cannot exceed 50%");
     });
   });
 
   describe("Treasury Management", function () {
     it("Should update treasury address", async function () {
-      const { token, treasury, user1, TREASURY_ROLE } = await loadFixture(deployTokenFixture);
+      const { token, treasury, user1, TREASURY_ROLE } =
+        await loadFixture(deployTokenFixture);
 
       await token.connect(treasury).updateTreasury(user1.address);
 
@@ -540,7 +579,8 @@ describe("AdvancedGovernanceToken", function () {
     });
 
     it("Should update treasury fee rate within limits", async function () {
-      const { token, treasury, TREASURY_ROLE } = await loadFixture(deployTokenFixture);
+      const { token, treasury, TREASURY_ROLE } =
+        await loadFixture(deployTokenFixture);
 
       const newFeeRate = 750; // 7.5%
 
@@ -549,12 +589,13 @@ describe("AdvancedGovernanceToken", function () {
 
       // Should not allow rate above 10%
       await expect(
-        token.connect(treasury).updateTreasuryFeeRate(1500) // 15%
+        token.connect(treasury).updateTreasuryFeeRate(1500), // 15%
       ).to.be.revertedWith("Fee rate cannot exceed 10%");
     });
 
     it("Should distribute fees to stakers", async function () {
-      const { token, treasury, user1, TREASURY_ROLE } = await loadFixture(deployTokenFixture);
+      const { token, treasury, user1, TREASURY_ROLE } =
+        await loadFixture(deployTokenFixture);
 
       // Simulate fee collection
       const feeAmount = ethers.utils.parseEther("1000");
@@ -569,9 +610,9 @@ describe("AdvancedGovernanceToken", function () {
 
       // Simulate fee distribution (would need to modify contract for testing)
       // This test verifies the function exists and has proper access control
-      await expect(
-        token.connect(treasury).distributeFees()
-      ).to.be.revertedWith("No fees to distribute");
+      await expect(token.connect(treasury).distributeFees()).to.be.revertedWith(
+        "No fees to distribute",
+      );
     });
   });
 
@@ -586,18 +627,23 @@ describe("AdvancedGovernanceToken", function () {
     });
 
     it("Should check transfer eligibility correctly", async function () {
-      const { token, compliance, user1, user2 } = await loadFixture(deployTokenFixture);
+      const { token, compliance, user1, user2 } =
+        await loadFixture(deployTokenFixture);
 
       const transferAmount = ethers.utils.parseEther("1000");
 
       // Should be able to transfer initially
-      expect(await token.canTransfer(user1.address, user2.address, transferAmount)).to.be.true;
+      expect(
+        await token.canTransfer(user1.address, user2.address, transferAmount),
+      ).to.be.true;
 
       // Blacklist user1
       await token.connect(compliance).updateBlacklist(user1.address, true);
 
       // Should not be able to transfer when blacklisted
-      expect(await token.canTransfer(user1.address, user2.address, transferAmount)).to.be.false;
+      expect(
+        await token.canTransfer(user1.address, user2.address, transferAmount),
+      ).to.be.false;
     });
 
     it("Should return daily transfer amounts correctly", async function () {
@@ -607,7 +653,9 @@ describe("AdvancedGovernanceToken", function () {
       const currentDay = await token.getCurrentDay();
 
       // Initially should be 0
-      expect(await token.getDailyTransferAmount(user1.address, currentDay)).to.equal(0);
+      expect(
+        await token.getDailyTransferAmount(user1.address, currentDay),
+      ).to.equal(0);
 
       // After transfer, should reflect the amount
       await token.transfer(user1.address, transferAmount);
@@ -622,9 +670,9 @@ describe("AdvancedGovernanceToken", function () {
     it("Should handle zero amount staking", async function () {
       const { token, user1 } = await loadFixture(deployTokenFixture);
 
-      await expect(
-        token.connect(user1).stake(0, 0)
-      ).to.be.revertedWith("Amount must be greater than 0");
+      await expect(token.connect(user1).stake(0, 0)).to.be.revertedWith(
+        "Amount must be greater than 0",
+      );
     });
 
     it("Should handle insufficient balance for staking", async function () {
@@ -633,7 +681,7 @@ describe("AdvancedGovernanceToken", function () {
       const stakeAmount = ethers.utils.parseEther("1000");
 
       await expect(
-        token.connect(user1).stake(stakeAmount, 0)
+        token.connect(user1).stake(stakeAmount, 0),
       ).to.be.revertedWith("Insufficient balance");
     });
 
@@ -647,16 +695,19 @@ describe("AdvancedGovernanceToken", function () {
       await token.connect(user1).stake(stakeAmount, 0);
 
       await expect(
-        token.connect(user1).unstake(unstakeAmount)
+        token.connect(user1).unstake(unstakeAmount),
       ).to.be.revertedWith("Insufficient staked amount");
     });
 
     it("Should handle role-based access control", async function () {
-      const { token, user1, MINTER_ROLE } = await loadFixture(deployTokenFixture);
+      const { token, user1, MINTER_ROLE } =
+        await loadFixture(deployTokenFixture);
 
       // User without minter role should not be able to mint
       await expect(
-        token.connect(user1).mint(user1.address, ethers.utils.parseEther("1000"))
+        token
+          .connect(user1)
+          .mint(user1.address, ethers.utils.parseEther("1000")),
       ).to.be.revertedWith("AccessControl:");
     });
 
@@ -667,15 +718,18 @@ describe("AdvancedGovernanceToken", function () {
 
       // The contract should have ReentrancyGuard inherited
       // This is more of a static analysis check
-      expect(token.interface.fragments.some(f =>
-        f.type === 'function' && f.name === 'stake'
-      )).to.be.true;
+      expect(
+        token.interface.fragments.some(
+          (f) => f.type === "function" && f.name === "stake",
+        ),
+      ).to.be.true;
     });
   });
 
   describe("Integration Tests", function () {
     it("Should handle complex staking and vesting scenario", async function () {
-      const { token, owner, user1, user2 } = await loadFixture(deployTokenFixture);
+      const { token, owner, user1, user2 } =
+        await loadFixture(deployTokenFixture);
 
       // Setup: Create vesting schedule and stake tokens
       const vestingAmount = ethers.utils.parseEther("10000");
@@ -688,8 +742,8 @@ describe("AdvancedGovernanceToken", function () {
         vestingAmount,
         startTime,
         365 * 24 * 3600, // 1 year
-        90 * 24 * 3600,  // 90 days cliff
-        false
+        90 * 24 * 3600, // 90 days cliff
+        false,
       );
 
       // Give user2 tokens to stake
@@ -720,7 +774,8 @@ describe("AdvancedGovernanceToken", function () {
     });
 
     it("Should handle governance token lifecycle", async function () {
-      const { token, owner, user1, user2, treasury } = await loadFixture(deployTokenFixture);
+      const { token, owner, user1, user2, treasury } =
+        await loadFixture(deployTokenFixture);
 
       // Phase 1: Initial distribution
       const distributionAmount = ethers.utils.parseEther("10000");
@@ -736,12 +791,14 @@ describe("AdvancedGovernanceToken", function () {
         ethers.utils.parseEther("500000"), // Lower proposal threshold
         43200, // 12 hours voting delay
         432000, // 5 days voting period
-        3 // 3% quorum
+        3, // 3% quorum
       );
 
       // Phase 4: Fee collection and distribution
       // Simulate some transfers to collect fees
-      await token.connect(user1).transfer(user2.address, ethers.utils.parseEther("1000"));
+      await token
+        .connect(user1)
+        .transfer(user2.address, ethers.utils.parseEther("1000"));
 
       // Treasury should have collected fees
       const treasuryBalance = await token.balanceOf(treasury.address);

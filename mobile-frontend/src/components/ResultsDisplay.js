@@ -1,6 +1,6 @@
-import React from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
-import { Card, Text, Title, Paragraph, useTheme } from 'react-native-paper';
+import React from "react";
+import { StyleSheet, ScrollView } from "react-native";
+import { Card, Text, Title, Paragraph, useTheme } from "react-native-paper";
 
 const ResultsDisplay = ({ results }) => {
   const theme = useTheme();
@@ -18,16 +18,27 @@ const ResultsDisplay = ({ results }) => {
   const { predictions, confidence_intervals, model_version } = results;
 
   // Check if predictions is an object (like the mock data)
-  const isObject = typeof predictions === 'object' && predictions !== null && !Array.isArray(predictions);
+  const isObject =
+    typeof predictions === "object" &&
+    predictions !== null &&
+    !Array.isArray(predictions);
   const meterIds = isObject ? Object.keys(predictions) : [];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+    >
       <Card style={styles.card}>
         <Card.Content>
           <Title style={styles.title}>Prediction Results</Title>
-          <Paragraph style={[styles.modelVersion, { color: theme.colors.onSurfaceVariant }]}>
-            Model Version: {model_version || 'N/A'}
+          <Paragraph
+            style={[
+              styles.modelVersion,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+          >
+            Model Version: {model_version || "N/A"}
           </Paragraph>
         </Card.Content>
       </Card>
@@ -35,21 +46,38 @@ const ResultsDisplay = ({ results }) => {
       {isObject ? (
         meterIds.map((meterId) => (
           <Card key={meterId} style={styles.card}>
-            <Card.Title title={`Meter ID: ${meterId}`} titleStyle={styles.meterTitle} />
+            <Card.Title
+              title={`Meter ID: ${meterId}`}
+              titleStyle={styles.meterTitle}
+            />
             <Card.Content>
               {predictions[meterId].map((prediction, index) => (
                 <View key={index} style={styles.predictionItem}>
-                  <Text style={styles.predictionLabel}>Prediction {index + 1}:</Text>
-                  <Text style={[styles.predictionValue, { color: theme.colors.primary }]}>
+                  <Text style={styles.predictionLabel}>
+                    Prediction {index + 1}:
+                  </Text>
+                  <Text
+                    style={[
+                      styles.predictionValue,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
                     {prediction.toFixed(4)}
                   </Text>
                   {confidence_intervals &&
-                   confidence_intervals[meterId] &&
-                   confidence_intervals[meterId][index] && (
-                    <Text style={[styles.confidenceInterval, { color: theme.colors.onSurfaceVariant }]}>
-                      95% CI: [{confidence_intervals[meterId][index][0].toFixed(4)}, {confidence_intervals[meterId][index][1].toFixed(4)}]
-                    </Text>
-                  )}
+                    confidence_intervals[meterId] &&
+                    confidence_intervals[meterId][index] && (
+                      <Text
+                        style={[
+                          styles.confidenceInterval,
+                          { color: theme.colors.onSurfaceVariant },
+                        ]}
+                      >
+                        95% CI: [
+                        {confidence_intervals[meterId][index][0].toFixed(4)},{" "}
+                        {confidence_intervals[meterId][index][1].toFixed(4)}]
+                      </Text>
+                    )}
                 </View>
               ))}
             </Card.Content>
@@ -61,13 +89,26 @@ const ResultsDisplay = ({ results }) => {
           <Card.Content>
             {predictions.map((prediction, index) => (
               <View key={index} style={styles.predictionItem}>
-                <Text style={styles.predictionLabel}>Prediction {index + 1}:</Text>
-                <Text style={[styles.predictionValue, { color: theme.colors.primary }]}>
+                <Text style={styles.predictionLabel}>
+                  Prediction {index + 1}:
+                </Text>
+                <Text
+                  style={[
+                    styles.predictionValue,
+                    { color: theme.colors.primary },
+                  ]}
+                >
                   {prediction.toFixed(4)}
                 </Text>
                 {confidence_intervals && confidence_intervals[index] && (
-                  <Text style={[styles.confidenceInterval, { color: theme.colors.onSurfaceVariant }]}>
-                    95% CI: [{confidence_intervals[index][0].toFixed(4)}, {confidence_intervals[index][1].toFixed(4)}]
+                  <Text
+                    style={[
+                      styles.confidenceInterval,
+                      { color: theme.colors.onSurfaceVariant },
+                    ]}
+                  >
+                    95% CI: [{confidence_intervals[index][0].toFixed(4)},{" "}
+                    {confidence_intervals[index][1].toFixed(4)}]
                   </Text>
                 )}
               </View>
@@ -90,26 +131,26 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 8,
   },
   modelVersion: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 8,
     fontSize: 14,
   },
   meterTitle: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   predictionItem: {
     marginBottom: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   predictionLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 4,
   },
   predictionValue: {

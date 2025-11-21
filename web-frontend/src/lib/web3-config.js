@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { ethers } from "ethers";
 
 // ABIs
 const POOL_MANAGER_ABI = [
@@ -39,11 +39,10 @@ export function Web3Provider({ children }) {
           initializeContracts(provider);
 
           // Listen for account changes
-          window.ethereum.on('accountsChanged', handleAccountsChanged);
+          window.ethereum.on("accountsChanged", handleAccountsChanged);
 
           // Listen for chain changes
-          window.ethereum.on('chainChanged', () => window.location.reload());
-
+          window.ethereum.on("chainChanged", () => window.location.reload());
         } catch (error) {
           console.error("Error initializing web3:", error);
         }
@@ -54,7 +53,10 @@ export function Web3Provider({ children }) {
 
     return () => {
       if (window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener(
+          "accountsChanged",
+          handleAccountsChanged,
+        );
       }
     };
   }, []);
@@ -62,15 +64,17 @@ export function Web3Provider({ children }) {
   // Initialize contracts
   const initializeContracts = (provider) => {
     const poolManager = new ethers.Contract(
-      process.env.POOL_MANAGER_ADDRESS || '0x0000000000000000000000000000000000000000',
+      process.env.POOL_MANAGER_ADDRESS ||
+        "0x0000000000000000000000000000000000000000",
       POOL_MANAGER_ABI,
-      provider
+      provider,
     );
 
     const factory = new ethers.Contract(
-      process.env.FACTORY_ADDRESS || '0x0000000000000000000000000000000000000000',
+      process.env.FACTORY_ADDRESS ||
+        "0x0000000000000000000000000000000000000000",
       FACTORY_ABI,
-      provider
+      provider,
     );
 
     setContracts({ poolManager, factory });
@@ -100,7 +104,7 @@ export function Web3Provider({ children }) {
     if (provider) {
       try {
         const accounts = await window.ethereum.request({
-          method: 'eth_requestAccounts'
+          method: "eth_requestAccounts",
         });
         handleAccountsChanged(accounts);
       } catch (error) {
@@ -118,7 +122,10 @@ export function Web3Provider({ children }) {
         const poolIds = [];
 
         for (let i = 0; i < poolCount; i++) {
-          const poolId = await contracts.poolManager.getUserPoolAtIndex(address, i);
+          const poolId = await contracts.poolManager.getUserPoolAtIndex(
+            address,
+            i,
+          );
           poolIds.push(poolId);
         }
 
@@ -130,9 +137,9 @@ export function Web3Provider({ children }) {
               assets: poolData.assets,
               weights: poolData.weights,
               fee: poolData.fee,
-              amplification: poolData.amplification
+              amplification: poolData.amplification,
             };
-          })
+          }),
         );
 
         setPools(poolsData);
@@ -151,21 +158,17 @@ export function Web3Provider({ children }) {
     pools,
     isConnected,
     chainId,
-    connectWallet
+    connectWallet,
   };
 
-  return (
-    <Web3Context.Provider value={value}>
-      {children}
-    </Web3Context.Provider>
-  );
+  return <Web3Context.Provider value={value}>{children}</Web3Context.Provider>;
 }
 
 // Custom hook to use the Web3 context
 export function useWeb3() {
   const context = useContext(Web3Context);
   if (!context) {
-    throw new Error('useWeb3 must be used within a Web3Provider');
+    throw new Error("useWeb3 must be used within a Web3Provider");
   }
   return context;
 }

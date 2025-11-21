@@ -1,73 +1,73 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { ethers } from 'ethers';
-import { userAPI } from '../services/api';
+import { createContext, useContext, useState, useEffect } from "react";
+import { ethers } from "ethers";
+import { userAPI } from "../services/api";
 
 // ABIs
 const POOL_MANAGER_ABI = [
   // Add Pool Manager ABI here
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "poolId",
-        "type": "bytes32"
+        indexed: true,
+        internalType: "bytes32",
+        name: "poolId",
+        type: "bytes32",
       },
       {
-        "indexed": false,
-        "internalType": "address[]",
-        "name": "assets",
-        "type": "address[]"
+        indexed: false,
+        internalType: "address[]",
+        name: "assets",
+        type: "address[]",
       },
       {
-        "indexed": false,
-        "internalType": "uint256[]",
-        "name": "weights",
-        "type": "uint256[]"
-      }
+        indexed: false,
+        internalType: "uint256[]",
+        name: "weights",
+        type: "uint256[]",
+      },
     ],
-    "name": "PoolCreated",
-    "type": "event"
-  }
+    name: "PoolCreated",
+    type: "event",
+  },
 ];
 
 const FACTORY_ABI = [
   // Add Factory ABI here
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address[]",
-        "name": "assets",
-        "type": "address[]"
+        internalType: "address[]",
+        name: "assets",
+        type: "address[]",
       },
       {
-        "internalType": "uint256[]",
-        "name": "weights",
-        "type": "uint256[]"
+        internalType: "uint256[]",
+        name: "weights",
+        type: "uint256[]",
       },
       {
-        "internalType": "uint256",
-        "name": "swapFee",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "swapFee",
+        type: "uint256",
       },
       {
-        "internalType": "uint256",
-        "name": "amplificationParameter",
-        "type": "uint256"
-      }
+        internalType: "uint256",
+        name: "amplificationParameter",
+        type: "uint256",
+      },
     ],
-    "name": "createPool",
-    "outputs": [
+    name: "createPool",
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ];
 
 // Create Web3 Context
@@ -105,10 +105,10 @@ export function Web3Provider({ children }) {
           initializeContracts(provider);
 
           // Listen for account changes
-          window.ethereum.on('accountsChanged', handleAccountsChanged);
+          window.ethereum.on("accountsChanged", handleAccountsChanged);
 
           // Listen for chain changes
-          window.ethereum.on('chainChanged', () => window.location.reload());
+          window.ethereum.on("chainChanged", () => window.location.reload());
 
           // Check if already connected
           const accounts = await provider.listAccounts();
@@ -119,11 +119,15 @@ export function Web3Provider({ children }) {
           setIsLoading(false);
         } catch (error) {
           console.error("Error initializing web3:", error);
-          setError("Failed to initialize Web3. Please make sure you have a compatible wallet installed.");
+          setError(
+            "Failed to initialize Web3. Please make sure you have a compatible wallet installed.",
+          );
           setIsLoading(false);
         }
       } else {
-        setError("No Ethereum wallet detected. Please install MetaMask or another compatible wallet.");
+        setError(
+          "No Ethereum wallet detected. Please install MetaMask or another compatible wallet.",
+        );
         setIsLoading(false);
       }
     };
@@ -132,7 +136,10 @@ export function Web3Provider({ children }) {
 
     return () => {
       if (window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        window.ethereum.removeListener(
+          "accountsChanged",
+          handleAccountsChanged,
+        );
       }
     };
   }, []);
@@ -140,25 +147,31 @@ export function Web3Provider({ children }) {
   // Initialize contracts
   const initializeContracts = (provider) => {
     try {
-      const poolManagerAddress = import.meta.env.VITE_POOL_MANAGER_ADDRESS || '0x0000000000000000000000000000000000000000';
-      const factoryAddress = import.meta.env.VITE_FACTORY_ADDRESS || '0x0000000000000000000000000000000000000000';
+      const poolManagerAddress =
+        import.meta.env.VITE_POOL_MANAGER_ADDRESS ||
+        "0x0000000000000000000000000000000000000000";
+      const factoryAddress =
+        import.meta.env.VITE_FACTORY_ADDRESS ||
+        "0x0000000000000000000000000000000000000000";
 
       const poolManager = new ethers.Contract(
         poolManagerAddress,
         POOL_MANAGER_ABI,
-        provider
+        provider,
       );
 
       const factory = new ethers.Contract(
         factoryAddress,
         FACTORY_ABI,
-        provider
+        provider,
       );
 
       setContracts({ poolManager, factory });
     } catch (error) {
       console.error("Error initializing contracts:", error);
-      setError("Failed to initialize smart contracts. Please check your network connection.");
+      setError(
+        "Failed to initialize smart contracts. Please check your network connection.",
+      );
     }
   };
 
@@ -187,7 +200,7 @@ export function Web3Provider({ children }) {
         try {
           await userAPI.updateProfile({
             address: accounts[0],
-            chainId: chainId
+            chainId: chainId,
           });
         } catch (err) {
           console.warn("Failed to update user profile:", err);
@@ -207,17 +220,21 @@ export function Web3Provider({ children }) {
     if (provider) {
       try {
         const accounts = await window.ethereum.request({
-          method: 'eth_requestAccounts'
+          method: "eth_requestAccounts",
         });
         handleAccountsChanged(accounts);
         setIsLoading(false);
       } catch (error) {
         console.error("Error connecting wallet:", error);
-        setError("Failed to connect wallet. Please check your wallet and try again.");
+        setError(
+          "Failed to connect wallet. Please check your wallet and try again.",
+        );
         setIsLoading(false);
       }
     } else {
-      setError("No Ethereum provider available. Please install MetaMask or another compatible wallet.");
+      setError(
+        "No Ethereum provider available. Please install MetaMask or another compatible wallet.",
+      );
       setIsLoading(false);
     }
   };
@@ -231,23 +248,23 @@ export function Web3Provider({ children }) {
         // Mock data for development
         const mockPools = [
           {
-            id: 'pool-' + address.substring(0, 8) + '-1',
-            assets: ['ETH', 'USDC'],
+            id: "pool-" + address.substring(0, 8) + "-1",
+            assets: ["ETH", "USDC"],
             weights: [50, 50],
             fee: 0.3,
             amplification: 100,
-            tvl: '$1.2M',
-            apy: '4.5%'
+            tvl: "$1.2M",
+            apy: "4.5%",
           },
           {
-            id: 'pool-' + address.substring(0, 8) + '-2',
-            assets: ['ETH', 'WBTC'],
+            id: "pool-" + address.substring(0, 8) + "-2",
+            assets: ["ETH", "WBTC"],
             weights: [40, 60],
             fee: 0.25,
             amplification: 85,
-            tvl: '$850K',
-            apy: '5.2%'
-          }
+            tvl: "$850K",
+            apy: "5.2%",
+          },
         ];
 
         setPools(mockPools);
@@ -272,17 +289,17 @@ export function Web3Provider({ children }) {
 
     try {
       // Simulate pool creation
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Mock new pool
       const newPool = {
-        id: 'pool-' + account.substring(0, 8) + '-' + (pools.length + 1),
+        id: "pool-" + account.substring(0, 8) + "-" + (pools.length + 1),
         assets: poolData.assets,
         weights: poolData.weights,
         fee: poolData.fee,
         amplification: poolData.amplification,
-        tvl: '$0',
-        apy: '0%'
+        tvl: "$0",
+        apy: "0%",
       };
 
       setPools([...pools, newPool]);
@@ -291,7 +308,9 @@ export function Web3Provider({ children }) {
       return newPool.id;
     } catch (error) {
       console.error("Error creating pool:", error);
-      setError("Failed to create pool. Please check your inputs and try again.");
+      setError(
+        "Failed to create pool. Please check your inputs and try again.",
+      );
       setIsLoading(false);
       return null;
     }
@@ -310,21 +329,17 @@ export function Web3Provider({ children }) {
     error,
     connectWallet,
     fetchPools,
-    createPool
+    createPool,
   };
 
-  return (
-    <Web3Context.Provider value={value}>
-      {children}
-    </Web3Context.Provider>
-  );
+  return <Web3Context.Provider value={value}>{children}</Web3Context.Provider>;
 }
 
 // Custom hook to use the Web3 context
 export function useWeb3() {
   const context = useContext(Web3Context);
   if (!context) {
-    throw new Error('useWeb3 must be used within a Web3Provider');
+    throw new Error("useWeb3 must be used within a Web3Provider");
   }
   return context;
 }

@@ -1,27 +1,79 @@
-import React, { useState } from 'react';
-import { Box, Flex, Heading, Text, SimpleGrid, Button, HStack, VStack, Icon, useColorModeValue, Badge, Tabs, TabList, TabPanels, Tab, TabPanel, FormControl, FormLabel, Input, Switch, Select, Slider, SliderTrack, SliderFilledTrack, SliderThumb, Tooltip, Divider, Card, CardBody, Avatar, AvatarBadge, Menu, MenuButton, MenuList, MenuItem, IconButton } from '@chakra-ui/react';
-import { FiSettings, FiUser, FiShield, FiGlobe, FiDollarSign, FiInfo, FiAlertTriangle, FiCheck, FiX, FiChevronDown, FiLogOut, FiMoon, FiSun, FiBell } from 'react-icons/fi';
-import { useWeb3 } from '../../lib/web3-config.jsx';
+import React, { useState } from "react";
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  SimpleGrid,
+  Button,
+  HStack,
+  VStack,
+  Icon,
+  useColorModeValue,
+  Badge,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  FormControl,
+  FormLabel,
+  Input,
+  Switch,
+  Select,
+  Slider,
+  SliderTrack,
+  SliderFilledTrack,
+  SliderThumb,
+  Tooltip,
+  Divider,
+  Card,
+  CardBody,
+  Avatar,
+  AvatarBadge,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+} from "@chakra-ui/react";
+import {
+  FiSettings,
+  FiUser,
+  FiShield,
+  FiGlobe,
+  FiDollarSign,
+  FiInfo,
+  FiAlertTriangle,
+  FiCheck,
+  FiX,
+  FiChevronDown,
+  FiLogOut,
+  FiMoon,
+  FiSun,
+  FiBell,
+} from "react-icons/fi";
+import { useWeb3 } from "../../lib/web3-config.jsx";
 
 const Settings = () => {
   const { isConnected, account } = useWeb3();
-  const cardBg = useColorModeValue('gray.800', 'gray.700');
-  const borderColor = useColorModeValue('gray.700', 'gray.600');
-  const textColor = useColorModeValue('white', 'white');
-  const subTextColor = useColorModeValue('gray.400', 'gray.400');
+  const cardBg = useColorModeValue("gray.800", "gray.700");
+  const borderColor = useColorModeValue("gray.700", "gray.600");
+  const textColor = useColorModeValue("white", "white");
+  const subTextColor = useColorModeValue("gray.400", "gray.400");
 
   // State for settings
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [slippageTolerance, setSlippageTolerance] = useState(0.5);
-  const [gasPreference, setGasPreference] = useState('standard');
+  const [gasPreference, setGasPreference] = useState("standard");
   const [showTooltip, setShowTooltip] = useState(false);
-  const [language, setLanguage] = useState('en');
-  const [currency, setCurrency] = useState('usd');
+  const [language, setLanguage] = useState("en");
+  const [currency, setCurrency] = useState("usd");
 
   // Format account address for display
   const formatAddress = (address) => {
-    if (!address) return '';
+    if (!address) return "";
     return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
@@ -72,10 +124,18 @@ const Settings = () => {
       {/* Settings Tabs */}
       <Tabs variant="soft-rounded" colorScheme="brand" mb={8}>
         <TabList mb={6}>
-          <Tab><Icon as={FiUser} mr={2} /> Account</Tab>
-          <Tab><Icon as={FiSettings} mr={2} /> Preferences</Tab>
-          <Tab><Icon as={FiShield} mr={2} /> Security</Tab>
-          <Tab><Icon as={FiGlobe} mr={2} /> Network</Tab>
+          <Tab>
+            <Icon as={FiUser} mr={2} /> Account
+          </Tab>
+          <Tab>
+            <Icon as={FiSettings} mr={2} /> Preferences
+          </Tab>
+          <Tab>
+            <Icon as={FiShield} mr={2} /> Security
+          </Tab>
+          <Tab>
+            <Icon as={FiGlobe} mr={2} /> Network
+          </Tab>
         </TabList>
 
         <TabPanels>
@@ -90,9 +150,16 @@ const Settings = () => {
                 border="1px solid"
                 borderColor={borderColor}
               >
-                <Heading size="md" mb={6}>Profile Information</Heading>
+                <Heading size="md" mb={6}>
+                  Profile Information
+                </Heading>
 
-                <Flex direction={{ base: 'column', md: 'row' }} mb={6} align="center" gap={6}>
+                <Flex
+                  direction={{ base: "column", md: "row" }}
+                  mb={6}
+                  align="center"
+                  gap={6}
+                >
                   <Avatar
                     size="xl"
                     bgGradient="linear(to-r, brand.500, accent.500)"
@@ -102,10 +169,12 @@ const Settings = () => {
                   </Avatar>
 
                   <VStack align="flex-start" flex="1">
-                    <Text fontSize="sm" color={subTextColor}>Connected Wallet</Text>
+                    <Text fontSize="sm" color={subTextColor}>
+                      Connected Wallet
+                    </Text>
                     <HStack>
                       <Text fontSize="xl" fontWeight="bold">
-                        {isConnected ? formatAddress(account) : 'Not Connected'}
+                        {isConnected ? formatAddress(account) : "Not Connected"}
                       </Text>
                       {isConnected && (
                         <Badge colorScheme="green">Connected</Badge>
@@ -128,7 +197,7 @@ const Settings = () => {
                           <MenuItem
                             icon={<FiLogOut />}
                             bg="gray.800"
-                            _hover={{ bg: 'gray.700' }}
+                            _hover={{ bg: "gray.700" }}
                           >
                             Disconnect
                           </MenuItem>
@@ -150,7 +219,8 @@ const Settings = () => {
                     <FormLabel>Email Address</FormLabel>
                     <Input placeholder="Enter your email (optional)" />
                     <Text fontSize="xs" color={subTextColor} mt={1}>
-                      Used for notifications and alerts only. We'll never share your email.
+                      Used for notifications and alerts only. We'll never share
+                      your email.
                     </Text>
                   </FormControl>
                 </VStack>
@@ -162,7 +232,7 @@ const Settings = () => {
                   _hover={{
                     bgGradient: "linear(to-r, brand.600, accent.600)",
                     transform: "translateY(-2px)",
-                    boxShadow: "lg"
+                    boxShadow: "lg",
                   }}
                 >
                   Save Changes
@@ -177,7 +247,9 @@ const Settings = () => {
                 border="1px solid"
                 borderColor={borderColor}
               >
-                <Heading size="md" mb={6}>Account Activity</Heading>
+                <Heading size="md" mb={6}>
+                  Account Activity
+                </Heading>
 
                 <VStack spacing={4} align="stretch" mb={6}>
                   <Card bg="gray.700" variant="outline">
@@ -185,7 +257,9 @@ const Settings = () => {
                       <HStack justify="space-between">
                         <VStack align="start" spacing={0}>
                           <Text fontWeight="bold">Wallet Connected</Text>
-                          <Text fontSize="sm" color={subTextColor}>Today, 10:23 AM</Text>
+                          <Text fontSize="sm" color={subTextColor}>
+                            Today, 10:23 AM
+                          </Text>
                         </VStack>
                         <Icon as={FiCheck} color="green.400" boxSize={5} />
                       </HStack>
@@ -196,8 +270,12 @@ const Settings = () => {
                     <CardBody>
                       <HStack justify="space-between">
                         <VStack align="start" spacing={0}>
-                          <Text fontWeight="bold">Added Liquidity to ETH-USDC</Text>
-                          <Text fontSize="sm" color={subTextColor}>Yesterday, 3:45 PM</Text>
+                          <Text fontWeight="bold">
+                            Added Liquidity to ETH-USDC
+                          </Text>
+                          <Text fontSize="sm" color={subTextColor}>
+                            Yesterday, 3:45 PM
+                          </Text>
                         </VStack>
                         <Icon as={FiCheck} color="green.400" boxSize={5} />
                       </HStack>
@@ -209,7 +287,9 @@ const Settings = () => {
                       <HStack justify="space-between">
                         <VStack align="start" spacing={0}>
                           <Text fontWeight="bold">Created New Pool</Text>
-                          <Text fontSize="sm" color={subTextColor}>Apr 10, 2025, 11:32 AM</Text>
+                          <Text fontSize="sm" color={subTextColor}>
+                            Apr 10, 2025, 11:32 AM
+                          </Text>
                         </VStack>
                         <Icon as={FiCheck} color="green.400" boxSize={5} />
                       </HStack>
@@ -217,7 +297,9 @@ const Settings = () => {
                   </Card>
                 </VStack>
 
-                <Button variant="outline" width="full">View All Activity</Button>
+                <Button variant="outline" width="full">
+                  View All Activity
+                </Button>
               </Box>
             </SimpleGrid>
           </TabPanel>
@@ -233,10 +315,16 @@ const Settings = () => {
                 border="1px solid"
                 borderColor={borderColor}
               >
-                <Heading size="md" mb={6}>Appearance & Localization</Heading>
+                <Heading size="md" mb={6}>
+                  Appearance & Localization
+                </Heading>
 
                 <VStack spacing={6} align="stretch">
-                  <FormControl display="flex" alignItems="center" justifyContent="space-between">
+                  <FormControl
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
                     <FormLabel mb={0} display="flex" alignItems="center">
                       <Icon as={isDarkMode ? FiMoon : FiSun} mr={2} />
                       Dark Mode
@@ -279,7 +367,11 @@ const Settings = () => {
                     </Select>
                   </FormControl>
 
-                  <FormControl display="flex" alignItems="center" justifyContent="space-between">
+                  <FormControl
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="space-between"
+                  >
                     <FormLabel mb={0} display="flex" alignItems="center">
                       <Icon as={FiBell} mr={2} />
                       Notifications
@@ -287,7 +379,9 @@ const Settings = () => {
                     <Switch
                       colorScheme="brand"
                       isChecked={notificationsEnabled}
-                      onChange={() => setNotificationsEnabled(!notificationsEnabled)}
+                      onChange={() =>
+                        setNotificationsEnabled(!notificationsEnabled)
+                      }
                     />
                   </FormControl>
                 </VStack>
@@ -301,7 +395,9 @@ const Settings = () => {
                 border="1px solid"
                 borderColor={borderColor}
               >
-                <Heading size="md" mb={6}>Trading Preferences</Heading>
+                <Heading size="md" mb={6}>
+                  Trading Preferences
+                </Heading>
 
                 <VStack spacing={6} align="stretch">
                   <FormControl>
@@ -337,7 +433,8 @@ const Settings = () => {
                       </Text>
                     </Flex>
                     <Text fontSize="xs" color={subTextColor} mt={1}>
-                      Your transaction will revert if the price changes unfavorably by more than this percentage.
+                      Your transaction will revert if the price changes
+                      unfavorably by more than this percentage.
                     </Text>
                   </FormControl>
 
@@ -355,17 +452,32 @@ const Settings = () => {
                       <option value="custom">Custom</option>
                     </Select>
                     <Text fontSize="xs" color={subTextColor} mt={1}>
-                      Higher gas prices result in faster transaction confirmations but cost more.
+                      Higher gas prices result in faster transaction
+                      confirmations but cost more.
                     </Text>
                   </FormControl>
 
-                  <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="yellow.400">
+                  <Box
+                    p={4}
+                    bg="gray.700"
+                    borderRadius="md"
+                    borderLeft="4px solid"
+                    borderLeftColor="yellow.400"
+                  >
                     <Flex>
-                      <Icon as={FiAlertTriangle} color="yellow.400" boxSize={6} mr={3} mt={1} />
+                      <Icon
+                        as={FiAlertTriangle}
+                        color="yellow.400"
+                        boxSize={6}
+                        mr={3}
+                        mt={1}
+                      />
                       <Box>
                         <Text fontWeight="bold">Advanced Settings</Text>
                         <Text fontSize="sm">
-                          These settings are for advanced users. Incorrect values can result in failed transactions or unexpected behavior.
+                          These settings are for advanced users. Incorrect
+                          values can result in failed transactions or unexpected
+                          behavior.
                         </Text>
                       </Box>
                     </Flex>
@@ -386,10 +498,16 @@ const Settings = () => {
               borderColor={borderColor}
               mb={8}
             >
-              <Heading size="md" mb={6}>Security Settings</Heading>
+              <Heading size="md" mb={6}>
+                Security Settings
+              </Heading>
 
               <VStack spacing={6} align="stretch">
-                <FormControl display="flex" alignItems="center" justifyContent="space-between">
+                <FormControl
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
                   <Box>
                     <FormLabel mb={0}>Transaction Signing</FormLabel>
                     <Text fontSize="sm" color={subTextColor}>
@@ -401,7 +519,11 @@ const Settings = () => {
 
                 <Divider />
 
-                <FormControl display="flex" alignItems="center" justifyContent="space-between">
+                <FormControl
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
                   <Box>
                     <FormLabel mb={0}>Contract Interaction Warning</FormLabel>
                     <Text fontSize="sm" color={subTextColor}>
@@ -413,7 +535,11 @@ const Settings = () => {
 
                 <Divider />
 
-                <FormControl display="flex" alignItems="center" justifyContent="space-between">
+                <FormControl
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
                   <Box>
                     <FormLabel mb={0}>Spending Limits</FormLabel>
                     <Text fontSize="sm" color={subTextColor}>
@@ -423,13 +549,26 @@ const Settings = () => {
                   <Switch colorScheme="brand" />
                 </FormControl>
 
-                <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="red.400">
+                <Box
+                  p={4}
+                  bg="gray.700"
+                  borderRadius="md"
+                  borderLeft="4px solid"
+                  borderLeftColor="red.400"
+                >
                   <Flex>
-                    <Icon as={FiAlertTriangle} color="red.400" boxSize={6} mr={3} mt={1} />
+                    <Icon
+                      as={FiAlertTriangle}
+                      color="red.400"
+                      boxSize={6}
+                      mr={3}
+                      mt={1}
+                    />
                     <Box>
                       <Text fontWeight="bold">Security Reminder</Text>
                       <Text fontSize="sm">
-                        Never share your private keys or seed phrases with anyone. Fluxion will never ask for this information.
+                        Never share your private keys or seed phrases with
+                        anyone. Fluxion will never ask for this information.
                       </Text>
                     </Box>
                   </Flex>
@@ -445,7 +584,9 @@ const Settings = () => {
               border="1px solid"
               borderColor={borderColor}
             >
-              <Heading size="md" mb={6}>Connected Applications</Heading>
+              <Heading size="md" mb={6}>
+                Connected Applications
+              </Heading>
 
               <VStack spacing={4} align="stretch" mb={6}>
                 <Card bg="gray.700" variant="outline">
@@ -455,7 +596,9 @@ const Settings = () => {
                         <Avatar size="sm" name="MetaMask" bg="orange.500" />
                         <VStack align="start" spacing={0}>
                           <Text fontWeight="bold">MetaMask</Text>
-                          <Text fontSize="xs" color={subTextColor}>Connected Apr 10, 2025</Text>
+                          <Text fontSize="xs" color={subTextColor}>
+                            Connected Apr 10, 2025
+                          </Text>
                         </VStack>
                       </HStack>
                       <Button size="sm" colorScheme="red" variant="ghost">
@@ -472,7 +615,9 @@ const Settings = () => {
                         <Avatar size="sm" name="WalletConnect" bg="blue.500" />
                         <VStack align="start" spacing={0}>
                           <Text fontWeight="bold">WalletConnect</Text>
-                          <Text fontSize="xs" color={subTextColor}>Connected Apr 8, 2025</Text>
+                          <Text fontSize="xs" color={subTextColor}>
+                            Connected Apr 8, 2025
+                          </Text>
                         </VStack>
                       </HStack>
                       <Button size="sm" colorScheme="red" variant="ghost">
@@ -499,7 +644,9 @@ const Settings = () => {
               border="1px solid"
               borderColor={borderColor}
             >
-              <Heading size="md" mb={6}>Network Settings</Heading>
+              <Heading size="md" mb={6}>
+                Network Settings
+              </Heading>
 
               <VStack spacing={6} align="stretch">
                 <FormControl>
@@ -525,7 +672,11 @@ const Settings = () => {
 
                 <Divider />
 
-                <FormControl display="flex" alignItems="center" justifyContent="space-between">
+                <FormControl
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
                   <Box>
                     <FormLabel mb={0}>Auto-detect Network</FormLabel>
                     <Text fontSize="sm" color={subTextColor}>
@@ -535,17 +686,27 @@ const Settings = () => {
                   <Switch colorScheme="brand" defaultChecked />
                 </FormControl>
 
-                <Box p={4} bg="gray.700" borderRadius="md" borderLeft="4px solid" borderLeftColor="brand.500">
+                <Box
+                  p={4}
+                  bg="gray.700"
+                  borderRadius="md"
+                  borderLeft="4px solid"
+                  borderLeftColor="brand.500"
+                >
                   <Flex>
-                    <Icon as={FiInfo} color="brand.500" boxSize={6} mr={3} mt={1} />
+                    <Icon
+                      as={FiInfo}
+                      color="brand.500"
+                      boxSize={6}
+                      mr={3}
+                      mt={1}
+                    />
                     <Box>
                       <Text fontWeight="bold">Network Information</Text>
                       <Text fontSize="sm">
                         Ethereum Mainnet: Chain ID 1, Currency ETH
                       </Text>
-                      <Text fontSize="sm">
-                        Gas Price: 25 Gwei (Standard)
-                      </Text>
+                      <Text fontSize="sm">Gas Price: 25 Gwei (Standard)</Text>
                     </Box>
                   </Flex>
                 </Box>
