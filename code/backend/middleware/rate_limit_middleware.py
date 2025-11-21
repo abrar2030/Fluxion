@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class RateLimitRule:
     """Rate limit rule configuration"""
+
     requests_per_minute: int
     requests_per_hour: int
     requests_per_day: int
@@ -36,6 +37,7 @@ class RateLimitRule:
 @dataclass
 class RateLimitStatus:
     """Current rate limit status"""
+
     requests_made: int
     requests_remaining: int
     reset_time: int
@@ -69,9 +71,9 @@ class TokenBucket:
     def get_status(self) -> Dict:
         """Get current bucket status"""
         return {
-            'tokens': self.tokens,
-            'capacity': self.capacity,
-            'refill_rate': self.refill_rate
+            "tokens": self.tokens,
+            "capacity": self.capacity,
+            "refill_rate": self.refill_rate,
         }
 
 
@@ -120,39 +122,39 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Rate limiting configuration
         self.default_rules = {
-            'anonymous': RateLimitRule(
+            "anonymous": RateLimitRule(
                 requests_per_minute=60,
                 requests_per_hour=1000,
                 requests_per_day=10000,
-                burst_limit=10
+                burst_limit=10,
             ),
-            'authenticated': RateLimitRule(
+            "authenticated": RateLimitRule(
                 requests_per_minute=120,
                 requests_per_hour=5000,
                 requests_per_day=50000,
-                burst_limit=20
+                burst_limit=20,
             ),
-            'premium': RateLimitRule(
+            "premium": RateLimitRule(
                 requests_per_minute=300,
                 requests_per_hour=15000,
                 requests_per_day=150000,
-                burst_limit=50
+                burst_limit=50,
             ),
-            'admin': RateLimitRule(
+            "admin": RateLimitRule(
                 requests_per_minute=1000,
                 requests_per_hour=50000,
                 requests_per_day=500000,
-                burst_limit=100
-            )
+                burst_limit=100,
+            ),
         }
 
         # Endpoint-specific rate limits
         self.endpoint_rules = {
-            '/api/v1/auth/login': RateLimitRule(5, 20, 100, 2),
-            '/api/v1/auth/register': RateLimitRule(3, 10, 50, 1),
-            '/api/v1/auth/reset-password': RateLimitRule(2, 5, 20, 1),
-            '/api/v1/transactions/create': RateLimitRule(30, 500, 2000, 5),
-            '/api/v1/portfolio/update': RateLimitRule(60, 1000, 5000, 10),
+            "/api/v1/auth/login": RateLimitRule(5, 20, 100, 2),
+            "/api/v1/auth/register": RateLimitRule(3, 10, 50, 1),
+            "/api/v1/auth/reset-password": RateLimitRule(2, 5, 20, 1),
+            "/api/v1/transactions/create": RateLimitRule(30, 500, 2000, 5),
+            "/api/v1/portfolio/update": RateLimitRule(60, 1000, 5000, 10),
         }
 
         # In-memory storage for development/testing
@@ -169,12 +171,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def _initialize_redis(self):
         """Initialize Redis connection for distributed rate limiting"""
         try:
-            if hasattr(settings, 'redis') and settings.redis.REDIS_URL:
+            if hasattr(settings, "redis") and settings.redis.REDIS_URL:
                 self.redis_client = redis.from_url(
                     str(settings.redis.REDIS_URL),
-                    encoding='utf-8',
+                    encoding="utf-8",
                     decode_responses=True,
-                    max_connections=20
+                    max_connections=20,
                 )
                 logger.info("Redis client initialized for distributed rate limiting")
         except Exception as e:
@@ -203,9 +205,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                     content={
                         "error": "Rate limit exceeded",
                         "error_code": "RATE_LIMIT_EXCEEDED",
-                        "retry_after": e.headers.get("Retry-After", "60")
+                        "retry_after": e.headers.get("Retry-After", "60"),
                     },
-                    headers=e.headers
+                    headers=e.headers,
                 )
             raise
 
@@ -224,7 +226,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 raise HTTPException(
                     status_code=429,
                     detail="IP temporarily blocked due to rate limit violations",
-                    headers={"Retry-After": str(retry_after)}
+                    headers={"Retry-After": str(retry_after)},
                 )
             else:
                 # Unblock IP
@@ -244,12 +246,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def _get_client_ip(self, request: Request) -> str:
         """Extract client IP address"""
         # Check X-Forwarded-For header
-        forwarded_for = request.headers.get('X-Forwarded-For')
+        forwarded_for = request.headers.get("X-Forwarded-For")
         if forwarded_for:
-            return forwarded_for.split(',')[0].strip()
+            return forwarded_for.split(",")[0].strip()
 
         # Check X-Real-IP header
-        real_ip = request.headers.get('X-Real-IP')
+        real_ip = request.headers.get("X-Real-IP")
         if real_ip:
             return real_ip.strip()
 
@@ -257,16 +259,16 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if request.client:
             return request.client.host
 
-        return 'unknown'
+        return "unknown"
 
     async def _get_user_id(self, request: Request) -> Optional[str]:
         """Extract user ID from request (if authenticated)"""
         try:
-            auth_header = request.headers.get('Authorization')
-            if auth_header and auth_header.startswith('Bearer '):
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
                 # In production, this would decode JWT token
                 # For now, return a placeholder
-                return 'authenticated_user'
+                return "authenticated_user"
         except Exception:
             pass
         return None
@@ -275,23 +277,29 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         """Get endpoint key for rate limiting"""
         return f"{request.method}:{request.url.path}"
 
-    async def _get_rate_limit_rules(self, request: Request, user_id: Optional[str]) -> RateLimitRule:
+    async def _get_rate_limit_rules(
+        self, request: Request, user_id: Optional[str]
+    ) -> RateLimitRule:
         """Get applicable rate limit rules for the request"""
         # Determine user tier
         if user_id:
             # In production, this would check user's subscription tier
             user_tier = await self._get_user_tier(user_id)
-            return self.default_rules.get(user_tier, self.default_rules['authenticated'])
+            return self.default_rules.get(
+                user_tier, self.default_rules["authenticated"]
+            )
         else:
-            return self.default_rules['anonymous']
+            return self.default_rules["anonymous"]
 
     async def _get_user_tier(self, user_id: str) -> str:
         """Get user's subscription tier"""
         # In production, this would query the database
         # For now, return default tier
-        return 'authenticated'
+        return "authenticated"
 
-    async def _check_endpoint_limit(self, client_ip: str, endpoint: str, current_time: float):
+    async def _check_endpoint_limit(
+        self, client_ip: str, endpoint: str, current_time: float
+    ):
         """Check endpoint-specific rate limits"""
         if endpoint not in self.endpoint_rules:
             return
@@ -304,8 +312,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         else:
             await self._check_memory_limit(key, rule, current_time)
 
-    async def _check_general_limits(self, client_ip: str, user_id: Optional[str],
-                                  rules: RateLimitRule, current_time: float):
+    async def _check_general_limits(
+        self,
+        client_ip: str,
+        user_id: Optional[str],
+        rules: RateLimitRule,
+        current_time: float,
+    ):
         """Check general rate limits"""
         # IP-based limiting
         ip_key = f"ip:{client_ip}"
@@ -316,14 +329,18 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             user_key = f"user:{user_id}"
             await self._check_token_bucket_limit(user_key, rules, current_time)
 
-    async def _check_token_bucket_limit(self, key: str, rules: RateLimitRule, current_time: float):
+    async def _check_token_bucket_limit(
+        self, key: str, rules: RateLimitRule, current_time: float
+    ):
         """Check token bucket rate limit"""
         if self.redis_client:
             await self._check_redis_token_bucket(key, rules, current_time)
         else:
             await self._check_memory_token_bucket(key, rules, current_time)
 
-    async def _check_memory_token_bucket(self, key: str, rules: RateLimitRule, current_time: float):
+    async def _check_memory_token_bucket(
+        self, key: str, rules: RateLimitRule, current_time: float
+    ):
         """Check token bucket limit using in-memory storage"""
         if key not in self.ip_buckets:
             # Create new token bucket
@@ -338,18 +355,24 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
             # Block IP if too many violations
             if self.violation_counts[key] >= 5:
-                block_duration = rules.block_duration * (2 ** (self.violation_counts[key] - 5))
+                block_duration = rules.block_duration * (
+                    2 ** (self.violation_counts[key] - 5)
+                )
                 self.blocked_ips[key] = current_time + block_duration
-                logger.warning(f"IP {key} blocked for {block_duration} seconds due to rate limit violations")
+                logger.warning(
+                    f"IP {key} blocked for {block_duration} seconds due to rate limit violations"
+                )
 
             retry_after = int(60 / bucket.refill_rate)  # Time to get one token
             raise HTTPException(
                 status_code=429,
                 detail="Rate limit exceeded",
-                headers={"Retry-After": str(retry_after)}
+                headers={"Retry-After": str(retry_after)},
             )
 
-    async def _check_redis_token_bucket(self, key: str, rules: RateLimitRule, current_time: float):
+    async def _check_redis_token_bucket(
+        self, key: str, rules: RateLimitRule, current_time: float
+    ):
         """Check token bucket limit using Redis"""
         try:
             # Lua script for atomic token bucket operation
@@ -393,7 +416,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 raise HTTPException(
                     status_code=429,
                     detail="Rate limit exceeded",
-                    headers={"Retry-After": str(retry_after)}
+                    headers={"Retry-After": str(retry_after)},
                 )
 
         except Exception as e:
@@ -401,7 +424,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             # Fall back to memory-based limiting
             await self._check_memory_token_bucket(key, rules, current_time)
 
-    async def _check_redis_limit(self, key: str, rule: RateLimitRule, current_time: float):
+    async def _check_redis_limit(
+        self, key: str, rule: RateLimitRule, current_time: float
+    ):
         """Check rate limit using Redis sliding window"""
         try:
             # Use Redis sorted sets for sliding window
@@ -419,7 +444,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 raise HTTPException(
                     status_code=429,
                     detail="Rate limit exceeded",
-                    headers={"Retry-After": str(rule.window_size)}
+                    headers={"Retry-After": str(rule.window_size)},
                 )
 
             # Add current request
@@ -431,7 +456,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             # Fall back to memory-based limiting
             await self._check_memory_limit(key, rule, current_time)
 
-    async def _check_memory_limit(self, key: str, rule: RateLimitRule, current_time: float):
+    async def _check_memory_limit(
+        self, key: str, rule: RateLimitRule, current_time: float
+    ):
         """Check rate limit using in-memory sliding window"""
         if key not in self.sliding_windows:
             self.sliding_windows[key] = SlidingWindowCounter(
@@ -443,7 +470,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             raise HTTPException(
                 status_code=429,
                 detail="Rate limit exceeded",
-                headers={"Retry-After": str(rule.window_size)}
+                headers={"Retry-After": str(rule.window_size)},
             )
 
     async def _add_rate_limit_headers(self, request: Request, response):
@@ -454,14 +481,18 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Get current rate limit status
         status = await self._get_rate_limit_status(client_ip, user_id)
 
-        response.headers['X-RateLimit-Limit'] = str(status.requests_made + status.requests_remaining)
-        response.headers['X-RateLimit-Remaining'] = str(status.requests_remaining)
-        response.headers['X-RateLimit-Reset'] = str(status.reset_time)
+        response.headers["X-RateLimit-Limit"] = str(
+            status.requests_made + status.requests_remaining
+        )
+        response.headers["X-RateLimit-Remaining"] = str(status.requests_remaining)
+        response.headers["X-RateLimit-Reset"] = str(status.reset_time)
 
         if status.blocked_until:
-            response.headers['X-RateLimit-Blocked-Until'] = str(status.blocked_until)
+            response.headers["X-RateLimit-Blocked-Until"] = str(status.blocked_until)
 
-    async def _get_rate_limit_status(self, client_ip: str, user_id: Optional[str]) -> RateLimitStatus:
+    async def _get_rate_limit_status(
+        self, client_ip: str, user_id: Optional[str]
+    ) -> RateLimitStatus:
         """Get current rate limit status"""
         # This is a simplified implementation
         # In production, this would aggregate status from all applicable limits
@@ -474,23 +505,23 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 requests_remaining=int(bucket.tokens),
                 reset_time=int(time.time() + 60),
                 blocked_until=self.blocked_ips.get(client_ip),
-                violation_count=self.violation_counts.get(key, 0)
+                violation_count=self.violation_counts.get(key, 0),
             )
 
         # Default status for new clients
         return RateLimitStatus(
             requests_made=0,
             requests_remaining=60,  # Default limit
-            reset_time=int(time.time() + 60)
+            reset_time=int(time.time() + 60),
         )
 
     async def get_rate_limit_stats(self) -> Dict:
         """Get rate limiting statistics"""
         return {
-            'active_buckets': len(self.ip_buckets),
-            'blocked_ips': len(self.blocked_ips),
-            'total_violations': sum(self.violation_counts.values()),
-            'redis_connected': self.redis_client is not None
+            "active_buckets": len(self.ip_buckets),
+            "blocked_ips": len(self.blocked_ips),
+            "total_violations": sum(self.violation_counts.values()),
+            "redis_connected": self.redis_client is not None,
         }
 
     async def reset_rate_limit(self, identifier: str):
@@ -527,7 +558,9 @@ class AdaptiveRateLimitMiddleware(RateLimitMiddleware):
         self.system_load_factor = 1.0
         self.user_behavior_scores: Dict[str, float] = defaultdict(lambda: 1.0)
 
-    async def _get_rate_limit_rules(self, request: Request, user_id: Optional[str]) -> RateLimitRule:
+    async def _get_rate_limit_rules(
+        self, request: Request, user_id: Optional[str]
+    ) -> RateLimitRule:
         """Get adaptive rate limit rules"""
         base_rules = await super()._get_rate_limit_rules(request, user_id)
 
@@ -548,8 +581,8 @@ class AdaptiveRateLimitMiddleware(RateLimitMiddleware):
             requests_per_day=int(base_rules.requests_per_day * adjustment_factor),
             burst_limit=int(base_rules.burst_limit * adjustment_factor),
             window_size=base_rules.window_size,
-            block_duration=base_rules.block_duration
+            block_duration=base_rules.block_duration,
         )
 
     async def _get_system_load_factor(self) -> float:
-        """Calculate
+        """Calculate system load factor for dynamic rate limiting. Placeholder implementation."""
