@@ -1,7 +1,7 @@
 ---
 # roles/security/vars/main.yml
-security_admin_email: "security@fluxion.local"
-security_sender_email: "fail2ban@fluxion.local"
+security_admin_email: 'security@fluxion.local'
+security_sender_email: 'fail2ban@fluxion.local'
 
 # Password policy settings
 password_min_length: 14
@@ -30,21 +30,21 @@ fail2ban_maxretry: 3
 
 # Services to disable
 unnecessary_services:
-  - avahi-daemon
-  - cups
-  - isc-dhcp-server
-  - isc-dhcp-server6
-  - rpcbind
-  - nfs-server
-  - ypserv
+    - avahi-daemon
+    - cups
+    - isc-dhcp-server
+    - isc-dhcp-server6
+    - rpcbind
+    - nfs-server
+    - ypserv
 
 # Packages to remove
 unnecessary_packages:
-  - telnet
-  - rsh-client
-  - rsh-redone-client
-  - talk
-  - ntalk
-  - telnet-server
-  - rsh-server
-  - talk-server
+    - telnet
+    - rsh-client
+    - rsh-redone-client
+    - talk
+    - ntalk
+    - telnet-server
+    - rsh-server
+    - talk-server

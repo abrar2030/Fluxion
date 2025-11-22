@@ -2,187 +2,187 @@
 # roles/database/tasks/main.yml - Enhanced with security hardening
 - name: Install database packages (RHEL/CentOS)
   yum:
-    name:
-      - mariadb-server
-      - mariadb
-      - python3-PyMySQL
-      - mariadb-backup
-    state: present
+      name:
+          - mariadb-server
+          - mariadb
+          - python3-PyMySQL
+          - mariadb-backup
+      state: present
   when: ansible_os_family == "RedHat"
 
 - name: Install database packages (Debian/Ubuntu)
   apt:
-    name:
-      - mariadb-server
-      - mariadb-client
-      - python3-pymysql
-      - mariadb-backup
-    state: present
+      name:
+          - mariadb-server
+          - mariadb-client
+          - python3-pymysql
+          - mariadb-backup
+      state: present
   when: ansible_os_family == "Debian"
 
 - name: Configure MariaDB with security hardening
   template:
-    src: my.cnf.j2
-    dest: "{{ '/etc/my.cnf.d/server.cnf' if ansible_os_family == 'RedHat' else '/etc/mysql/mariadb.conf.d/50-server.cnf' }}"
-    owner: root
-    group: root
-    mode: "0644"
-    backup: yes
+      src: my.cnf.j2
+      dest: "{{ '/etc/my.cnf.d/server.cnf' if ansible_os_family == 'RedHat' else '/etc/mysql/mariadb.conf.d/50-server.cnf' }}"
+      owner: root
+      group: root
+      mode: '0644'
+      backup: yes
   notify: restart mariadb
 
 - name: Create secure MariaDB configuration
   template:
-    src: security.cnf.j2
-    dest: "{{ '/etc/my.cnf.d/security.cnf' if ansible_os_family == 'RedHat' else '/etc/mysql/mariadb.conf.d/60-security.cnf' }}"
-    owner: root
-    group: root
-    mode: "0644"
-    backup: yes
+      src: security.cnf.j2
+      dest: "{{ '/etc/my.cnf.d/security.cnf' if ansible_os_family == 'RedHat' else '/etc/mysql/mariadb.conf.d/60-security.cnf' }}"
+      owner: root
+      group: root
+      mode: '0644'
+      backup: yes
   notify: restart mariadb
 
 - name: Start and enable MariaDB
   systemd:
-    name: mariadb
-    state: started
-    enabled: yes
+      name: mariadb
+      state: started
+      enabled: yes
 
 - name: Secure MariaDB installation
   mysql_user:
-    name: root
-    password: "{{ db_root_password }}"
-    host_all: yes
-    state: present
-    check_implicit_admin: yes
-    login_unix_socket: /var/run/mysqld/mysqld.sock
+      name: root
+      password: '{{ db_root_password }}'
+      host_all: yes
+      state: present
+      check_implicit_admin: yes
+      login_unix_socket: /var/run/mysqld/mysqld.sock
   no_log: true
 
 - name: Create .my.cnf file for root
   template:
-    src: root-my.cnf.j2
-    dest: /root/.my.cnf
-    owner: root
-    group: root
-    mode: "0600"
+      src: root-my.cnf.j2
+      dest: /root/.my.cnf
+      owner: root
+      group: root
+      mode: '0600'
   no_log: true
 
 - name: Remove anonymous users
   mysql_user:
-    name: ""
-    host_all: yes
-    state: absent
-    login_user: root
-    login_password: "{{ db_root_password }}"
+      name: ''
+      host_all: yes
+      state: absent
+      login_user: root
+      login_password: '{{ db_root_password }}'
 
 - name: Remove test database
   mysql_db:
-    name: test
-    state: absent
-    login_user: root
-    login_password: "{{ db_root_password }}"
+      name: test
+      state: absent
+      login_user: root
+      login_password: '{{ db_root_password }}'
 
 - name: Disallow root login remotely
   mysql_user:
-    name: root
-    host: "{{ item }}"
-    state: absent
-    login_user: root
-    login_password: "{{ db_root_password }}"
+      name: root
+      host: '{{ item }}'
+      state: absent
+      login_user: root
+      login_password: '{{ db_root_password }}'
   loop:
-    - "{{ ansible_hostname }}"
-    - 127.0.0.1
-    - ::1
-    - localhost
+      - '{{ ansible_hostname }}'
+      - 127.0.0.1
+      - ::1
+      - localhost
   ignore_errors: yes
 
 - name: Create application database
   mysql_db:
-    name: "{{ db_name }}"
-    state: present
-    encoding: utf8mb4
-    collation: utf8mb4_unicode_ci
-    login_user: root
-    login_password: "{{ db_root_password }}"
+      name: '{{ db_name }}'
+      state: present
+      encoding: utf8mb4
+      collation: utf8mb4_unicode_ci
+      login_user: root
+      login_password: '{{ db_root_password }}'
 
 - name: Create application database user
   mysql_user:
-    name: "{{ db_user }}"
-    password: "{{ db_password }}"
-    priv: "{{ db_name }}.*:SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,INDEX,ALTER,CREATE TEMPORARY TABLES,LOCK TABLES"
-    host: "{{ db_allowed_hosts | default(['localhost', '127.0.0.1']) }}"
-    state: present
-    login_user: root
-    login_password: "{{ db_root_password }}"
+      name: '{{ db_user }}'
+      password: '{{ db_password }}'
+      priv: '{{ db_name }}.*:SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,INDEX,ALTER,CREATE TEMPORARY TABLES,LOCK TABLES'
+      host: "{{ db_allowed_hosts | default(['localhost', '127.0.0.1']) }}"
+      state: present
+      login_user: root
+      login_password: '{{ db_root_password }}'
   no_log: true
 
 - name: Create backup user
   mysql_user:
-    name: "{{ db_backup_user | default('backup') }}"
-    password: "{{ db_backup_password }}"
-    priv: "*.*:SELECT,LOCK TABLES,SHOW VIEW,EVENT,TRIGGER,RELOAD"
-    host: localhost
-    state: present
-    login_user: root
-    login_password: "{{ db_root_password }}"
+      name: "{{ db_backup_user | default('backup') }}"
+      password: '{{ db_backup_password }}'
+      priv: '*.*:SELECT,LOCK TABLES,SHOW VIEW,EVENT,TRIGGER,RELOAD'
+      host: localhost
+      state: present
+      login_user: root
+      login_password: '{{ db_root_password }}'
   no_log: true
 
 - name: Create database backup directory
   file:
-    path: /opt/fluxion/backups/database
-    state: directory
-    owner: fluxion
-    group: fluxion
-    mode: "0750"
+      path: /opt/fluxion/backups/database
+      state: directory
+      owner: fluxion
+      group: fluxion
+      mode: '0750'
 
 - name: Configure database backup script
   template:
-    src: db-backup.sh.j2
-    dest: /opt/fluxion/bin/db-backup.sh
-    owner: fluxion
-    group: fluxion
-    mode: "0750"
+      src: db-backup.sh.j2
+      dest: /opt/fluxion/bin/db-backup.sh
+      owner: fluxion
+      group: fluxion
+      mode: '0750'
 
 - name: Create backup script directory
   file:
-    path: /opt/fluxion/bin
-    state: directory
-    owner: fluxion
-    group: fluxion
-    mode: "0755"
+      path: /opt/fluxion/bin
+      state: directory
+      owner: fluxion
+      group: fluxion
+      mode: '0755'
 
 - name: Schedule database backups
   cron:
-    name: "Database backup"
-    minute: "0"
-    hour: "2"
-    job: "/opt/fluxion/bin/db-backup.sh"
-    user: fluxion
+      name: 'Database backup'
+      minute: '0'
+      hour: '2'
+      job: '/opt/fluxion/bin/db-backup.sh'
+      user: fluxion
 
 - name: Configure firewall for database (RHEL/CentOS)
   firewalld:
-    port: 3306/tcp
-    permanent: yes
-    state: enabled
-    immediate: yes
-    source: "{{ item }}"
+      port: 3306/tcp
+      permanent: yes
+      state: enabled
+      immediate: yes
+      source: '{{ item }}'
   loop: "{{ db_firewall_sources | default(['127.0.0.1/32']) }}"
   when: ansible_os_family == "RedHat"
 
 - name: Configure UFW for database (Debian/Ubuntu)
   ufw:
-    rule: allow
-    port: "3306"
-    proto: tcp
-    src: "{{ item }}"
+      rule: allow
+      port: '3306'
+      proto: tcp
+      src: '{{ item }}'
   loop: "{{ db_firewall_sources | default(['127.0.0.1']) }}"
   when: ansible_os_family == "Debian"
 
 - name: Configure database monitoring user
   mysql_user:
-    name: "{{ db_monitor_user | default('monitor') }}"
-    password: "{{ db_monitor_password }}"
-    priv: "*.*:PROCESS,REPLICATION CLIENT"
-    host: localhost
-    state: present
-    login_user: root
-    login_password: "{{ db_root_password }}"
+      name: "{{ db_monitor_user | default('monitor') }}"
+      password: '{{ db_monitor_password }}'
+      priv: '*.*:PROCESS,REPLICATION CLIENT'
+      host: localhost
+      state: present
+      login_user: root
+      login_password: '{{ db_root_password }}'
   no_log: true

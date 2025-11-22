@@ -2,25 +2,25 @@
 # roles/security/handlers/main.yml
 - name: restart sshd
   systemd:
-    name: sshd
-    state: restarted
+      name: sshd
+      state: restarted
 
 - name: restart auditd
   systemd:
-    name: auditd
-    state: restarted
+      name: auditd
+      state: restarted
 
 - name: restart fail2ban
   systemd:
-    name: fail2ban
-    state: restarted
+      name: fail2ban
+      state: restarted
 
 - name: reload firewalld
   systemd:
-    name: firewalld
-    state: reloaded
+      name: firewalld
+      state: reloaded
 
 - name: restart ufw
   systemd:
-    name: ufw
-    state: restarted
+      name: ufw
+      state: restarted

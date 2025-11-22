@@ -1,594 +1,594 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: compliance-monitor-config
-  namespace: monitoring
+    name: compliance-monitor-config
+    namespace: monitoring
 data:
-  compliance-rules.yml: |
-    groups:
-      - name: compliance.financial
-        interval: 30s
-        rules:
-          # Data retention compliance
-          - alert: DataRetentionViolation
-            expr: |
-              (
-                elasticsearch_indices_docs{index=~"fluxion-.*"}
-                and on(index)
-                (time() - elasticsearch_indices_creation_date_in_millis{index=~"fluxion-.*"} / 1000) > (7 * 365 * 24 * 3600)
-              )
-            for: 0m
-            labels:
-              severity: critical
-              compliance: financial
-              regulation: "7-year-retention"
-            annotations:
-              summary: "Data retention policy violation detected"
-              description: "Index {{ $labels.index }} contains data older than 7 years, violating financial data retention requirements"
+    compliance-rules.yml: |
+        groups:
+          - name: compliance.financial
+            interval: 30s
+            rules:
+              # Data retention compliance
+              - alert: DataRetentionViolation
+                expr: |
+                  (
+                    elasticsearch_indices_docs{index=~"fluxion-.*"}
+                    and on(index)
+                    (time() - elasticsearch_indices_creation_date_in_millis{index=~"fluxion-.*"} / 1000) > (7 * 365 * 24 * 3600)
+                  )
+                for: 0m
+                labels:
+                  severity: critical
+                  compliance: financial
+                  regulation: "7-year-retention"
+                annotations:
+                  summary: "Data retention policy violation detected"
+                  description: "Index {{ $labels.index }} contains data older than 7 years, violating financial data retention requirements"
 
-          # Encryption compliance
-          - alert: UnencryptedDataDetected
-            expr: |
-              increase(fluxion_unencrypted_data_access_total[5m]) > 0
-            for: 0m
-            labels:
-              severity: critical
-              compliance: financial
-              regulation: "encryption-at-rest"
-            annotations:
-              summary: "Unencrypted data access detected"
-              description: "Unencrypted data access detected in the last 5 minutes"
+              # Encryption compliance
+              - alert: UnencryptedDataDetected
+                expr: |
+                  increase(fluxion_unencrypted_data_access_total[5m]) > 0
+                for: 0m
+                labels:
+                  severity: critical
+                  compliance: financial
+                  regulation: "encryption-at-rest"
+                annotations:
+                  summary: "Unencrypted data access detected"
+                  description: "Unencrypted data access detected in the last 5 minutes"
 
-          # Access control compliance
-          - alert: PrivilegedAccessViolation
-            expr: |
-              increase(fluxion_privileged_access_denied_total[5m]) > 0
-            for: 0m
-            labels:
-              severity: warning
-              compliance: financial
-              regulation: "least-privilege"
-            annotations:
-              summary: "Privileged access violation detected"
-              description: "Attempted privileged access denied in the last 5 minutes"
+              # Access control compliance
+              - alert: PrivilegedAccessViolation
+                expr: |
+                  increase(fluxion_privileged_access_denied_total[5m]) > 0
+                for: 0m
+                labels:
+                  severity: warning
+                  compliance: financial
+                  regulation: "least-privilege"
+                annotations:
+                  summary: "Privileged access violation detected"
+                  description: "Attempted privileged access denied in the last 5 minutes"
 
-          # Audit log integrity
-          - alert: AuditLogIntegrityFailure
-            expr: |
-              increase(fluxion_audit_log_integrity_failures_total[1m]) > 0
-            for: 0m
-            labels:
-              severity: critical
-              compliance: financial
-              regulation: "audit-integrity"
-            annotations:
-              summary: "Audit log integrity failure"
-              description: "Audit log integrity check failed - potential tampering detected"
+              # Audit log integrity
+              - alert: AuditLogIntegrityFailure
+                expr: |
+                  increase(fluxion_audit_log_integrity_failures_total[1m]) > 0
+                for: 0m
+                labels:
+                  severity: critical
+                  compliance: financial
+                  regulation: "audit-integrity"
+                annotations:
+                  summary: "Audit log integrity failure"
+                  description: "Audit log integrity check failed - potential tampering detected"
 
-          # Backup compliance
-          - alert: BackupComplianceFailure
-            expr: |
-              (time() - fluxion_last_successful_backup_timestamp) > (24 * 3600)
-            for: 0m
-            labels:
-              severity: critical
-              compliance: financial
-              regulation: "backup-requirements"
-            annotations:
-              summary: "Backup compliance failure"
-              description: "No successful backup in the last 24 hours"
+              # Backup compliance
+              - alert: BackupComplianceFailure
+                expr: |
+                  (time() - fluxion_last_successful_backup_timestamp) > (24 * 3600)
+                for: 0m
+                labels:
+                  severity: critical
+                  compliance: financial
+                  regulation: "backup-requirements"
+                annotations:
+                  summary: "Backup compliance failure"
+                  description: "No successful backup in the last 24 hours"
 
-          # Network security compliance
-          - alert: UnauthorizedNetworkAccess
-            expr: |
-              increase(fluxion_unauthorized_network_access_total[5m]) > 0
-            for: 0m
-            labels:
-              severity: critical
-              compliance: financial
-              regulation: "network-security"
-            annotations:
-              summary: "Unauthorized network access detected"
-              description: "Unauthorized network access attempt detected"
+              # Network security compliance
+              - alert: UnauthorizedNetworkAccess
+                expr: |
+                  increase(fluxion_unauthorized_network_access_total[5m]) > 0
+                for: 0m
+                labels:
+                  severity: critical
+                  compliance: financial
+                  regulation: "network-security"
+                annotations:
+                  summary: "Unauthorized network access detected"
+                  description: "Unauthorized network access attempt detected"
 
-          # Data classification compliance
-          - alert: DataClassificationViolation
-            expr: |
-              increase(fluxion_data_classification_violations_total[5m]) > 0
-            for: 0m
-            labels:
-              severity: warning
-              compliance: financial
-              regulation: "data-classification"
-            annotations:
-              summary: "Data classification violation"
-              description: "Data accessed without proper classification handling"
+              # Data classification compliance
+              - alert: DataClassificationViolation
+                expr: |
+                  increase(fluxion_data_classification_violations_total[5m]) > 0
+                for: 0m
+                labels:
+                  severity: warning
+                  compliance: financial
+                  regulation: "data-classification"
+                annotations:
+                  summary: "Data classification violation"
+                  description: "Data accessed without proper classification handling"
 
-          # Multi-factor authentication compliance
-          - alert: MFABypassAttempt
-            expr: |
-              increase(fluxion_mfa_bypass_attempts_total[5m]) > 0
-            for: 0m
-            labels:
-              severity: critical
-              compliance: financial
-              regulation: "mfa-requirements"
-            annotations:
-              summary: "MFA bypass attempt detected"
-              description: "Attempt to bypass multi-factor authentication detected"
+              # Multi-factor authentication compliance
+              - alert: MFABypassAttempt
+                expr: |
+                  increase(fluxion_mfa_bypass_attempts_total[5m]) > 0
+                for: 0m
+                labels:
+                  severity: critical
+                  compliance: financial
+                  regulation: "mfa-requirements"
+                annotations:
+                  summary: "MFA bypass attempt detected"
+                  description: "Attempt to bypass multi-factor authentication detected"
 
-          # Session management compliance
-          - alert: SessionTimeoutViolation
-            expr: |
-              increase(fluxion_session_timeout_violations_total[5m]) > 0
-            for: 0m
-            labels:
-              severity: warning
-              compliance: financial
-              regulation: "session-management"
-            annotations:
-              summary: "Session timeout violation"
-              description: "Session exceeded maximum allowed duration"
+              # Session management compliance
+              - alert: SessionTimeoutViolation
+                expr: |
+                  increase(fluxion_session_timeout_violations_total[5m]) > 0
+                for: 0m
+                labels:
+                  severity: warning
+                  compliance: financial
+                  regulation: "session-management"
+                annotations:
+                  summary: "Session timeout violation"
+                  description: "Session exceeded maximum allowed duration"
 
-          # Change management compliance
-          - alert: UnauthorizedConfigChange
-            expr: |
-              increase(fluxion_unauthorized_config_changes_total[1m]) > 0
-            for: 0m
-            labels:
-              severity: critical
-              compliance: financial
-              regulation: "change-management"
-            annotations:
-              summary: "Unauthorized configuration change"
-              description: "Unauthorized configuration change detected"
+              # Change management compliance
+              - alert: UnauthorizedConfigChange
+                expr: |
+                  increase(fluxion_unauthorized_config_changes_total[1m]) > 0
+                for: 0m
+                labels:
+                  severity: critical
+                  compliance: financial
+                  regulation: "change-management"
+                annotations:
+                  summary: "Unauthorized configuration change"
+                  description: "Unauthorized configuration change detected"
 
-      - name: compliance.operational
-        interval: 60s
-        rules:
-          # Service availability compliance
-          - alert: ServiceAvailabilityBreach
-            expr: |
-              (
-                avg_over_time(up{job="fluxion-backend"}[24h]) < 0.999
-              )
-            for: 5m
-            labels:
-              severity: warning
-              compliance: operational
-              sla: "99.9-percent-uptime"
-            annotations:
-              summary: "Service availability SLA breach"
-              description: "Service availability below 99.9% SLA requirement over 24h period"
+          - name: compliance.operational
+            interval: 60s
+            rules:
+              # Service availability compliance
+              - alert: ServiceAvailabilityBreach
+                expr: |
+                  (
+                    avg_over_time(up{job="fluxion-backend"}[24h]) < 0.999
+                  )
+                for: 5m
+                labels:
+                  severity: warning
+                  compliance: operational
+                  sla: "99.9-percent-uptime"
+                annotations:
+                  summary: "Service availability SLA breach"
+                  description: "Service availability below 99.9% SLA requirement over 24h period"
 
-          # Response time compliance
-          - alert: ResponseTimeSLABreach
-            expr: |
-              (
-                histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
-              )
-            for: 10m
-            labels:
-              severity: warning
-              compliance: operational
-              sla: "response-time"
-            annotations:
-              summary: "Response time SLA breach"
-              description: "95th percentile response time above 2 seconds for 10 minutes"
+              # Response time compliance
+              - alert: ResponseTimeSLABreach
+                expr: |
+                  (
+                    histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+                  )
+                for: 10m
+                labels:
+                  severity: warning
+                  compliance: operational
+                  sla: "response-time"
+                annotations:
+                  summary: "Response time SLA breach"
+                  description: "95th percentile response time above 2 seconds for 10 minutes"
 
-          # Error rate compliance
-          - alert: ErrorRateSLABreach
-            expr: |
-              (
-                rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.01
-              )
-            for: 5m
-            labels:
-              severity: warning
-              compliance: operational
-              sla: "error-rate"
-            annotations:
-              summary: "Error rate SLA breach"
-              description: "Error rate above 1% for 5 minutes"
+              # Error rate compliance
+              - alert: ErrorRateSLABreach
+                expr: |
+                  (
+                    rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.01
+                  )
+                for: 5m
+                labels:
+                  severity: warning
+                  compliance: operational
+                  sla: "error-rate"
+                annotations:
+                  summary: "Error rate SLA breach"
+                  description: "Error rate above 1% for 5 minutes"
 
-  compliance-dashboard.json: |
-    {
-      "dashboard": {
-        "id": null,
-        "title": "Financial Compliance Dashboard",
-        "tags": ["compliance", "financial", "audit"],
-        "timezone": "browser",
-        "panels": [
-          {
-            "id": 1,
-            "title": "Compliance Alerts Summary",
-            "type": "stat",
-            "targets": [
+    compliance-dashboard.json: |
+        {
+          "dashboard": {
+            "id": null,
+            "title": "Financial Compliance Dashboard",
+            "tags": ["compliance", "financial", "audit"],
+            "timezone": "browser",
+            "panels": [
               {
-                "expr": "sum by (regulation) (ALERTS{compliance=\"financial\"})",
-                "legendFormat": "{{ regulation }}"
-              }
-            ],
-            "fieldConfig": {
-              "defaults": {
-                "color": {
-                  "mode": "thresholds"
-                },
-                "thresholds": {
-                  "steps": [
-                    {"color": "green", "value": null},
-                    {"color": "yellow", "value": 1},
-                    {"color": "red", "value": 5}
-                  ]
+                "id": 1,
+                "title": "Compliance Alerts Summary",
+                "type": "stat",
+                "targets": [
+                  {
+                    "expr": "sum by (regulation) (ALERTS{compliance=\"financial\"})",
+                    "legendFormat": "{{ regulation }}"
+                  }
+                ],
+                "fieldConfig": {
+                  "defaults": {
+                    "color": {
+                      "mode": "thresholds"
+                    },
+                    "thresholds": {
+                      "steps": [
+                        {"color": "green", "value": null},
+                        {"color": "yellow", "value": 1},
+                        {"color": "red", "value": 5}
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "id": 2,
+                "title": "Data Retention Status",
+                "type": "table",
+                "targets": [
+                  {
+                    "expr": "elasticsearch_indices_docs{index=~\"fluxion-.*\"}",
+                    "format": "table"
+                  }
+                ]
+              },
+              {
+                "id": 3,
+                "title": "Audit Log Volume",
+                "type": "graph",
+                "targets": [
+                  {
+                    "expr": "rate(fluxion_audit_logs_total[5m])",
+                    "legendFormat": "Audit Logs/sec"
+                  }
+                ]
+              },
+              {
+                "id": 4,
+                "title": "Security Events",
+                "type": "graph",
+                "targets": [
+                  {
+                    "expr": "rate(fluxion_security_events_total[5m])",
+                    "legendFormat": "{{ event_type }}"
+                  }
+                ]
+              },
+              {
+                "id": 5,
+                "title": "Backup Status",
+                "type": "stat",
+                "targets": [
+                  {
+                    "expr": "(time() - fluxion_last_successful_backup_timestamp) / 3600",
+                    "legendFormat": "Hours since last backup"
+                  }
+                ],
+                "fieldConfig": {
+                  "defaults": {
+                    "unit": "h",
+                    "thresholds": {
+                      "steps": [
+                        {"color": "green", "value": null},
+                        {"color": "yellow", "value": 12},
+                        {"color": "red", "value": 24}
+                      ]
+                    }
+                  }
                 }
               }
-            }
-          },
-          {
-            "id": 2,
-            "title": "Data Retention Status",
-            "type": "table",
-            "targets": [
-              {
-                "expr": "elasticsearch_indices_docs{index=~\"fluxion-.*\"}",
-                "format": "table"
-              }
-            ]
-          },
-          {
-            "id": 3,
-            "title": "Audit Log Volume",
-            "type": "graph",
-            "targets": [
-              {
-                "expr": "rate(fluxion_audit_logs_total[5m])",
-                "legendFormat": "Audit Logs/sec"
-              }
-            ]
-          },
-          {
-            "id": 4,
-            "title": "Security Events",
-            "type": "graph",
-            "targets": [
-              {
-                "expr": "rate(fluxion_security_events_total[5m])",
-                "legendFormat": "{{ event_type }}"
-              }
-            ]
-          },
-          {
-            "id": 5,
-            "title": "Backup Status",
-            "type": "stat",
-            "targets": [
-              {
-                "expr": "(time() - fluxion_last_successful_backup_timestamp) / 3600",
-                "legendFormat": "Hours since last backup"
-              }
             ],
-            "fieldConfig": {
-              "defaults": {
-                "unit": "h",
-                "thresholds": {
-                  "steps": [
-                    {"color": "green", "value": null},
-                    {"color": "yellow", "value": 12},
-                    {"color": "red", "value": 24}
-                  ]
-                }
-              }
-            }
+            "time": {
+              "from": "now-24h",
+              "to": "now"
+            },
+            "refresh": "30s"
           }
-        ],
-        "time": {
-          "from": "now-24h",
-          "to": "now"
-        },
-        "refresh": "30s"
-      }
-    }
+        }
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: compliance-report-generator
-  namespace: monitoring
+    name: compliance-report-generator
+    namespace: monitoring
 spec:
-  schedule: "0 2 * * *" # Daily at 2 AM
-  jobTemplate:
-    spec:
-      template:
-        metadata:
-          labels:
-            app: compliance-report
+    schedule: '0 2 * * *' # Daily at 2 AM
+    jobTemplate:
         spec:
-          serviceAccountName: compliance-monitor
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1000
-            fsGroup: 1000
-          containers:
-            - name: compliance-report
-              image: python:3.11-slim
-              securityContext:
-                allowPrivilegeEscalation: false
-                readOnlyRootFilesystem: true
-                capabilities:
-                  drop:
-                    - ALL
-              env:
-                - name: ELASTICSEARCH_URL
-                  value: "https://elasticsearch.logging.svc.cluster.local:9200"
-                - name: PROMETHEUS_URL
-                  value: "http://prometheus.monitoring.svc.cluster.local:9090"
-                - name: REPORT_DATE
-                  value: "$(date -d 'yesterday' +%Y-%m-%d)"
-              command:
-                - /bin/sh
-                - -c
-                - |
-                  pip install requests elasticsearch prometheus-api-client
-                  python3 /scripts/generate_compliance_report.py
-              volumeMounts:
-                - name: compliance-scripts
-                  mountPath: /scripts
-                - name: reports-output
-                  mountPath: /reports
-                - name: tmp
-                  mountPath: /tmp
-              resources:
-                requests:
-                  memory: "256Mi"
-                  cpu: "100m"
-                limits:
-                  memory: "512Mi"
-                  cpu: "200m"
-          volumes:
-            - name: compliance-scripts
-              configMap:
-                name: compliance-scripts
-            - name: reports-output
-              persistentVolumeClaim:
-                claimName: compliance-reports
-            - name: tmp
-              emptyDir: {}
-          restartPolicy: OnFailure
+            template:
+                metadata:
+                    labels:
+                        app: compliance-report
+                spec:
+                    serviceAccountName: compliance-monitor
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        fsGroup: 1000
+                    containers:
+                        - name: compliance-report
+                          image: python:3.11-slim
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                          env:
+                              - name: ELASTICSEARCH_URL
+                                value: 'https://elasticsearch.logging.svc.cluster.local:9200'
+                              - name: PROMETHEUS_URL
+                                value: 'http://prometheus.monitoring.svc.cluster.local:9090'
+                              - name: REPORT_DATE
+                                value: "$(date -d 'yesterday' +%Y-%m-%d)"
+                          command:
+                              - /bin/sh
+                              - -c
+                              - |
+                                  pip install requests elasticsearch prometheus-api-client
+                                  python3 /scripts/generate_compliance_report.py
+                          volumeMounts:
+                              - name: compliance-scripts
+                                mountPath: /scripts
+                              - name: reports-output
+                                mountPath: /reports
+                              - name: tmp
+                                mountPath: /tmp
+                          resources:
+                              requests:
+                                  memory: '256Mi'
+                                  cpu: '100m'
+                              limits:
+                                  memory: '512Mi'
+                                  cpu: '200m'
+                    volumes:
+                        - name: compliance-scripts
+                          configMap:
+                              name: compliance-scripts
+                        - name: reports-output
+                          persistentVolumeClaim:
+                              claimName: compliance-reports
+                        - name: tmp
+                          emptyDir: {}
+                    restartPolicy: OnFailure
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: compliance-scripts
-  namespace: monitoring
+    name: compliance-scripts
+    namespace: monitoring
 data:
-  generate_compliance_report.py: |
-    #!/usr/bin/env python3
-    import os
-    import json
-    import requests
-    from datetime import datetime, timedelta
-    from elasticsearch import Elasticsearch
+    generate_compliance_report.py: |
+        #!/usr/bin/env python3
+        import os
+        import json
+        import requests
+        from datetime import datetime, timedelta
+        from elasticsearch import Elasticsearch
 
-    def generate_compliance_report():
-        """Generate daily compliance report"""
+        def generate_compliance_report():
+            """Generate daily compliance report"""
 
-        # Configuration
-        es_url = os.getenv('ELASTICSEARCH_URL')
-        prometheus_url = os.getenv('PROMETHEUS_URL')
-        report_date = os.getenv('REPORT_DATE', datetime.now().strftime('%Y-%m-%d'))
+            # Configuration
+            es_url = os.getenv('ELASTICSEARCH_URL')
+            prometheus_url = os.getenv('PROMETHEUS_URL')
+            report_date = os.getenv('REPORT_DATE', datetime.now().strftime('%Y-%m-%d'))
 
-        # Initialize clients
-        es = Elasticsearch([es_url], verify_certs=False)
+            # Initialize clients
+            es = Elasticsearch([es_url], verify_certs=False)
 
-        report = {
-            'report_date': report_date,
-            'generated_at': datetime.now().isoformat(),
-            'compliance_status': {},
-            'violations': [],
-            'metrics': {},
-            'recommendations': []
-        }
-
-        # Check data retention compliance
-        try:
-            indices = es.indices.get_alias(index="fluxion-*")
-            retention_violations = []
-
-            for index_name in indices:
-                index_info = es.indices.get(index=index_name)
-                creation_date = index_info[index_name]['settings']['index']['creation_date']
-                creation_timestamp = int(creation_date) / 1000
-                age_days = (datetime.now().timestamp() - creation_timestamp) / (24 * 3600)
-
-                if age_days > (7 * 365):  # 7 years
-                    retention_violations.append({
-                        'index': index_name,
-                        'age_days': age_days,
-                        'violation_type': 'data_retention'
-                    })
-
-            report['compliance_status']['data_retention'] = {
-                'status': 'PASS' if not retention_violations else 'FAIL',
-                'violations_count': len(retention_violations),
-                'details': retention_violations
+            report = {
+                'report_date': report_date,
+                'generated_at': datetime.now().isoformat(),
+                'compliance_status': {},
+                'violations': [],
+                'metrics': {},
+                'recommendations': []
             }
 
-        except Exception as e:
-            report['compliance_status']['data_retention'] = {
-                'status': 'ERROR',
-                'error': str(e)
-            }
+            # Check data retention compliance
+            try:
+                indices = es.indices.get_alias(index="fluxion-*")
+                retention_violations = []
 
-        # Check audit log completeness
-        try:
-            audit_query = {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {"range": {"@timestamp": {"gte": f"{report_date}T00:00:00", "lt": f"{report_date}T23:59:59"}}},
-                            {"term": {"log_type": "audit"}}
-                        ]
-                    }
+                for index_name in indices:
+                    index_info = es.indices.get(index=index_name)
+                    creation_date = index_info[index_name]['settings']['index']['creation_date']
+                    creation_timestamp = int(creation_date) / 1000
+                    age_days = (datetime.now().timestamp() - creation_timestamp) / (24 * 3600)
+
+                    if age_days > (7 * 365):  # 7 years
+                        retention_violations.append({
+                            'index': index_name,
+                            'age_days': age_days,
+                            'violation_type': 'data_retention'
+                        })
+
+                report['compliance_status']['data_retention'] = {
+                    'status': 'PASS' if not retention_violations else 'FAIL',
+                    'violations_count': len(retention_violations),
+                    'details': retention_violations
                 }
-            }
 
-            audit_result = es.search(index="fluxion-audit-*", body=audit_query)
-            audit_count = audit_result['hits']['total']['value']
+            except Exception as e:
+                report['compliance_status']['data_retention'] = {
+                    'status': 'ERROR',
+                    'error': str(e)
+                }
 
-            # Expected minimum audit events per day (configurable)
-            min_expected_audit_events = 1000
-
-            report['compliance_status']['audit_logging'] = {
-                'status': 'PASS' if audit_count >= min_expected_audit_events else 'WARN',
-                'audit_events_count': audit_count,
-                'expected_minimum': min_expected_audit_events
-            }
-
-        except Exception as e:
-            report['compliance_status']['audit_logging'] = {
-                'status': 'ERROR',
-                'error': str(e)
-            }
-
-        # Check security events
-        try:
-            security_query = {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {"range": {"@timestamp": {"gte": f"{report_date}T00:00:00", "lt": f"{report_date}T23:59:59"}}},
-                            {"term": {"log_type": "security"}}
-                        ]
-                    }
-                },
-                "aggs": {
-                    "security_events": {
-                        "terms": {
-                            "field": "event_type.keyword"
+            # Check audit log completeness
+            try:
+                audit_query = {
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {"range": {"@timestamp": {"gte": f"{report_date}T00:00:00", "lt": f"{report_date}T23:59:59"}}},
+                                {"term": {"log_type": "audit"}}
+                            ]
                         }
                     }
                 }
-            }
 
-            security_result = es.search(index="fluxion-security-*", body=security_query)
-            security_events = security_result['aggregations']['security_events']['buckets']
+                audit_result = es.search(index="fluxion-audit-*", body=audit_query)
+                audit_count = audit_result['hits']['total']['value']
 
-            report['metrics']['security_events'] = {
-                event['key']: event['doc_count'] for event in security_events
-            }
+                # Expected minimum audit events per day (configurable)
+                min_expected_audit_events = 1000
 
-        except Exception as e:
-            report['metrics']['security_events'] = {'error': str(e)}
+                report['compliance_status']['audit_logging'] = {
+                    'status': 'PASS' if audit_count >= min_expected_audit_events else 'WARN',
+                    'audit_events_count': audit_count,
+                    'expected_minimum': min_expected_audit_events
+                }
 
-        # Query Prometheus for SLA metrics
-        try:
-            # Service availability
-            availability_query = 'avg_over_time(up{job="fluxion-backend"}[24h])'
-            response = requests.get(f"{prometheus_url}/api/v1/query",
-                                  params={'query': availability_query})
+            except Exception as e:
+                report['compliance_status']['audit_logging'] = {
+                    'status': 'ERROR',
+                    'error': str(e)
+                }
 
-            if response.status_code == 200:
-                data = response.json()
-                if data['data']['result']:
-                    availability = float(data['data']['result'][0]['value'][1])
-                    report['metrics']['service_availability'] = {
-                        'value': availability,
-                        'percentage': availability * 100,
-                        'sla_target': 99.9,
-                        'compliant': availability >= 0.999
+            # Check security events
+            try:
+                security_query = {
+                    "query": {
+                        "bool": {
+                            "must": [
+                                {"range": {"@timestamp": {"gte": f"{report_date}T00:00:00", "lt": f"{report_date}T23:59:59"}}},
+                                {"term": {"log_type": "security"}}
+                            ]
+                        }
+                    },
+                    "aggs": {
+                        "security_events": {
+                            "terms": {
+                                "field": "event_type.keyword"
+                            }
+                        }
                     }
+                }
 
-        except Exception as e:
-            report['metrics']['service_availability'] = {'error': str(e)}
+                security_result = es.search(index="fluxion-security-*", body=security_query)
+                security_events = security_result['aggregations']['security_events']['buckets']
 
-        # Generate recommendations
-        recommendations = []
+                report['metrics']['security_events'] = {
+                    event['key']: event['doc_count'] for event in security_events
+                }
 
-        if report['compliance_status'].get('data_retention', {}).get('status') == 'FAIL':
-            recommendations.append({
-                'priority': 'HIGH',
-                'category': 'data_retention',
-                'description': 'Implement automated data archival for indices older than 7 years',
-                'action_required': 'Configure index lifecycle management (ILM) policies'
-            })
+            except Exception as e:
+                report['metrics']['security_events'] = {'error': str(e)}
 
-        if report['metrics'].get('service_availability', {}).get('compliant') == False:
-            recommendations.append({
-                'priority': 'MEDIUM',
-                'category': 'availability',
-                'description': 'Service availability below SLA target',
-                'action_required': 'Review infrastructure scaling and redundancy'
-            })
+            # Query Prometheus for SLA metrics
+            try:
+                # Service availability
+                availability_query = 'avg_over_time(up{job="fluxion-backend"}[24h])'
+                response = requests.get(f"{prometheus_url}/api/v1/query",
+                                      params={'query': availability_query})
 
-        report['recommendations'] = recommendations
+                if response.status_code == 200:
+                    data = response.json()
+                    if data['data']['result']:
+                        availability = float(data['data']['result'][0]['value'][1])
+                        report['metrics']['service_availability'] = {
+                            'value': availability,
+                            'percentage': availability * 100,
+                            'sla_target': 99.9,
+                            'compliant': availability >= 0.999
+                        }
 
-        # Calculate overall compliance score
-        total_checks = len(report['compliance_status'])
-        passed_checks = sum(1 for status in report['compliance_status'].values()
-                          if status.get('status') == 'PASS')
+            except Exception as e:
+                report['metrics']['service_availability'] = {'error': str(e)}
 
-        report['overall_compliance_score'] = {
-            'percentage': (passed_checks / total_checks * 100) if total_checks > 0 else 0,
-            'total_checks': total_checks,
-            'passed_checks': passed_checks,
-            'status': 'COMPLIANT' if passed_checks == total_checks else 'NON_COMPLIANT'
-        }
+            # Generate recommendations
+            recommendations = []
 
-        # Save report
-        report_filename = f"/reports/compliance_report_{report_date}.json"
-        with open(report_filename, 'w') as f:
-            json.dump(report, f, indent=2)
+            if report['compliance_status'].get('data_retention', {}).get('status') == 'FAIL':
+                recommendations.append({
+                    'priority': 'HIGH',
+                    'category': 'data_retention',
+                    'description': 'Implement automated data archival for indices older than 7 years',
+                    'action_required': 'Configure index lifecycle management (ILM) policies'
+                })
 
-        print(f"Compliance report generated: {report_filename}")
-        print(f"Overall compliance score: {report['overall_compliance_score']['percentage']:.1f}%")
+            if report['metrics'].get('service_availability', {}).get('compliant') == False:
+                recommendations.append({
+                    'priority': 'MEDIUM',
+                    'category': 'availability',
+                    'description': 'Service availability below SLA target',
+                    'action_required': 'Review infrastructure scaling and redundancy'
+                })
 
-        return report
+            report['recommendations'] = recommendations
 
-    if __name__ == "__main__":
-        generate_compliance_report()
+            # Calculate overall compliance score
+            total_checks = len(report['compliance_status'])
+            passed_checks = sum(1 for status in report['compliance_status'].values()
+                              if status.get('status') == 'PASS')
+
+            report['overall_compliance_score'] = {
+                'percentage': (passed_checks / total_checks * 100) if total_checks > 0 else 0,
+                'total_checks': total_checks,
+                'passed_checks': passed_checks,
+                'status': 'COMPLIANT' if passed_checks == total_checks else 'NON_COMPLIANT'
+            }
+
+            # Save report
+            report_filename = f"/reports/compliance_report_{report_date}.json"
+            with open(report_filename, 'w') as f:
+                json.dump(report, f, indent=2)
+
+            print(f"Compliance report generated: {report_filename}")
+            print(f"Overall compliance score: {report['overall_compliance_score']['percentage']:.1f}%")
+
+            return report
+
+        if __name__ == "__main__":
+            generate_compliance_report()
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: compliance-reports
-  namespace: monitoring
+    name: compliance-reports
+    namespace: monitoring
 spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
-  storageClassName: { { .Values.storage.className | default "gp2" } }
+    accessModes:
+        - ReadWriteOnce
+    resources:
+        requests:
+            storage: 10Gi
+    storageClassName: { { .Values.storage.className | default "gp2" } }
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: compliance-monitor
-  namespace: monitoring
+    name: compliance-monitor
+    namespace: monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: monitoring
-  name: compliance-monitor
+    namespace: monitoring
+    name: compliance-monitor
 rules:
-  - apiGroups: [""]
-    resources: ["pods", "services", "endpoints"]
-    verbs: ["get", "list", "watch"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "list"]
+    - apiGroups: ['']
+      resources: ['pods', 'services', 'endpoints']
+      verbs: ['get', 'list', 'watch']
+    - apiGroups: ['']
+      resources: ['configmaps']
+      verbs: ['get', 'list']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: compliance-monitor
-  namespace: monitoring
-subjects:
-  - kind: ServiceAccount
     name: compliance-monitor
     namespace: monitoring
+subjects:
+    - kind: ServiceAccount
+      name: compliance-monitor
+      namespace: monitoring
 roleRef:
-  kind: Role
-  name: compliance-monitor
-  apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: compliance-monitor
+    apiGroup: rbac.authorization.k8s.io

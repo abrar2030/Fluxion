@@ -1,20 +1,20 @@
-version: "3.8"
+version: '3.8'
 
 services:
-  zk-prover:
-    image: matterlabs/zksync-era:latest
-    ports:
-      - "3050:3050"
-    environment:
-      ZKSYNC_ENV: "production"
-    volumes:
-      - zk_data:/data
+    zk-prover:
+        image: matterlabs/zksync-era:latest
+        ports:
+            - '3050:3050'
+        environment:
+            ZKSYNC_ENV: 'production'
+        volumes:
+            - zk_data:/data
 
-  redis-cluster:
-    image: redis/redis-stack-server:7.2
-    ports:
-      - "6379:6379"
-    command: redis-stack-server --loadmodule /opt/redis-stack/lib/redisbloom.so
+    redis-cluster:
+        image: redis/redis-stack-server:7.2
+        ports:
+            - '6379:6379'
+        command: redis-stack-server --loadmodule /opt/redis-stack/lib/redisbloom.so
 
 volumes:
-  zk_data:
+    zk_data:

@@ -2,20 +2,20 @@
 # roles/common/handlers/main.yml
 - name: restart rsyslog
   systemd:
-    name: rsyslog
-    state: restarted
+      name: rsyslog
+      state: restarted
 
 - name: reload rsyslog
   systemd:
-    name: rsyslog
-    state: reloaded
+      name: rsyslog
+      state: reloaded
 
 - name: restart chrony
   systemd:
-    name: chrony
-    state: restarted
+      name: chrony
+      state: restarted
 
 - name: restart systemd-timesyncd
   systemd:
-    name: systemd-timesyncd
-    state: restarted
+      name: systemd-timesyncd
+      state: restarted

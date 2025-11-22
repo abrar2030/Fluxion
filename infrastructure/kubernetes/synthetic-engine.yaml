@@ -1,58 +1,58 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: synthetic-engine
+    name: synthetic-engine
 spec:
-  serviceName: synthetic-engine
-  replicas: 3
-  selector:
-    matchLabels:
-      app: synthetic-engine
-  template:
-    metadata:
-      labels:
-        app: synthetic-engine
-    spec:
-      containers:
-        - name: main
-          image: synthetic-engine:2.4.0
-          ports:
-            - containerPort: 8000
-          resources:
-            limits:
-              cpu: "4"
-              memory: 16Gi
-              nvidia.com/gpu: 1
-          volumeMounts:
-            - name: model-storage
-              mountPath: /models
-      volumes:
-        - name: model-storage
-          persistentVolumeClaim:
-            claimName: model-pvc
+    serviceName: synthetic-engine
+    replicas: 3
+    selector:
+        matchLabels:
+            app: synthetic-engine
+    template:
+        metadata:
+            labels:
+                app: synthetic-engine
+        spec:
+            containers:
+                - name: main
+                  image: synthetic-engine:2.4.0
+                  ports:
+                      - containerPort: 8000
+                  resources:
+                      limits:
+                          cpu: '4'
+                          memory: 16Gi
+                          nvidia.com/gpu: 1
+                  volumeMounts:
+                      - name: model-storage
+                        mountPath: /models
+            volumes:
+                - name: model-storage
+                  persistentVolumeClaim:
+                      claimName: model-pvc
 
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: synthetic-engine-hpa
+    name: synthetic-engine-hpa
 spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: StatefulSet
-    name: synthetic-engine
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 75
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 80
+    scaleTargetRef:
+        apiVersion: apps/v1
+        kind: StatefulSet
+        name: synthetic-engine
+    minReplicas: 3
+    maxReplicas: 10
+    metrics:
+        - type: Resource
+          resource:
+              name: cpu
+              target:
+                  type: Utilization
+                  averageUtilization: 75
+        - type: Resource
+          resource:
+              name: memory
+              target:
+                  type: Utilization
+                  averageUtilization: 80

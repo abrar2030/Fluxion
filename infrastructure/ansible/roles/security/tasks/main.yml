@@ -2,273 +2,268 @@
 # roles/security/tasks/main.yml - Comprehensive security hardening tasks
 - name: Install security packages
   package:
-    name:
-      - fail2ban
-      - aide
-      - rkhunter
-      - chkrootkit
-      - auditd
-      - audispd-plugins
-      - libpam-pwquality
-      - ufw
-      - unattended-upgrades
-      - apt-listchanges
-    state: present
+      name:
+          - fail2ban
+          - aide
+          - rkhunter
+          - chkrootkit
+          - auditd
+          - audispd-plugins
+          - libpam-pwquality
+          - ufw
+          - unattended-upgrades
+          - apt-listchanges
+      state: present
   when: ansible_os_family == "Debian"
 
 - name: Install security packages (RHEL/CentOS)
   package:
-    name:
-      - fail2ban
-      - aide
-      - rkhunter
-      - chkrootkit
-      - audit
-      - audit-libs
-      - libpwquality
-      - firewalld
-      - yum-cron
-    state: present
+      name:
+          - fail2ban
+          - aide
+          - rkhunter
+          - chkrootkit
+          - audit
+          - audit-libs
+          - libpwquality
+          - firewalld
+          - yum-cron
+      state: present
   when: ansible_os_family == "RedHat"
 
 - name: Configure password quality requirements
   lineinfile:
-    path: /etc/security/pwquality.conf
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-    backup: yes
+      path: /etc/security/pwquality.conf
+      regexp: '{{ item.regexp }}'
+      line: '{{ item.line }}'
+      backup: yes
   loop:
-    - { regexp: '^#?\s*minlen', line: "minlen = 14" }
-    - { regexp: '^#?\s*minclass', line: "minclass = 4" }
-    - { regexp: '^#?\s*maxrepeat', line: "maxrepeat = 2" }
-    - { regexp: '^#?\s*maxclassrepeat', line: "maxclassrepeat = 2" }
-    - { regexp: '^#?\s*lcredit', line: "lcredit = -1" }
-    - { regexp: '^#?\s*ucredit', line: "ucredit = -1" }
-    - { regexp: '^#?\s*dcredit', line: "dcredit = -1" }
-    - { regexp: '^#?\s*ocredit', line: "ocredit = -1" }
+      - { regexp: '^#?\s*minlen', line: 'minlen = 14' }
+      - { regexp: '^#?\s*minclass', line: 'minclass = 4' }
+      - { regexp: '^#?\s*maxrepeat', line: 'maxrepeat = 2' }
+      - { regexp: '^#?\s*maxclassrepeat', line: 'maxclassrepeat = 2' }
+      - { regexp: '^#?\s*lcredit', line: 'lcredit = -1' }
+      - { regexp: '^#?\s*ucredit', line: 'ucredit = -1' }
+      - { regexp: '^#?\s*dcredit', line: 'dcredit = -1' }
+      - { regexp: '^#?\s*ocredit', line: 'ocredit = -1' }
 
 - name: Configure account lockout policy
   lineinfile:
-    path: /etc/pam.d/common-auth
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-    insertafter: "{{ item.insertafter | default(omit) }}"
-    backup: yes
+      path: /etc/pam.d/common-auth
+      regexp: '{{ item.regexp }}'
+      line: '{{ item.line }}'
+      insertafter: '{{ item.insertafter | default(omit) }}'
+      backup: yes
   loop:
-    - {
-        regexp: "^auth.*pam_faillock.so.*preauth",
-        line: "auth required pam_faillock.so preauth silent audit deny=5 unlock_time=900",
-        insertafter: "^#%PAM-1.0",
-      }
-    - {
-        regexp: "^auth.*pam_faillock.so.*authfail",
-        line: "auth [default=die] pam_faillock.so authfail audit deny=5 unlock_time=900",
-        insertafter: "auth.*pam_unix.so",
-      }
+      - {
+            regexp: '^auth.*pam_faillock.so.*preauth',
+            line: 'auth required pam_faillock.so preauth silent audit deny=5 unlock_time=900',
+            insertafter: '^#%PAM-1.0',
+        }
+      - {
+            regexp: '^auth.*pam_faillock.so.*authfail',
+            line: 'auth [default=die] pam_faillock.so authfail audit deny=5 unlock_time=900',
+            insertafter: 'auth.*pam_unix.so',
+        }
   when: ansible_os_family == "Debian"
 
 - name: Configure SSH hardening
   lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: "{{ item.regexp }}"
-    line: "{{ item.line }}"
-    backup: yes
+      path: /etc/ssh/sshd_config
+      regexp: '{{ item.regexp }}'
+      line: '{{ item.line }}'
+      backup: yes
   loop:
-    - { regexp: "^#?Protocol", line: "Protocol 2" }
-    - { regexp: "^#?PermitRootLogin", line: "PermitRootLogin no" }
-    - { regexp: "^#?PasswordAuthentication", line: "PasswordAuthentication no" }
-    - { regexp: "^#?PermitEmptyPasswords", line: "PermitEmptyPasswords no" }
-    - { regexp: "^#?X11Forwarding", line: "X11Forwarding no" }
-    - { regexp: "^#?MaxAuthTries", line: "MaxAuthTries 3" }
-    - { regexp: "^#?ClientAliveInterval", line: "ClientAliveInterval 300" }
-    - { regexp: "^#?ClientAliveCountMax", line: "ClientAliveCountMax 2" }
-    - { regexp: "^#?LoginGraceTime", line: "LoginGraceTime 60" }
-    - { regexp: "^#?Banner", line: "Banner /etc/issue.net" }
-    - {
-        regexp: "^#?Ciphers",
-        line: "Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr",
-      }
-    - {
-        regexp: "^#?MACs",
-        line: "MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha2-512",
-      }
-    - {
-        regexp: "^#?KexAlgorithms",
-        line: "KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group14-sha256",
-      }
+      - { regexp: '^#?Protocol', line: 'Protocol 2' }
+      - { regexp: '^#?PermitRootLogin', line: 'PermitRootLogin no' }
+      - { regexp: '^#?PasswordAuthentication', line: 'PasswordAuthentication no' }
+      - { regexp: '^#?PermitEmptyPasswords', line: 'PermitEmptyPasswords no' }
+      - { regexp: '^#?X11Forwarding', line: 'X11Forwarding no' }
+      - { regexp: '^#?MaxAuthTries', line: 'MaxAuthTries 3' }
+      - { regexp: '^#?ClientAliveInterval', line: 'ClientAliveInterval 300' }
+      - { regexp: '^#?ClientAliveCountMax', line: 'ClientAliveCountMax 2' }
+      - { regexp: '^#?LoginGraceTime', line: 'LoginGraceTime 60' }
+      - { regexp: '^#?Banner', line: 'Banner /etc/issue.net' }
+      - {
+            regexp: '^#?Ciphers',
+            line: 'Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr',
+        }
+      - {
+            regexp: '^#?MACs',
+            line: 'MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,hmac-sha2-512',
+        }
+      - {
+            regexp: '^#?KexAlgorithms',
+            line: 'KexAlgorithms curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group14-sha256',
+        }
   notify: restart sshd
 
 - name: Create SSH banner
   copy:
-    content: |
-      **************************************************************************
-      *                                                                        *
-      * This system is for the use of authorized users only. Individuals      *
-      * using this computer system without authority, or in excess of their   *
-      * authority, are subject to having all of their activities on this      *
-      * system monitored and recorded by system personnel.                    *
-      *                                                                        *
-      * In the course of monitoring individuals improperly using this system, *
-      * or in the course of system maintenance, the activities of authorized  *
-      * users may also be monitored.                                          *
-      *                                                                        *
-      * Anyone using this system expressly consents to such monitoring and    *
-      * is advised that if such monitoring reveals possible evidence of       *
-      * criminal activity, system personnel may provide the evidence from     *
-      * such monitoring to law enforcement officials.                         *
-      *                                                                        *
-      **************************************************************************
-    dest: /etc/issue.net
-    owner: root
-    group: root
-    mode: "0644"
+      content: |
+          **************************************************************************
+          *                                                                        *
+          * This system is for the use of authorized users only. Individuals      *
+          * using this computer system without authority, or in excess of their   *
+          * authority, are subject to having all of their activities on this      *
+          * system monitored and recorded by system personnel.                    *
+          *                                                                        *
+          * In the course of monitoring individuals improperly using this system, *
+          * or in the course of system maintenance, the activities of authorized  *
+          * users may also be monitored.                                          *
+          *                                                                        *
+          * Anyone using this system expressly consents to such monitoring and    *
+          * is advised that if such monitoring reveals possible evidence of       *
+          * criminal activity, system personnel may provide the evidence from     *
+          * such monitoring to law enforcement officials.                         *
+          *                                                                        *
+          **************************************************************************
+      dest: /etc/issue.net
+      owner: root
+      group: root
+      mode: '0644'
 
 - name: Configure kernel parameters for security
   sysctl:
-    name: "{{ item.name }}"
-    value: "{{ item.value }}"
-    state: present
-    reload: yes
-    sysctl_file: /etc/sysctl.d/99-security.conf
+      name: '{{ item.name }}'
+      value: '{{ item.value }}'
+      state: present
+      reload: yes
+      sysctl_file: /etc/sysctl.d/99-security.conf
   loop:
-    - { name: "net.ipv4.ip_forward", value: "0" }
-    - { name: "net.ipv4.conf.all.send_redirects", value: "0" }
-    - { name: "net.ipv4.conf.default.send_redirects", value: "0" }
-    - { name: "net.ipv4.conf.all.accept_source_route", value: "0" }
-    - { name: "net.ipv4.conf.default.accept_source_route", value: "0" }
-    - { name: "net.ipv4.conf.all.accept_redirects", value: "0" }
-    - { name: "net.ipv4.conf.default.accept_redirects", value: "0" }
-    - { name: "net.ipv4.conf.all.secure_redirects", value: "0" }
-    - { name: "net.ipv4.conf.default.secure_redirects", value: "0" }
-    - { name: "net.ipv4.conf.all.log_martians", value: "1" }
-    - { name: "net.ipv4.conf.default.log_martians", value: "1" }
-    - { name: "net.ipv4.icmp_echo_ignore_broadcasts", value: "1" }
-    - { name: "net.ipv4.icmp_ignore_bogus_error_responses", value: "1" }
-    - { name: "net.ipv4.tcp_syncookies", value: "1" }
-    - { name: "net.ipv6.conf.all.accept_ra", value: "0" }
-    - { name: "net.ipv6.conf.default.accept_ra", value: "0" }
-    - { name: "net.ipv6.conf.all.accept_redirects", value: "0" }
-    - { name: "net.ipv6.conf.default.accept_redirects", value: "0" }
-    - { name: "kernel.randomize_va_space", value: "2" }
-    - { name: "kernel.exec-shield", value: "1" }
-    - { name: "kernel.dmesg_restrict", value: "1" }
-    - { name: "kernel.kptr_restrict", value: "2" }
-    - { name: "fs.suid_dumpable", value: "0" }
+      - { name: 'net.ipv4.ip_forward', value: '0' }
+      - { name: 'net.ipv4.conf.all.send_redirects', value: '0' }
+      - { name: 'net.ipv4.conf.default.send_redirects', value: '0' }
+      - { name: 'net.ipv4.conf.all.accept_source_route', value: '0' }
+      - { name: 'net.ipv4.conf.default.accept_source_route', value: '0' }
+      - { name: 'net.ipv4.conf.all.accept_redirects', value: '0' }
+      - { name: 'net.ipv4.conf.default.accept_redirects', value: '0' }
+      - { name: 'net.ipv4.conf.all.secure_redirects', value: '0' }
+      - { name: 'net.ipv4.conf.default.secure_redirects', value: '0' }
+      - { name: 'net.ipv4.conf.all.log_martians', value: '1' }
+      - { name: 'net.ipv4.conf.default.log_martians', value: '1' }
+      - { name: 'net.ipv4.icmp_echo_ignore_broadcasts', value: '1' }
+      - { name: 'net.ipv4.icmp_ignore_bogus_error_responses', value: '1' }
+      - { name: 'net.ipv4.tcp_syncookies', value: '1' }
+      - { name: 'net.ipv6.conf.all.accept_ra', value: '0' }
+      - { name: 'net.ipv6.conf.default.accept_ra', value: '0' }
+      - { name: 'net.ipv6.conf.all.accept_redirects', value: '0' }
+      - { name: 'net.ipv6.conf.default.accept_redirects', value: '0' }
+      - { name: 'kernel.randomize_va_space', value: '2' }
+      - { name: 'kernel.exec-shield', value: '1' }
+      - { name: 'kernel.dmesg_restrict', value: '1' }
+      - { name: 'kernel.kptr_restrict', value: '2' }
+      - { name: 'fs.suid_dumpable', value: '0' }
 
 - name: Configure auditd rules
   template:
-    src: audit.rules.j2
-    dest: /etc/audit/rules.d/audit.rules
-    owner: root
-    group: root
-    mode: "0640"
-    backup: yes
+      src: audit.rules.j2
+      dest: /etc/audit/rules.d/audit.rules
+      owner: root
+      group: root
+      mode: '0640'
+      backup: yes
   notify: restart auditd
 
 - name: Configure fail2ban
   template:
-    src: jail.local.j2
-    dest: /etc/fail2ban/jail.local
-    owner: root
-    group: root
-    mode: "0644"
-    backup: yes
+      src: jail.local.j2
+      dest: /etc/fail2ban/jail.local
+      owner: root
+      group: root
+      mode: '0644'
+      backup: yes
   notify: restart fail2ban
 
 - name: Disable unnecessary services
   systemd:
-    name: "{{ item }}"
-    state: stopped
-    enabled: no
+      name: '{{ item }}'
+      state: stopped
+      enabled: no
   loop:
-    - avahi-daemon
-    - cups
-    - isc-dhcp-server
-    - isc-dhcp-server6
-    - rpcbind
-    - nfs-server
-    - ypserv
+      - avahi-daemon
+      - cups
+      - isc-dhcp-server
+      - isc-dhcp-server6
+      - rpcbind
+      - nfs-server
+      - ypserv
   ignore_errors: yes
 
 - name: Remove unnecessary packages
   package:
-    name:
-      - telnet
-      - rsh-client
-      - rsh-redone-client
-      - talk
-      - ntalk
-      - telnet-server
-      - rsh-server
-      - talk-server
-    state: absent
+      name:
+          - telnet
+          - rsh-client
+          - rsh-redone-client
+          - talk
+          - ntalk
+          - telnet-server
+          - rsh-server
+          - talk-server
+      state: absent
   ignore_errors: yes
 
 - name: Set file permissions on critical files
   file:
-    path: "{{ item.path }}"
-    owner: "{{ item.owner }}"
-    group: "{{ item.group }}"
-    mode: "{{ item.mode }}"
+      path: '{{ item.path }}'
+      owner: '{{ item.owner }}'
+      group: '{{ item.group }}'
+      mode: '{{ item.mode }}'
   loop:
-    - { path: "/etc/passwd", owner: "root", group: "root", mode: "0644" }
-    - { path: "/etc/shadow", owner: "root", group: "shadow", mode: "0640" }
-    - { path: "/etc/group", owner: "root", group: "root", mode: "0644" }
-    - { path: "/etc/gshadow", owner: "root", group: "shadow", mode: "0640" }
-    - {
-        path: "/etc/ssh/sshd_config",
-        owner: "root",
-        group: "root",
-        mode: "0600",
-      }
-    - { path: "/etc/crontab", owner: "root", group: "root", mode: "0600" }
-    - { path: "/etc/cron.hourly", owner: "root", group: "root", mode: "0700" }
-    - { path: "/etc/cron.daily", owner: "root", group: "root", mode: "0700" }
-    - { path: "/etc/cron.weekly", owner: "root", group: "root", mode: "0700" }
-    - { path: "/etc/cron.monthly", owner: "root", group: "root", mode: "0700" }
-    - { path: "/etc/cron.d", owner: "root", group: "root", mode: "0700" }
+      - { path: '/etc/passwd', owner: 'root', group: 'root', mode: '0644' }
+      - { path: '/etc/shadow', owner: 'root', group: 'shadow', mode: '0640' }
+      - { path: '/etc/group', owner: 'root', group: 'root', mode: '0644' }
+      - { path: '/etc/gshadow', owner: 'root', group: 'shadow', mode: '0640' }
+      - { path: '/etc/ssh/sshd_config', owner: 'root', group: 'root', mode: '0600' }
+      - { path: '/etc/crontab', owner: 'root', group: 'root', mode: '0600' }
+      - { path: '/etc/cron.hourly', owner: 'root', group: 'root', mode: '0700' }
+      - { path: '/etc/cron.daily', owner: 'root', group: 'root', mode: '0700' }
+      - { path: '/etc/cron.weekly', owner: 'root', group: 'root', mode: '0700' }
+      - { path: '/etc/cron.monthly', owner: 'root', group: 'root', mode: '0700' }
+      - { path: '/etc/cron.d', owner: 'root', group: 'root', mode: '0700' }
 
 - name: Configure automatic security updates (Debian/Ubuntu)
   template:
-    src: 50unattended-upgrades.j2
-    dest: /etc/apt/apt.conf.d/50unattended-upgrades
-    owner: root
-    group: root
-    mode: "0644"
+      src: 50unattended-upgrades.j2
+      dest: /etc/apt/apt.conf.d/50unattended-upgrades
+      owner: root
+      group: root
+      mode: '0644'
   when: ansible_os_family == "Debian"
 
 - name: Enable automatic security updates (Debian/Ubuntu)
   template:
-    src: 20auto-upgrades.j2
-    dest: /etc/apt/apt.conf.d/20auto-upgrades
-    owner: root
-    group: root
-    mode: "0644"
+      src: 20auto-upgrades.j2
+      dest: /etc/apt/apt.conf.d/20auto-upgrades
+      owner: root
+      group: root
+      mode: '0644'
   when: ansible_os_family == "Debian"
 
 - name: Configure yum-cron for automatic updates (RHEL/CentOS)
   template:
-    src: yum-cron.conf.j2
-    dest: /etc/yum/yum-cron.conf
-    owner: root
-    group: root
-    mode: "0644"
+      src: yum-cron.conf.j2
+      dest: /etc/yum/yum-cron.conf
+      owner: root
+      group: root
+      mode: '0644'
   when: ansible_os_family == "RedHat"
 
 - name: Start and enable security services
   systemd:
-    name: "{{ item }}"
-    state: started
-    enabled: yes
+      name: '{{ item }}'
+      state: started
+      enabled: yes
   loop:
-    - auditd
-    - fail2ban
+      - auditd
+      - fail2ban
   ignore_errors: yes
 
 - name: Initialize AIDE database
   command: aide --init
   args:
-    creates: /var/lib/aide/aide.db.new
+      creates: /var/lib/aide/aide.db.new
   register: aide_init
 
 - name: Move AIDE database to production location
@@ -277,8 +272,8 @@
 
 - name: Schedule AIDE integrity check
   cron:
-    name: "AIDE integrity check"
-    minute: "0"
-    hour: "2"
-    job: "/usr/bin/aide --check"
-    user: root
+      name: 'AIDE integrity check'
+      minute: '0'
+      hour: '2'
+      job: '/usr/bin/aide --check'
+      user: root

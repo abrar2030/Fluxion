@@ -2,183 +2,183 @@
 # roles/common/tasks/main.yml - Enhanced with security hardening
 - name: Update all packages (Debian/Ubuntu)
   apt:
-    upgrade: dist
-    update_cache: yes
-    cache_valid_time: 3600
+      upgrade: dist
+      update_cache: yes
+      cache_valid_time: 3600
   when: ansible_os_family == "Debian"
 
 - name: Update all packages (RHEL/CentOS)
   yum:
-    name: "*"
-    state: latest
-    update_only: yes
+      name: '*'
+      state: latest
+      update_only: yes
   when: ansible_os_family == "RedHat"
 
 - name: Install common packages (Debian/Ubuntu)
   apt:
-    name:
-      - vim
-      - git
-      - wget
-      - unzip
-      - htop
-      - net-tools
-      - python3
-      - python3-pip
-      - curl
-      - rsync
-      - ntp
-      - chrony
-      - logrotate
-      - ca-certificates
-      - gnupg
-      - lsb-release
-    state: present
+      name:
+          - vim
+          - git
+          - wget
+          - unzip
+          - htop
+          - net-tools
+          - python3
+          - python3-pip
+          - curl
+          - rsync
+          - ntp
+          - chrony
+          - logrotate
+          - ca-certificates
+          - gnupg
+          - lsb-release
+      state: present
   when: ansible_os_family == "Debian"
 
 - name: Install common packages (RHEL/CentOS)
   yum:
-    name:
-      - vim
-      - git
-      - wget
-      - unzip
-      - htop
-      - net-tools
-      - python3
-      - python3-pip
-      - curl
-      - rsync
-      - ntp
-      - chrony
-      - logrotate
-      - ca-certificates
-    state: present
+      name:
+          - vim
+          - git
+          - wget
+          - unzip
+          - htop
+          - net-tools
+          - python3
+          - python3-pip
+          - curl
+          - rsync
+          - ntp
+          - chrony
+          - logrotate
+          - ca-certificates
+      state: present
   when: ansible_os_family == "RedHat"
 
 - name: Set timezone
   timezone:
-    name: UTC
+      name: UTC
 
 - name: Configure and start NTP service
   systemd:
-    name: "{{ 'chrony' if ansible_os_family == 'RedHat' else 'systemd-timesyncd' }}"
-    state: started
-    enabled: yes
+      name: "{{ 'chrony' if ansible_os_family == 'RedHat' else 'systemd-timesyncd' }}"
+      state: started
+      enabled: yes
 
 - name: Create fluxion system user
   user:
-    name: fluxion
-    system: yes
-    shell: /bin/bash
-    home: /opt/fluxion
-    create_home: yes
-    groups: "{{ 'wheel' if ansible_os_family == 'RedHat' else 'sudo' }}"
-    append: yes
+      name: fluxion
+      system: yes
+      shell: /bin/bash
+      home: /opt/fluxion
+      create_home: yes
+      groups: "{{ 'wheel' if ansible_os_family == 'RedHat' else 'sudo' }}"
+      append: yes
 
 - name: Configure sudo for fluxion user
   lineinfile:
-    path: /etc/sudoers.d/fluxion
-    line: "fluxion ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart fluxion*, /usr/bin/systemctl stop fluxion*, /usr/bin/systemctl start fluxion*"
-    create: yes
-    mode: "0440"
-    validate: "visudo -cf %s"
+      path: /etc/sudoers.d/fluxion
+      line: 'fluxion ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart fluxion*, /usr/bin/systemctl stop fluxion*, /usr/bin/systemctl start fluxion*'
+      create: yes
+      mode: '0440'
+      validate: 'visudo -cf %s'
 
 - name: Configure firewall (RHEL/CentOS)
   firewalld:
-    service: "{{ item }}"
-    permanent: yes
-    state: enabled
-    immediate: yes
+      service: '{{ item }}'
+      permanent: yes
+      state: enabled
+      immediate: yes
   loop:
-    - ssh
+      - ssh
   when: ansible_os_family == "RedHat"
 
 - name: Configure firewall for HTTP/HTTPS (RHEL/CentOS)
   firewalld:
-    service: "{{ item }}"
-    permanent: yes
-    state: enabled
-    immediate: yes
+      service: '{{ item }}'
+      permanent: yes
+      state: enabled
+      immediate: yes
   loop:
-    - http
-    - https
+      - http
+      - https
   when: ansible_os_family == "RedHat" and inventory_hostname in groups['webservers']
 
 - name: Start and enable firewalld (RHEL/CentOS)
   systemd:
-    name: firewalld
-    state: started
-    enabled: yes
+      name: firewalld
+      state: started
+      enabled: yes
   when: ansible_os_family == "RedHat"
 
 - name: Configure UFW firewall (Debian/Ubuntu)
   ufw:
-    rule: allow
-    port: "{{ item }}"
-    proto: tcp
+      rule: allow
+      port: '{{ item }}'
+      proto: tcp
   loop:
-    - "22" # SSH
+      - '22' # SSH
   when: ansible_os_family == "Debian"
 
 - name: Configure UFW for HTTP/HTTPS (Debian/Ubuntu)
   ufw:
-    rule: allow
-    port: "{{ item }}"
-    proto: tcp
+      rule: allow
+      port: '{{ item }}'
+      proto: tcp
   loop:
-    - "80" # HTTP
-    - "443" # HTTPS
+      - '80' # HTTP
+      - '443' # HTTPS
   when: ansible_os_family == "Debian" and inventory_hostname in groups['webservers']
 
 - name: Enable UFW firewall (Debian/Ubuntu)
   ufw:
-    state: enabled
-    policy: deny
-    direction: incoming
+      state: enabled
+      policy: deny
+      direction: incoming
   when: ansible_os_family == "Debian"
 
 - name: Configure log rotation for application logs
   template:
-    src: fluxion-logrotate.j2
-    dest: /etc/logrotate.d/fluxion
-    owner: root
-    group: root
-    mode: "0644"
+      src: fluxion-logrotate.j2
+      dest: /etc/logrotate.d/fluxion
+      owner: root
+      group: root
+      mode: '0644'
 
 - name: Create application directories
   file:
-    path: "{{ item }}"
-    state: directory
-    owner: fluxion
-    group: fluxion
-    mode: "0755"
+      path: '{{ item }}'
+      state: directory
+      owner: fluxion
+      group: fluxion
+      mode: '0755'
   loop:
-    - /opt/fluxion
-    - /opt/fluxion/logs
-    - /opt/fluxion/config
-    - /opt/fluxion/data
-    - /var/log/fluxion
+      - /opt/fluxion
+      - /opt/fluxion/logs
+      - /opt/fluxion/config
+      - /opt/fluxion/data
+      - /var/log/fluxion
 
 - name: Set up log directory permissions
   file:
-    path: /var/log/fluxion
-    state: directory
-    owner: fluxion
-    group: fluxion
-    mode: "0750"
+      path: /var/log/fluxion
+      state: directory
+      owner: fluxion
+      group: fluxion
+      mode: '0750'
 
 - name: Configure rsyslog for application logging
   template:
-    src: fluxion-rsyslog.conf.j2
-    dest: /etc/rsyslog.d/10-fluxion.conf
-    owner: root
-    group: root
-    mode: "0644"
+      src: fluxion-rsyslog.conf.j2
+      dest: /etc/rsyslog.d/10-fluxion.conf
+      owner: root
+      group: root
+      mode: '0644'
   notify: restart rsyslog
 
 - name: Ensure rsyslog is running
   systemd:
-    name: rsyslog
-    state: started
-    enabled: yes
+      name: rsyslog
+      state: started
+      enabled: yes
