@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts/utils/math/Math.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import '@openzeppelin/contracts/utils/math/Math.sol';
+import '@openzeppelin/contracts/access/AccessControl.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 
 /**
  * @title EnhancedLiquidityPoolManager
@@ -15,9 +15,9 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    bytes32 public constant POOL_ADMIN_ROLE = keccak256("POOL_ADMIN_ROLE");
-    bytes32 public constant FEE_MANAGER_ROLE = keccak256("FEE_MANAGER_ROLE");
-    bytes32 public constant EMERGENCY_ROLE = keccak256("EMERGENCY_ROLE");
+    bytes32 public constant POOL_ADMIN_ROLE = keccak256('POOL_ADMIN_ROLE');
+    bytes32 public constant FEE_MANAGER_ROLE = keccak256('FEE_MANAGER_ROLE');
+    bytes32 public constant EMERGENCY_ROLE = keccak256('EMERGENCY_ROLE');
 
     struct PoolConfig {
         address[] assets;
@@ -61,7 +61,12 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
     event PoolDeactivated(bytes32 indexed poolId);
     event GovernanceActionProposed(bytes32 indexed actionId, bytes data, uint256 executeAfter);
     event GovernanceActionExecuted(bytes32 indexed actionId);
-    event CrossChainConfigUpdated(uint256 indexed chainId, address remotePoolManager, uint256 bridgeFee, bool enabled);
+    event CrossChainConfigUpdated(
+        uint256 indexed chainId,
+        address remotePoolManager,
+        uint256 bridgeFee,
+        bool enabled
+    );
 
     constructor() {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
@@ -87,11 +92,11 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
         address[] calldata _oracles,
         uint256[] calldata _heartbeats
     ) external onlyRole(POOL_ADMIN_ROLE) {
-        require(_fee <= MAX_FEE, "Fee too high");
-        require(_assets.length == _weights.length, "Assets and weights length mismatch");
-        require(_assets.length >= 2, "Minimum 2 assets required");
-        require(_assets.length == _oracles.length, "Assets and oracles length mismatch");
-        require(_oracles.length == _heartbeats.length, "Oracles and heartbeats length mismatch");
+        require(_fee <= MAX_FEE, 'Fee too high');
+        require(_assets.length == _weights.length, 'Assets and weights length mismatch');
+        require(_assets.length >= 2, 'Minimum 2 assets required');
+        require(_assets.length == _oracles.length, 'Assets and oracles length mismatch');
+        require(_oracles.length == _heartbeats.length, 'Oracles and heartbeats length mismatch');
 
         // Generate pool ID from assets and sender
         bytes32 poolId = keccak256(abi.encodePacked(_assets, msg.sender, block.timestamp));
@@ -126,13 +131,10 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      * @param _poolId ID of the pool
      * @param _amounts Array of token amounts to add
      */
-    function addLiquidity(
-        bytes32 _poolId,
-        uint256[] calldata _amounts
-    ) external nonReentrant {
+    function addLiquidity(bytes32 _poolId, uint256[] calldata _amounts) external nonReentrant {
         PoolConfig storage pool = pools[_poolId];
-        require(pool.active, "Pool not active");
-        require(_amounts.length == pool.assets.length, "Amounts length mismatch");
+        require(pool.active, 'Pool not active');
+        require(_amounts.length == pool.assets.length, 'Amounts length mismatch');
 
         uint256 liquidityValue = 0;
 
@@ -143,7 +145,7 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
 
                 // Get price from oracle
                 uint256 price = getAssetPrice(pool.assets[i], _poolId);
-                liquidityValue += _amounts[i] * price / 1e18;
+                liquidityValue += (_amounts[i] * price) / 1e18;
             }
         }
 
@@ -172,19 +174,16 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      * @param _poolId ID of the pool
      * @param _percentage Percentage of liquidity to remove (1-100)
      */
-    function removeLiquidity(
-        bytes32 _poolId,
-        uint256 _percentage
-    ) external nonReentrant {
-        require(_percentage > 0 && _percentage <= 100, "Invalid percentage");
+    function removeLiquidity(bytes32 _poolId, uint256 _percentage) external nonReentrant {
+        require(_percentage > 0 && _percentage <= 100, 'Invalid percentage');
 
         PoolConfig storage pool = pools[_poolId];
-        require(pool.active, "Pool not active");
+        require(pool.active, 'Pool not active');
 
         uint256 userLiquidity = pool.providerLiquidity[msg.sender];
-        require(userLiquidity > 0, "No liquidity provided");
+        require(userLiquidity > 0, 'No liquidity provided');
 
-        uint256 amountToRemove = userLiquidity * _percentage / 100;
+        uint256 amountToRemove = (userLiquidity * _percentage) / 100;
 
         // Calculate token amounts to return based on weights
         uint256 totalWeight = 0;
@@ -195,7 +194,8 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
         // Return tokens proportionally
         for (uint256 i = 0; i < pool.assets.length; i++) {
             uint256 price = getAssetPrice(pool.assets[i], _poolId);
-            uint256 tokenAmount = amountToRemove * pool.weights[i] / totalWeight * 1e18 / price;
+            uint256 tokenAmount = (((amountToRemove * pool.weights[i]) / totalWeight) * 1e18) /
+                price;
 
             if (tokenAmount > 0) {
                 IERC20(pool.assets[i]).safeTransfer(msg.sender, tokenAmount);
@@ -217,13 +217,13 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      */
     function getAssetPrice(address _asset, bytes32 _poolId) public view returns (uint256) {
         PriceOracle storage oracle = pools[_poolId].priceOracles[_asset];
-        require(oracle.oracle != address(0), "Oracle not set");
+        require(oracle.oracle != address(0), 'Oracle not set');
 
         AggregatorV3Interface priceFeed = AggregatorV3Interface(oracle.oracle);
 
         (, int256 price, , uint256 updatedAt, ) = priceFeed.latestRoundData();
-        require(price > 0, "Invalid price");
-        require(block.timestamp - updatedAt <= oracle.heartbeat, "Oracle data too old");
+        require(price > 0, 'Invalid price');
+        require(block.timestamp - updatedAt <= oracle.heartbeat, 'Oracle data too old');
 
         return uint256(price);
     }
@@ -233,7 +233,7 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      * @param _poolId ID of the pool
      */
     function activatePool(bytes32 _poolId) external onlyRole(POOL_ADMIN_ROLE) {
-        require(!pools[_poolId].active, "Pool already active");
+        require(!pools[_poolId].active, 'Pool already active');
         pools[_poolId].active = true;
         emit PoolActivated(_poolId);
     }
@@ -245,9 +245,9 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
     function deactivatePool(bytes32 _poolId) external {
         require(
             hasRole(POOL_ADMIN_ROLE, msg.sender) || hasRole(EMERGENCY_ROLE, msg.sender),
-            "Not authorized"
+            'Not authorized'
         );
-        require(pools[_poolId].active, "Pool already inactive");
+        require(pools[_poolId].active, 'Pool already inactive');
         pools[_poolId].active = false;
         emit PoolDeactivated(_poolId);
     }
@@ -258,7 +258,7 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      * @param _newFee New fee value
      */
     function updatePoolFee(bytes32 _poolId, uint256 _newFee) external onlyRole(FEE_MANAGER_ROLE) {
-        require(_newFee <= MAX_FEE, "Fee too high");
+        require(_newFee <= MAX_FEE, 'Fee too high');
         pools[_poolId].fee = _newFee;
     }
 
@@ -267,7 +267,9 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      * @param _data Encoded function call data
      * @return actionId ID of the proposed action
      */
-    function proposeGovernanceAction(bytes calldata _data) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bytes32) {
+    function proposeGovernanceAction(
+        bytes calldata _data
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bytes32) {
         bytes32 actionId = keccak256(abi.encodePacked(_data, block.timestamp, msg.sender));
         pendingGovernanceActions[actionId] = block.timestamp + governanceTimelock;
 
@@ -281,16 +283,19 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      * @param _actionId ID of the action
      * @param _data Encoded function call data
      */
-    function executeGovernanceAction(bytes32 _actionId, bytes calldata _data) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(pendingGovernanceActions[_actionId] > 0, "Action not proposed");
-        require(block.timestamp >= pendingGovernanceActions[_actionId], "Timelock not expired");
-        require(!executedActions[_actionId], "Action already executed");
+    function executeGovernanceAction(
+        bytes32 _actionId,
+        bytes calldata _data
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(pendingGovernanceActions[_actionId] > 0, 'Action not proposed');
+        require(block.timestamp >= pendingGovernanceActions[_actionId], 'Timelock not expired');
+        require(!executedActions[_actionId], 'Action already executed');
 
         executedActions[_actionId] = true;
 
         // Execute the function call
         (bool success, ) = address(this).call(_data);
-        require(success, "Action execution failed");
+        require(success, 'Action execution failed');
 
         emit GovernanceActionExecuted(_actionId);
     }
@@ -328,14 +333,20 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      * @return active Whether the pool is active
      * @return totalLiquidity Total liquidity in the pool
      */
-    function getPool(bytes32 _poolId) external view returns (
-        address[] memory assets,
-        uint256[] memory weights,
-        uint256 fee,
-        uint256 amplification,
-        bool active,
-        uint256 totalLiquidity
-    ) {
+    function getPool(
+        bytes32 _poolId
+    )
+        external
+        view
+        returns (
+            address[] memory assets,
+            uint256[] memory weights,
+            uint256 fee,
+            uint256 amplification,
+            bool active,
+            uint256 totalLiquidity
+        )
+    {
         PoolConfig storage pool = pools[_poolId];
 
         return (
@@ -374,7 +385,7 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      * @return Pool ID
      */
     function getUserPoolAtIndex(address _user, uint256 _index) external view returns (bytes32) {
-        require(_index < userPools[_user].length, "Index out of bounds");
+        require(_index < userPools[_user].length, 'Index out of bounds');
         return userPools[_user][_index];
     }
 
@@ -383,7 +394,7 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
      * @param _newTimelock New timelock period in seconds
      */
     function updateGovernanceTimelock(uint256 _newTimelock) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(_newTimelock > 0, "Timelock must be positive");
+        require(_newTimelock > 0, 'Timelock must be positive');
         governanceTimelock = _newTimelock;
     }
 

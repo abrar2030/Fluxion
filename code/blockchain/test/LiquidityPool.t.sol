@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity 0.8.19;
 
-import "forge-std/Test.sol";
-import "../src/LiquidityPoolManager.sol";
+import 'forge-std/Test.sol';
+import '../src/LiquidityPoolManager.sol';
 
 contract LiquidityPoolTest is Test {
     LiquidityPoolManager pool;

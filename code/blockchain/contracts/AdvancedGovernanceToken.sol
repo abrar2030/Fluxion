@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/utils/math/Math.sol";
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol';
+import '@openzeppelin/contracts/access/AccessControl.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/security/Pausable.sol';
+import '@openzeppelin/contracts/utils/math/Math.sol';
 
 /**
  * @title AdvancedGovernanceToken
@@ -20,17 +20,23 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
  * - Emergency pause functionality
  * - Compliance and regulatory features
  */
-contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessControl, ReentrancyGuard, Pausable {
-
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-    bytes32 public constant TREASURY_ROLE = keccak256("TREASURY_ROLE");
-    bytes32 public constant COMPLIANCE_ROLE = keccak256("COMPLIANCE_ROLE");
+contract AdvancedGovernanceToken is
+    ERC20,
+    ERC20Votes,
+    ERC20Permit,
+    AccessControl,
+    ReentrancyGuard,
+    Pausable
+{
+    bytes32 public constant MINTER_ROLE = keccak256('MINTER_ROLE');
+    bytes32 public constant BURNER_ROLE = keccak256('BURNER_ROLE');
+    bytes32 public constant PAUSER_ROLE = keccak256('PAUSER_ROLE');
+    bytes32 public constant TREASURY_ROLE = keccak256('TREASURY_ROLE');
+    bytes32 public constant COMPLIANCE_ROLE = keccak256('COMPLIANCE_ROLE');
 
     // Token economics
-    uint256 public constant MAX_SUPPLY = 1_000_000_000 * 10**18; // 1 billion tokens
-    uint256 public constant INITIAL_SUPPLY = 100_000_000 * 10**18; // 100 million initial
+    uint256 public constant MAX_SUPPLY = 1_000_000_000 * 10 ** 18; // 1 billion tokens
+    uint256 public constant INITIAL_SUPPLY = 100_000_000 * 10 ** 18; // 100 million initial
 
     // Staking and rewards
     struct StakingInfo {
@@ -74,7 +80,7 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
     mapping(address => mapping(uint256 => uint256)) public dailyTransfers; // user => day => amount
 
     // Governance parameters
-    uint256 public proposalThreshold = 1000000 * 10**18; // 1M tokens to create proposal
+    uint256 public proposalThreshold = 1000000 * 10 ** 18; // 1M tokens to create proposal
     uint256 public votingDelay = 1 days;
     uint256 public votingPeriod = 7 days;
     uint256 public quorumPercentage = 4; // 4% of total supply
@@ -120,8 +126,8 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param lockPeriod Lock period in seconds (0 for no lock)
      */
     function stake(uint256 amount, uint256 lockPeriod) external nonReentrant whenNotPaused {
-        require(amount > 0, "Amount must be greater than 0");
-        require(balanceOf(msg.sender) >= amount, "Insufficient balance");
+        require(amount > 0, 'Amount must be greater than 0');
+        require(balanceOf(msg.sender) >= amount, 'Insufficient balance');
 
         // Claim existing rewards before updating stake
         if (stakingInfo[msg.sender].stakedAmount > 0) {
@@ -149,13 +155,13 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      */
     function unstake(uint256 amount) external nonReentrant whenNotPaused {
         StakingInfo storage info = stakingInfo[msg.sender];
-        require(info.stakedAmount >= amount, "Insufficient staked amount");
+        require(info.stakedAmount >= amount, 'Insufficient staked amount');
 
         // Check lock period
         if (info.isLocked) {
             require(
                 block.timestamp >= info.stakingTimestamp + info.lockPeriod,
-                "Tokens are still locked"
+                'Tokens are still locked'
             );
         }
 
@@ -192,7 +198,7 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
 
         uint256 stakingDuration = block.timestamp - info.lastRewardClaim;
         uint256 rewards = (info.stakedAmount * rewardRate * stakingDuration) /
-                         (365 days * REWARD_PRECISION);
+            (365 days * REWARD_PRECISION);
 
         return rewards;
     }
@@ -216,28 +222,27 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
         uint256 cliffDuration,
         bool revocable
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(beneficiary != address(0), "Invalid beneficiary");
-        require(amount > 0, "Amount must be greater than 0");
-        require(duration > 0, "Duration must be greater than 0");
-        require(cliffDuration <= duration, "Cliff duration cannot exceed total duration");
-        require(startTime >= block.timestamp, "Start time cannot be in the past");
+        require(beneficiary != address(0), 'Invalid beneficiary');
+        require(amount > 0, 'Amount must be greater than 0');
+        require(duration > 0, 'Duration must be greater than 0');
+        require(cliffDuration <= duration, 'Cliff duration cannot exceed total duration');
+        require(startTime >= block.timestamp, 'Start time cannot be in the past');
 
         // Check if there are enough tokens to vest
-        require(
-            totalSupply() + amount <= MAX_SUPPLY,
-            "Would exceed maximum supply"
-        );
+        require(totalSupply() + amount <= MAX_SUPPLY, 'Would exceed maximum supply');
 
         // Create vesting schedule
-        vestingSchedules[beneficiary].push(VestingSchedule({
-            totalAmount: amount,
-            releasedAmount: 0,
-            startTime: startTime,
-            duration: duration,
-            cliffDuration: cliffDuration,
-            revocable: revocable,
-            revoked: false
-        }));
+        vestingSchedules[beneficiary].push(
+            VestingSchedule({
+                totalAmount: amount,
+                releasedAmount: 0,
+                startTime: startTime,
+                duration: duration,
+                cliffDuration: cliffDuration,
+                revocable: revocable,
+                revoked: false
+            })
+        );
 
         totalVestingAmount += amount;
 
@@ -253,13 +258,13 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param scheduleIndex Vesting schedule index
      */
     function releaseVestedTokens(address beneficiary, uint256 scheduleIndex) external nonReentrant {
-        require(scheduleIndex < vestingSchedules[beneficiary].length, "Invalid schedule index");
+        require(scheduleIndex < vestingSchedules[beneficiary].length, 'Invalid schedule index');
 
         VestingSchedule storage schedule = vestingSchedules[beneficiary][scheduleIndex];
-        require(!schedule.revoked, "Vesting schedule revoked");
+        require(!schedule.revoked, 'Vesting schedule revoked');
 
         uint256 releasableAmount = _calculateReleasableAmount(schedule);
-        require(releasableAmount > 0, "No tokens to release");
+        require(releasableAmount > 0, 'No tokens to release');
 
         schedule.releasedAmount += releasableAmount;
         totalVestingAmount -= releasableAmount;
@@ -275,15 +280,15 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param beneficiary Beneficiary address
      * @param scheduleIndex Vesting schedule index
      */
-    function revokeVesting(address beneficiary, uint256 scheduleIndex)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
-        require(scheduleIndex < vestingSchedules[beneficiary].length, "Invalid schedule index");
+    function revokeVesting(
+        address beneficiary,
+        uint256 scheduleIndex
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(scheduleIndex < vestingSchedules[beneficiary].length, 'Invalid schedule index');
 
         VestingSchedule storage schedule = vestingSchedules[beneficiary][scheduleIndex];
-        require(schedule.revocable, "Vesting schedule not revocable");
-        require(!schedule.revoked, "Vesting schedule already revoked");
+        require(schedule.revocable, 'Vesting schedule not revocable');
+        require(!schedule.revoked, 'Vesting schedule already revoked');
 
         // Calculate and release any vested tokens first
         uint256 releasableAmount = _calculateReleasableAmount(schedule);
@@ -321,12 +326,11 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param scheduleIndex Schedule index
      * @return Releasable amount
      */
-    function calculateReleasableAmount(address beneficiary, uint256 scheduleIndex)
-        external
-        view
-        returns (uint256)
-    {
-        require(scheduleIndex < vestingSchedules[beneficiary].length, "Invalid schedule index");
+    function calculateReleasableAmount(
+        address beneficiary,
+        uint256 scheduleIndex
+    ) external view returns (uint256) {
+        require(scheduleIndex < vestingSchedules[beneficiary].length, 'Invalid schedule index');
         return _calculateReleasableAmount(vestingSchedules[beneficiary][scheduleIndex]);
     }
 
@@ -337,7 +341,7 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param newTreasury New treasury address
      */
     function updateTreasury(address newTreasury) external onlyRole(TREASURY_ROLE) {
-        require(newTreasury != address(0), "Invalid treasury address");
+        require(newTreasury != address(0), 'Invalid treasury address');
         address oldTreasury = treasury;
         treasury = newTreasury;
         emit TreasuryUpdated(oldTreasury, newTreasury);
@@ -348,7 +352,7 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param newRate New fee rate in basis points
      */
     function updateTreasuryFeeRate(uint256 newRate) external onlyRole(TREASURY_ROLE) {
-        require(newRate <= 1000, "Fee rate cannot exceed 10%"); // Max 10%
+        require(newRate <= 1000, 'Fee rate cannot exceed 10%'); // Max 10%
         treasuryFeeRate = newRate;
     }
 
@@ -356,8 +360,8 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @dev Distribute fees to stakers
      */
     function distributeFees() external onlyRole(TREASURY_ROLE) nonReentrant {
-        require(totalFeesCollected > 0, "No fees to distribute");
-        require(totalStaked > 0, "No stakers to distribute to");
+        require(totalFeesCollected > 0, 'No fees to distribute');
+        require(totalStaked > 0, 'No stakers to distribute to');
 
         uint256 feesToDistribute = totalFeesCollected;
         totalFeesCollected = 0;
@@ -375,10 +379,10 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param account Account address
      * @param isBlacklisted Blacklist status
      */
-    function updateBlacklist(address account, bool isBlacklisted)
-        external
-        onlyRole(COMPLIANCE_ROLE)
-    {
+    function updateBlacklist(
+        address account,
+        bool isBlacklisted
+    ) external onlyRole(COMPLIANCE_ROLE) {
         blacklisted[account] = isBlacklisted;
         emit BlacklistUpdated(account, isBlacklisted);
     }
@@ -388,10 +392,10 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param account Account address
      * @param isWhitelisted Whitelist status
      */
-    function updateWhitelist(address account, bool isWhitelisted)
-        external
-        onlyRole(COMPLIANCE_ROLE)
-    {
+    function updateWhitelist(
+        address account,
+        bool isWhitelisted
+    ) external onlyRole(COMPLIANCE_ROLE) {
         whitelisted[account] = isWhitelisted;
         emit WhitelistUpdated(account, isWhitelisted);
     }
@@ -409,10 +413,10 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param maxTransfer Maximum transfer amount
      * @param dailyLimit Daily transfer limit
      */
-    function updateComplianceLimits(uint256 maxTransfer, uint256 dailyLimit)
-        external
-        onlyRole(COMPLIANCE_ROLE)
-    {
+    function updateComplianceLimits(
+        uint256 maxTransfer,
+        uint256 dailyLimit
+    ) external onlyRole(COMPLIANCE_ROLE) {
         maxTransferAmount = maxTransfer;
         dailyTransferLimit = dailyLimit;
         emit ComplianceLimitsUpdated(maxTransfer, dailyLimit);
@@ -433,8 +437,8 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
         uint256 newVotingPeriod,
         uint256 newQuorumPercentage
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(newQuorumPercentage <= 20, "Quorum cannot exceed 20%");
-        require(newVotingPeriod >= 1 days, "Voting period too short");
+        require(newQuorumPercentage <= 20, 'Quorum cannot exceed 20%');
+        require(newVotingPeriod >= 1 days, 'Voting period too short');
 
         proposalThreshold = newProposalThreshold;
         votingDelay = newVotingDelay;
@@ -450,7 +454,7 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param amount Amount to mint
      */
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
-        require(totalSupply() + amount <= MAX_SUPPLY, "Would exceed maximum supply");
+        require(totalSupply() + amount <= MAX_SUPPLY, 'Would exceed maximum supply');
         _mint(to, amount);
     }
 
@@ -481,7 +485,7 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
      * @param newRate New reward rate in basis points
      */
     function updateRewardRate(uint256 newRate) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        require(newRate <= 5000, "Reward rate cannot exceed 50%"); // Max 50% APY
+        require(newRate <= 5000, 'Reward rate cannot exceed 50%'); // Max 50% APY
         rewardRate = newRate;
     }
 
@@ -495,7 +499,7 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
 
         uint256 stakingDuration = block.timestamp - info.lastRewardClaim;
         uint256 rewards = (info.stakedAmount * rewardRate * stakingDuration) /
-                         (365 days * REWARD_PRECISION);
+            (365 days * REWARD_PRECISION);
 
         if (rewards > 0) {
             info.lastRewardClaim = block.timestamp;
@@ -507,11 +511,9 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
         }
     }
 
-    function _calculateReleasableAmount(VestingSchedule storage schedule)
-        internal
-        view
-        returns (uint256)
-    {
+    function _calculateReleasableAmount(
+        VestingSchedule storage schedule
+    ) internal view returns (uint256) {
         if (block.timestamp < schedule.startTime + schedule.cliffDuration) {
             return 0;
         }
@@ -531,29 +533,34 @@ contract AdvancedGovernanceToken is ERC20, ERC20Votes, ERC20Permit, AccessContro
         uint256 amount
     ) internal override(ERC20) whenNotPaused {
         // Skip compliance checks for minting, burning, and contract operations
-        if (from == address(0) || to == address(0) || from == address(this) || to == address(this)) {
+        if (
+            from == address(0) || to == address(0) || from == address(this) || to == address(this)
+        ) {
             super._beforeTokenTransfer(from, to, amount);
             return;
         }
 
         // Blacklist check
-        require(!blacklisted[from] && !blacklisted[to], "Address is blacklisted");
+        require(!blacklisted[from] && !blacklisted[to], 'Address is blacklisted');
 
         // Whitelist check (if enabled)
         if (whitelistEnabled) {
-            require(whitelisted[from] && whitelisted[to], "Address not whitelisted");
+            require(whitelisted[from] && whitelisted[to], 'Address not whitelisted');
         }
 
         // Transfer amount limits
         if (maxTransferAmount > 0) {
-            require(amount <= maxTransferAmount, "Transfer amount exceeds limit");
+            require(amount <= maxTransferAmount, 'Transfer amount exceeds limit');
         }
 
         // Daily transfer limits
         if (dailyTransferLimit > 0) {
             uint256 currentDay = block.timestamp / 1 days;
             uint256 dailyTransferred = dailyTransfers[from][currentDay];
-            require(dailyTransferred + amount <= dailyTransferLimit, "Daily transfer limit exceeded");
+            require(
+                dailyTransferred + amount <= dailyTransferLimit,
+                'Daily transfer limit exceeded'
+            );
             dailyTransfers[from][currentDay] = dailyTransferred + amount;
         }
 

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity 0.8.19;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
+import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol';
+import '@chainlink/contracts/src/v0.8/ChainlinkClient.sol';
 
 contract SyntheticAssetFactory is Ownable, ChainlinkClient {
     using Chainlink for Chainlink.Request;
@@ -36,12 +36,12 @@ contract SyntheticAssetFactory is Ownable, ChainlinkClient {
         bytes32 _jobId,
         uint256 _fee
     ) external onlyOwner {
-        require(syntheticAssets[_assetId].token == address(0), "Asset already exists");
+        require(syntheticAssets[_assetId].token == address(0), 'Asset already exists');
 
         // Deploy new ERC20 token for the synthetic asset
         SyntheticToken token = new SyntheticToken(
-            string(abi.encodePacked("Synthetic ", bytes32ToString(_assetId))),
-            string(abi.encodePacked("s", bytes32ToString(_assetId)))
+            string(abi.encodePacked('Synthetic ', bytes32ToString(_assetId))),
+            string(abi.encodePacked('s', bytes32ToString(_assetId)))
         );
 
         // Store synthetic asset configuration
@@ -62,7 +62,7 @@ contract SyntheticAssetFactory is Ownable, ChainlinkClient {
 
     function requestPriceUpdate(bytes32 _assetId) external {
         SyntheticAsset memory asset = syntheticAssets[_assetId];
-        require(asset.active, "Asset not active");
+        require(asset.active, 'Asset not active');
 
         Chainlink.Request memory req = buildChainlinkRequest(
             asset.jobId,
@@ -71,24 +71,27 @@ contract SyntheticAssetFactory is Ownable, ChainlinkClient {
         );
 
         // Add asset ID as parameter
-        req.add("assetId", bytes32ToString(_assetId));
+        req.add('assetId', bytes32ToString(_assetId));
 
         // Send request
         sendChainlinkRequestTo(asset.oracle, req, asset.fee);
     }
 
-    function fulfillPriceUpdate(bytes32 _requestId, uint256 _price) external recordChainlinkFulfillment(_requestId) {
+    function fulfillPriceUpdate(
+        bytes32 _requestId,
+        uint256 _price
+    ) external recordChainlinkFulfillment(_requestId) {
         // Implementation for price update logic
         // This would update the price of the synthetic asset
     }
 
     function deactivateAsset(bytes32 _assetId) external onlyOwner {
-        require(syntheticAssets[_assetId].token != address(0), "Asset does not exist");
+        require(syntheticAssets[_assetId].token != address(0), 'Asset does not exist');
         syntheticAssets[_assetId].active = false;
     }
 
     function reactivateAsset(bytes32 _assetId) external onlyOwner {
-        require(syntheticAssets[_assetId].token != address(0), "Asset does not exist");
+        require(syntheticAssets[_assetId].token != address(0), 'Asset does not exist');
         syntheticAssets[_assetId].active = true;
     }
 
@@ -99,7 +102,7 @@ contract SyntheticAssetFactory is Ownable, ChainlinkClient {
     // Helper function to convert bytes32 to string
     function bytes32ToString(bytes32 _bytes32) internal pure returns (string memory) {
         uint8 i = 0;
-        while(i < 32 && _bytes32[i] != 0) {
+        while (i < 32 && _bytes32[i] != 0) {
             i++;
         }
         bytes memory bytesArray = new bytes(i);
