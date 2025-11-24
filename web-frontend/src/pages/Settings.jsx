@@ -200,6 +200,8 @@ const Settings = () => {
                       </Select>
                     </FormControl>
 
+                    <FormControl>
+
                     <Button colorScheme="blue" variant="outline">
                       Disconnect Wallet
                     </Button>
@@ -381,8 +383,11 @@ const Settings = () => {
                       </Select>
                     </FormControl>
 
+                      </Select>
+                    </FormControl>
+
                     <FormControl>
-                      <FormLabel color="gray.300">Currency Display</FormLabel>
+                      <FormLabel color="gray.300">Currency Display</FormLabel>>
                       <Select
                         defaultValue="usd"
                         bg="gray.800"
@@ -395,5 +400,6 @@ const Settings = () => {
                         <option value="jpy">JPY (¥)</option>
                         <option value="cny">CNY (¥)</option>
                       </Select>
+                    </FormControl>
 
 (Content truncated due to size limit. Use line ranges to read in chunks)

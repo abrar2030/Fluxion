@@ -427,5 +427,6 @@ const Analytics = () => {
                 </Flex>
               ))}
             </Box>
+          </Flex>
 
 (Content truncated due to size limit. Use line ranges to read in chunks)

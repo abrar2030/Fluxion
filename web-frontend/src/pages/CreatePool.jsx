@@ -30,7 +30,7 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { FiPlus, FiMinus, FiInfo, FiAlertCircle } from 'react-icons/fi';
-import { useWeb3 } from .../lib/web3-config.jsx';
+import { useWeb3 } from '../lib/web3-config.jsx';
 import { useUI } from '../lib/ui-context';
 import { useNavigate } from 'react-router-dom';
 

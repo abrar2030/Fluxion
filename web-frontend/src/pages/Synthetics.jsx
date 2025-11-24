@@ -216,7 +216,7 @@ const Synthetics = () => {
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
                 <Heading size="md" mb={4} color="white">Market Overview</Heading>
-                <VStack spacing={4} align="stretch">
+                <VStack spacing={4} align="stretch">n="stretch">
                   <Flex justify="space-between" align="center">
                     <Text color="gray.300">Total Synthetic Assets:</Text>
                     <Text color="white" fontWeight="bold">5</Text>
@@ -244,7 +244,7 @@ const Synthetics = () => {
             <Card bg={cardBg} borderColor={borderColor} borderWidth="1px" borderRadius="lg" className="slide-up">
               <CardBody>
                 <Heading size="md" mb={4} color="white">Oracle Providers</Heading>
-                <VStack spacing={4} align="stretch">
+                <VStack spacing={4} align="stretch">n="stretch">
                   {[
                     { name: 'Chainlink', status: 'Connected', lastUpdate: '2 min ago' },
                     { name: 'Band Protocol', status: 'Connected', lastUpdate: '5 min ago' },
@@ -438,5 +438,5 @@ const Synthetics = () => {
               <CardBody>
                 <Heading size="md" mb={4} color="white">Advanced Settings</Heading>
 
-                <VStack spacing={4} alig
+                <VStack spacing={4} align="stretch">
 (Content truncated due to size limit. Use line ranges to read in chunks)
