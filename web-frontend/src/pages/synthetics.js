@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 // A more complete, albeit still example, ABI for a synthetic asset factory
 export const SYNTHETIC_ABI = [
     // Event emitted when a new synthetic asset is created
-    'event SyntheticAssetCreated(address indexed assetAddress, string assetId, address oracle, bytes32 jobId, uint250 paymentAmount)',
+    'event SyntheticAssetCreated(address indexed assetAddress, string assetId, address oracle, bytes32 jobId, uint256 paymentAmount)',
 
     // Function to create a new synthetic asset
     'function createSynthetic(string memory assetId, address oracle, bytes32 jobId, uint256 paymentAmount) external returns (address)',
@@ -26,20 +26,21 @@ export async function createSyntheticAsset(provider, params) {
         console.error('Missing provider, params, or FACTORY_ADDRESS for createSyntheticAsset');
         throw new Error('Configuration error for creating synthetic asset.');
     }
+
     const signer = provider.getSigner();
     const factory = new ethers.Contract(process.env.FACTORY_ADDRESS, SYNTHETIC_ABI, signer);
 
     try {
         const tx = await factory.createSynthetic(
             params.assetId, // e.g., "sUSD"
-            params.oracle, // e.g., Chainlink oracle address for the underlying asset price
-            params.jobId, // e.g., Chainlink Job ID for the oracle
+            params.oracle, // e.g., Chainlink oracle address
+            params.jobId, // e.g., Chainlink Job ID
             ethers.utils.parseEther(params.payment.toString()), // e.g., Collateral amount
         );
 
-        return tx.wait(); // Returns a promise that resolves to the transaction receipt
+        return tx.wait(); // Returns transaction receipt
     } catch (error) {
         console.error('Error creating synthetic asset:', error);
-        throw error; // Re-throw the error to be handled by the caller
+        throw error;
     }
 }
