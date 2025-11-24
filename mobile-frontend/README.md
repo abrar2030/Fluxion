@@ -53,26 +53,26 @@ Key configuration files include:
 
 1. Install dependencies:
 
-   ```bash
-   yarn install
-   ```
+    ```bash
+    yarn install
+    ```
 
 2. Start the development server:
 
-   ```bash
-   yarn start
-   ```
+    ```bash
+    yarn start
+    ```
 
 3. Run on iOS simulator:
 
-   ```bash
-   yarn ios
-   ```
+    ```bash
+    yarn ios
+    ```
 
 4. Run on Android emulator:
-   ```bash
-   yarn android
-   ```
+    ```bash
+    yarn android
+    ```
 
 ## Features
 
@@ -107,11 +107,11 @@ To create production builds:
 
 1. For iOS:
 
-   ```bash
-   expo build:ios
-   ```
+    ```bash
+    expo build:ios
+    ```
 
 2. For Android:
-   ```bash
-   expo build:android
-   ```
+    ```bash
+    expo build:android
+    ```

@@ -13,9 +13,9 @@ This package contains a set of automation scripts designed to enhance the develo
 
 1. Extract the zip file to your Fluxion project root directory
 2. Make all scripts executable:
-   ```
-   chmod +x *.sh
-   ```
+    ```
+    chmod +x *.sh
+    ```
 
 ## Usage
 

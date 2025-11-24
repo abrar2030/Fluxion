@@ -78,10 +78,7 @@ npm test
 /// @param amount Input amount
 /// @param price Current price
 /// @return Optimal swap amount
-function calculateOptimalSwap(
-    uint256 amount,
-    uint256 price
-) public pure returns (uint256) {
+function calculateOptimalSwap(uint256 amount, uint256 price) public pure returns (uint256) {
     // Implementation
 }
 ```
@@ -122,17 +119,13 @@ def calculate_liquidity_score(
 
 ```typescript
 interface TradingViewProps {
-  pair: string;
-  timeframe: string;
-  onPriceUpdate: (price: number) => void;
+    pair: string;
+    timeframe: string;
+    onPriceUpdate: (price: number) => void;
 }
 
-const TradingView: React.FC<TradingViewProps> = ({
-  pair,
-  timeframe,
-  onPriceUpdate,
-}) => {
-  // Implementation
+const TradingView: React.FC<TradingViewProps> = ({ pair, timeframe, onPriceUpdate }) => {
+    // Implementation
 };
 ```
 

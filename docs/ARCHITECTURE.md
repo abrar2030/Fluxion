@@ -9,47 +9,47 @@ Fluxion is built on a microservices architecture leveraging ZK-Rollups for scala
 ### 1. Frontend Layer
 
 - **React Application**
-  - Real-time trading interface
-  - WebSocket-based market data streaming
-  - Wallet integration via ethers.js
-  - Interactive charting with Recharts
-  - Responsive design for multiple devices
+    - Real-time trading interface
+    - WebSocket-based market data streaming
+    - Wallet integration via ethers.js
+    - Interactive charting with Recharts
+    - Responsive design for multiple devices
 
 ### 2. API Gateway
 
 - **FastAPI Backend**
-  - RESTful API endpoints
-  - WebSocket server for real-time updates
-  - Rate limiting and authentication
-  - Request validation and sanitization
-  - Load balancing and routing
+    - RESTful API endpoints
+    - WebSocket server for real-time updates
+    - Rate limiting and authentication
+    - Request validation and sanitization
+    - Load balancing and routing
 
 ### 3. Blockchain Layer
 
 - **Smart Contracts (Polygon zkEVM)**
-  - Synthetic asset minting and burning
-  - Liquidity pool management
-  - Order execution and settlement
-  - Cross-chain message handling via CCIP
-  - Governance and upgrade mechanisms
+    - Synthetic asset minting and burning
+    - Liquidity pool management
+    - Order execution and settlement
+    - Cross-chain message handling via CCIP
+    - Governance and upgrade mechanisms
 
 ### 4. Liquidity Engine
 
 - **Core Components**
-  - Hybrid AMM implementation
-  - Dynamic fee adjustment system
-  - Liquidity provider incentives
-  - Price impact calculations
-  - Slippage protection
+    - Hybrid AMM implementation
+    - Dynamic fee adjustment system
+    - Liquidity provider incentives
+    - Price impact calculations
+    - Slippage protection
 
 ### 5. Risk Management System
 
 - **Key Features**
-  - Real-time risk monitoring
-  - Value at Risk (VaR) calculations
-  - Position limits enforcement
-  - Collateral management
-  - Liquidation triggers
+    - Real-time risk monitoring
+    - Value at Risk (VaR) calculations
+    - Position limits enforcement
+    - Collateral management
+    - Liquidation triggers
 
 ### 6. AI/ML Pipeline
 
@@ -62,19 +62,19 @@ graph LR
 ```
 
 - **Components**
-  - Market data aggregation
-  - Feature extraction and preprocessing
-  - Model training pipeline
-  - Real-time inference service
-  - Performance monitoring
+    - Market data aggregation
+    - Feature extraction and preprocessing
+    - Model training pipeline
+    - Real-time inference service
+    - Performance monitoring
 
 ### 7. Data Layer
 
 - **Storage Solutions**
-  - TimescaleDB for time-series data
-  - Redis for caching and real-time data
-  - The Graph for blockchain indexing
-  - IPFS for decentralized storage
+    - TimescaleDB for time-series data
+    - Redis for caching and real-time data
+    - The Graph for blockchain indexing
+    - IPFS for decentralized storage
 
 ## Infrastructure
 

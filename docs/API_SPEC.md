@@ -41,9 +41,9 @@ POST /order
 
 ```json
 {
-  "order_id": "string",
-  "status": "PENDING",
-  "timestamp": "string"
+    "order_id": "string",
+    "status": "PENDING",
+    "timestamp": "string"
 }
 ```
 
@@ -65,10 +65,10 @@ GET /pool/{pool_id}/stats
 
 ```json
 {
-  "tvl": "string",
-  "volume_24h": "string",
-  "apy": "string",
-  "utilization": "string"
+    "tvl": "string",
+    "volume_24h": "string",
+    "apy": "string",
+    "utilization": "string"
 }
 ```
 
@@ -90,10 +90,10 @@ GET /risk/metrics
 
 ```json
 {
-  "var_95": "string",
-  "expected_shortfall": "string",
-  "correlation_matrix": "object",
-  "volatility": "string"
+    "var_95": "string",
+    "expected_shortfall": "string",
+    "correlation_matrix": "object",
+    "volatility": "string"
 }
 ```
 
@@ -109,13 +109,13 @@ GET /ai/predictions/{asset_id}
 
 ```json
 {
-  "predictions": [
-    {
-      "timestamp": "string",
-      "price": "string",
-      "confidence": "number"
-    }
-  ]
+    "predictions": [
+        {
+            "timestamp": "string",
+            "price": "string",
+            "confidence": "number"
+        }
+    ]
 }
 ```
 
@@ -146,9 +146,9 @@ wss://api.fluxion.exchange/ws/v1
 
 ```json
 {
-  "type": "subscribe",
-  "channels": ["trades", "orderbook", "liquidations"],
-  "symbols": ["BTC-USD", "ETH-USD"]
+    "type": "subscribe",
+    "channels": ["trades", "orderbook", "liquidations"],
+    "symbols": ["BTC-USD", "ETH-USD"]
 }
 ```
 

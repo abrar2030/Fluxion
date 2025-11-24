@@ -7,7 +7,7 @@ This document outlines the design for a modern mobile frontend for the Fluxora e
 ### 2. Technology Stack
 
 - **Framework:** React Native with Expo
-  - Rationale: Enables cross-platform development (Android, iOS, Web) from a single codebase, potentially leveraging existing React knowledge if the team is familiar with it (as suggested by the web frontend deployment config). Expo simplifies setup, development, and build processes.
+    - Rationale: Enables cross-platform development (Android, iOS, Web) from a single codebase, potentially leveraging existing React knowledge if the team is familiar with it (as suggested by the web frontend deployment config). Expo simplifies setup, development, and build processes.
 - **UI Library:** React Native Paper (Optional, for pre-built Material Design components)
 - **Navigation:** React Navigation
 - **State Management:** React Context API or Zustand (for simplicity)
@@ -16,13 +16,13 @@ This document outlines the design for a modern mobile frontend for the Fluxora e
 ### 3. Core Features
 
 - **Prediction Input:** Allow users to input necessary data for predictions:
-  - Timestamps (e.g., using a date/time picker component)
-  - Meter IDs (e.g., text input, potentially multi-select if applicable)
-  - Context Features (e.g., structured form based on expected keys/values)
+    - Timestamps (e.g., using a date/time picker component)
+    - Meter IDs (e.g., text input, potentially multi-select if applicable)
+    - Context Features (e.g., structured form based on expected keys/values)
 - **Prediction Display:** Show the prediction results received from the API:
-  - Numerical predictions (potentially visualized with a simple chart)
-  - Confidence intervals
-  - Model version used for the prediction
+    - Numerical predictions (potentially visualized with a simple chart)
+    - Confidence intervals
+    - Model version used for the prediction
 - **API Interaction:** Communicate with the backend `/predict` endpoint.
 - **User Feedback:** Implement loading indicators during API calls and clear error messages.
 

@@ -15,11 +15,11 @@ This document outlines the security measures and best practices implemented in t
 
 ```solidity
 contract FluxionAccessControl {
-    bytes32 public constant OPERATOR_ROLE = keccak256("OPERATOR_ROLE");
-    bytes32 public constant GUARDIAN_ROLE = keccak256("GUARDIAN_ROLE");
+    bytes32 public constant OPERATOR_ROLE = keccak256('OPERATOR_ROLE');
+    bytes32 public constant GUARDIAN_ROLE = keccak256('GUARDIAN_ROLE');
 
     modifier onlyRole(bytes32 role) {
-        require(hasRole(role, msg.sender), "Unauthorized");
+        require(hasRole(role, msg.sender), 'Unauthorized');
         _;
     }
 
@@ -42,7 +42,7 @@ contract FluxionVault {
     uint256 public constant WITHDRAWAL_WINDOW = 24 hours;
 
     function validateWithdrawal(uint256 amount) internal view {
-        require(amount <= WITHDRAWAL_LIMIT, "Exceeds limit");
+        require(amount <= WITHDRAWAL_LIMIT, 'Exceeds limit');
         // Additional checks
     }
 }
@@ -61,8 +61,8 @@ contract PriceOracle {
     uint256 public constant HEARTBEAT_PERIOD = 1 hours;
 
     function validatePrice(uint256 price) internal view {
-        require(block.timestamp - lastUpdate <= HEARTBEAT_PERIOD, "Stale price");
-        require(deviation <= MAX_DEVIATION, "Price deviation too high");
+        require(block.timestamp - lastUpdate <= HEARTBEAT_PERIOD, 'Stale price');
+        require(deviation <= MAX_DEVIATION, 'Price deviation too high');
     }
 }
 ```
@@ -100,14 +100,14 @@ proxy_pass http://backend;
 ```yaml
 # vault-config.yaml
 server:
-  ha_storage:
-    type: "consul"
-    path: "vault/"
+    ha_storage:
+        type: 'consul'
+        path: 'vault/'
 
 seal:
-  type: "awskms"
-  region: "us-east-1"
-  kms_key_id: "alias/vault-key"
+    type: 'awskms'
+    region: 'us-east-1'
+    kms_key_id: 'alias/vault-key'
 ```
 
 ### 3. Monitoring
@@ -138,10 +138,10 @@ def monitor_transactions(tx_hash: str):
 
 ```typescript
 interface AuthConfig {
-  jwtExpiry: "15m";
-  mfaRequired: true;
-  maxFailedAttempts: 3;
-  lockoutDuration: "1h";
+    jwtExpiry: '15m';
+    mfaRequired: true;
+    maxFailedAttempts: 3;
+    lockoutDuration: '1h';
 }
 ```
 
@@ -218,15 +218,15 @@ dependabot config:
 ```yaml
 # IAM policies
 policies:
-  - name: "operator"
-    resources:
-      - "arn:aws:s3:::fluxion-data/*"
-    actions:
-      - "s3:GetObject"
-      - "s3:PutObject"
-    conditions:
-      IpAddress:
-        aws:SourceIp: ["10.0.0.0/8"]
+    - name: 'operator'
+      resources:
+          - 'arn:aws:s3:::fluxion-data/*'
+      actions:
+          - 's3:GetObject'
+          - 's3:PutObject'
+      conditions:
+          IpAddress:
+              aws:SourceIp: ['10.0.0.0/8']
 ```
 
 ## Compliance

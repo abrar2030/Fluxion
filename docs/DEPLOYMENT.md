@@ -100,21 +100,21 @@ forge verify-contract \\
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fluxion-api
+    name: fluxion-api
 spec:
-  replicas: 3
-  template:
-    spec:
-      containers:
-        - name: api
-          image: fluxion/api:latest
-          resources:
-            requests:
-              memory: "4Gi"
-              cpu: "2"
-            limits:
-              memory: "8Gi"
-              cpu: "4"
+    replicas: 3
+    template:
+        spec:
+            containers:
+                - name: api
+                  image: fluxion/api:latest
+                  resources:
+                      requests:
+                          memory: '4Gi'
+                          cpu: '2'
+                      limits:
+                          memory: '8Gi'
+                          cpu: '4'
 ```
 
 ### 2. AI Service
@@ -124,16 +124,16 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fluxion-ai
+    name: fluxion-ai
 spec:
-  template:
-    spec:
-      containers:
-        - name: ai
-          image: fluxion/ai:latest
-          resources:
-            limits:
-              nvidia.com/gpu: 1
+    template:
+        spec:
+            containers:
+                - name: ai
+                  image: fluxion/ai:latest
+                  resources:
+                      limits:
+                          nvidia.com/gpu: 1
 ```
 
 ### 3. Worker Service
@@ -143,14 +143,14 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fluxion-worker
+    name: fluxion-worker
 spec:
-  replicas: 5
-  template:
-    spec:
-      containers:
-        - name: worker
-          image: fluxion/worker:latest
+    replicas: 5
+    template:
+        spec:
+            containers:
+                - name: worker
+                  image: fluxion/worker:latest
 ```
 
 ## Frontend Deployment
@@ -206,16 +206,16 @@ helm install filebeat elastic/filebeat
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: api-policy
+    name: api-policy
 spec:
-  podSelector:
-    matchLabels:
-      app: fluxion-api
-  ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: frontend
+    podSelector:
+        matchLabels:
+            app: fluxion-api
+    ingress:
+        - from:
+              - podSelector:
+                    matchLabels:
+                        app: frontend
 ```
 
 ### 2. Secret Management
@@ -270,11 +270,11 @@ kubectl autoscale deployment fluxion-api \\
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: redis-config
+    name: redis-config
 data:
-  redis.conf: |
-    maxmemory 8gb
-    maxmemory-policy allkeys-lru
+    redis.conf: |
+        maxmemory 8gb
+        maxmemory-policy allkeys-lru
 ```
 
 ## Troubleshooting
