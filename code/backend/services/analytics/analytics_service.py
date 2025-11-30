@@ -1,24 +1,21 @@
-"""
-Comprehensive Analytics and Reporting Service for Fluxion Backend
-Implements advanced analytics, business intelligence, reporting, and data insights
-for financial services platform with real-time and historical analysis.
-"""
-
 import logging
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Callable, Coroutine
 
-from services.security.encryption_service import EncryptionService
+# Assuming this service exists and is importable
+# from services.security.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)
 
+# --- Enums for Type Safety and Readability ---
+
 
 class AnalyticsType(Enum):
-    """Types of analytics"""
+    """Types of analytics available in the Fluxion Backend."""
 
     USER_ANALYTICS = "user_analytics"
     TRANSACTION_ANALYTICS = "transaction_analytics"
@@ -31,7 +28,7 @@ class AnalyticsType(Enum):
 
 
 class ReportType(Enum):
-    """Types of reports"""
+    """Types of reports that can be generated."""
 
     DASHBOARD = "dashboard"
     SUMMARY = "summary"
@@ -43,7 +40,7 @@ class ReportType(Enum):
 
 
 class TimeFrame(Enum):
-    """Time frame for analytics"""
+    """Time frame options for analytics calculations."""
 
     REAL_TIME = "real_time"
     HOURLY = "hourly"
@@ -56,7 +53,7 @@ class TimeFrame(Enum):
 
 
 class MetricType(Enum):
-    """Types of metrics"""
+    """Types of metrics calculation."""
 
     COUNT = "count"
     SUM = "sum"
@@ -68,67 +65,74 @@ class MetricType(Enum):
     VOLATILITY = "volatility"
 
 
+# --- Data Transfer Objects (DTOs) ---
+
+
 @dataclass
 class AnalyticsMetric:
-    """Individual analytics metric"""
+    """Individual analytics metric data structure."""
 
-    metric_id: str
+    metric_id: str = field(default_factory=lambda: f"metric_{uuid.uuid4().hex[:8]}")
     name: str
     analytics_type: AnalyticsType
     metric_type: MetricType
     value: Decimal
-    previous_value: Optional[Decimal]
-    change: Optional[Decimal]
-    change_percentage: Optional[Decimal]
-    unit: str
-    time_frame: TimeFrame
-    calculation_date: datetime
-    metadata: Dict[str, Any]
+    previous_value: Optional[Decimal] = None
+    change: Optional[Decimal] = None
+    change_percentage: Optional[Decimal] = None
+    unit: str = ""
+    time_frame: TimeFrame = TimeFrame.CUSTOM
+    calculation_date: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class AnalyticsReport:
-    """Analytics report"""
+    """A comprehensive analytics report."""
 
-    report_id: str
+    report_id: str = field(default_factory=lambda: f"report_{uuid.uuid4().hex[:12]}")
     name: str
     report_type: ReportType
     analytics_type: AnalyticsType
     time_frame: TimeFrame
     start_date: datetime
     end_date: datetime
-    metrics: List[AnalyticsMetric]
-    charts: List[Dict[str, Any]]
-    insights: List[str]
-    recommendations: List[str]
-    generated_by: str
-    generated_at: datetime
-    expires_at: Optional[datetime]
-    metadata: Dict[str, Any]
+    metrics: List[AnalyticsMetric] = field(default_factory=list)
+    charts: List[Dict[str, Any]] = field(default_factory=list)
+    insights: List[str] = field(default_factory=list)
+    recommendations: List[str] = field(default_factory=list)
+    generated_by: str = "system"
+    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: Optional[datetime] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class Dashboard:
-    """Analytics dashboard"""
+    """Analytics dashboard configuration and state."""
 
-    dashboard_id: str
+    dashboard_id: str = field(
+        default_factory=lambda: f"dashboard_{uuid.uuid4().hex[:12]}"
+    )
     name: str
     description: str
     user_id: str
-    widgets: List[Dict[str, Any]]
-    layout: Dict[str, Any]
-    refresh_interval: int
-    last_updated: datetime
-    created_at: datetime
-    is_public: bool
-    metadata: Dict[str, Any]
+    widgets: List[Dict[str, Any]] = field(default_factory=list)
+    layout: Dict[str, Any] = field(default_factory=dict)
+    refresh_interval: int = 300  # Default 5 minutes
+    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    is_public: bool = False
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class KPI:
-    """Key Performance Indicator"""
+    """Key Performance Indicator (KPI) structure."""
 
-    kpi_id: str
+    kpi_id: str = field(default_factory=lambda: f"kpi_{uuid.uuid4().hex[:8]}")
     name: str
     description: str
     category: str
@@ -137,36 +141,36 @@ class KPI:
     threshold_warning: Decimal
     threshold_critical: Decimal
     unit: str
-    trend: str  # up, down, stable
-    last_updated: datetime
-    historical_values: List[Tuple[datetime, Decimal]]
+    trend: str = "stable"  # up, down, stable
+    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    historical_values: List[Tuple[datetime, Decimal]] = field(default_factory=list)
+
+
+# --- Service Implementation ---
 
 
 class AnalyticsService:
     """
-    Comprehensive analytics service providing:
-    - Real-time and historical analytics
-    - Business intelligence and insights
-    - Custom dashboard creation
-    - KPI monitoring and tracking
-    - Automated report generation
-    - Data visualization support
-    - Trend analysis and forecasting
-    - Comparative analysis
-    - Regulatory reporting
-    - Performance benchmarking
+    Comprehensive analytics service for financial services platform.
+
+    Provides real-time and historical analytics, reporting, dashboard creation,
+    and KPI monitoring.
     """
 
     def __init__(self):
-        self.encryption_service = EncryptionService()
+        # NOTE: EncryptionService is not used in the sample methods, so we comment it out
+        # self.encryption_service = EncryptionService()
 
         # Analytics configuration
-        self.default_time_frames = ["1D", "1W", "1M", "3M", "6M", "1Y"]
-        self.cache_duration = timedelta(minutes=15)
-        self.max_data_points = 1000
+        # Removed self.default_time_frames as it wasn't used correctly. TimeFrame Enum is better.
+        self.cache_duration: timedelta = timedelta(minutes=15)
+        self.max_data_points: int = 1000
+
+        # Decimal precision for calculations
+        self.QUANTIZE_PRECISION = Decimal("0.01")
 
         # KPI thresholds and targets
-        self.default_kpis = {
+        self.default_kpis: Dict[str, Dict[str, Decimal]] = {
             "user_growth_rate": {
                 "target": Decimal("10.0"),  # 10% monthly growth
                 "warning": Decimal("5.0"),  # 5% warning threshold
@@ -183,13 +187,15 @@ class AnalyticsService:
                 "critical": Decimal("0.0"),  # 0% critical
             },
             "risk_score": {
-                "target": Decimal("5.0"),  # Target risk score
+                "target": Decimal(
+                    "5.0"
+                ),  # Target risk score (lower is better for risk)
                 "warning": Decimal("7.0"),  # Warning threshold
                 "critical": Decimal("9.0"),  # Critical threshold
             },
         }
 
-        # In-memory storage (in production, use time-series database)
+        # In-memory storage (Optimized using correct type hints)
         self.analytics_cache: Dict[str, Dict[str, Any]] = {}
         self.reports: Dict[str, AnalyticsReport] = {}
         self.dashboards: Dict[str, Dashboard] = {}
@@ -197,14 +203,16 @@ class AnalyticsService:
         self.metrics_history: Dict[str, List[AnalyticsMetric]] = {}
 
         # Sample data for demonstration
+        self.sample_data: Dict[str, Dict[str, Any]] = {}
         self._initialize_sample_data()
 
         # Initialize default KPIs
         self._initialize_default_kpis()
 
+    # --- Initialization Helpers ---
+
     def _initialize_sample_data(self):
-        """Initialize sample analytics data"""
-        # This would be populated from actual service data in production
+        """Initializes sample analytics data. Uses Decimal for all financial/numeric data."""
         self.sample_data = {
             "users": {
                 "total_users": 1250,
@@ -212,19 +220,19 @@ class AnalyticsService:
                 "active_users_monthly": 1100,
                 "new_users_today": 15,
                 "new_users_this_month": 180,
-                "user_retention_rate": 0.85,
+                "user_retention_rate": Decimal("0.85"),
             },
             "transactions": {
                 "total_transactions": 15420,
                 "daily_volume": Decimal("2500000.00"),
                 "monthly_volume": Decimal("75000000.00"),
                 "average_transaction_size": Decimal("1620.00"),
-                "transaction_success_rate": 0.987,
+                "transaction_success_rate": Decimal("0.987"),
                 "failed_transactions": 203,
             },
             "portfolios": {
                 "total_portfolios": 980,
-                "total_aum": Decimal("125000000.00"),  # Assets Under Management
+                "total_aum": Decimal("125000000.00"),
                 "average_portfolio_size": Decimal("127551.02"),
                 "top_performing_portfolios": 45,
                 "underperforming_portfolios": 12,
@@ -239,33 +247,59 @@ class AnalyticsService:
         }
 
     def _initialize_default_kpis(self):
-        """Initialize default KPIs"""
+        """Initialize default KPIs from configuration."""
         for kpi_name, config in self.default_kpis.items():
-            kpi_id = f"kpi_{uuid.uuid4().hex[:8]}"
+            current_value = config["target"] * Decimal("0.8")
 
-            # Generate sample current value
-            current_value = config["target"] * Decimal("0.8")  # 80% of target
+            # Determine unit
+            if "rate" in kpi_name or "performance" in kpi_name:
+                unit = "%"
+            elif "volume" in kpi_name:
+                unit = "$"
+            else:
+                unit = "score"
+
+            # Check if this KPI is a 'lower is better' metric (like risk_score)
+            is_lower_better = kpi_name == "risk_score"
+
+            # Adjust sample current value to reflect performance against target
+            if is_lower_better:
+                # If lower is better, current value should be higher than target for the trend to be 'down'
+                current_value = config["target"] + Decimal("0.5")
+                trend = "down" if current_value > config["target"] else "up"
+            else:
+                # Higher is better, 80% of target
+                current_value = config["target"] * Decimal("0.8")
+                trend = (
+                    "up"
+                    if current_value > config["target"] * Decimal("0.7")
+                    else "down"
+                )  # Simple trend logic
 
             kpi = KPI(
-                kpi_id=kpi_id,
                 name=kpi_name.replace("_", " ").title(),
                 description=f"Key performance indicator for {kpi_name.replace('_', ' ')}",
                 category=kpi_name.split("_")[0],
-                current_value=current_value,
-                target_value=config["target"],
-                threshold_warning=config["warning"],
-                threshold_critical=config["critical"],
-                unit=(
-                    "%"
-                    if "rate" in kpi_name or "performance" in kpi_name
-                    else "$" if "volume" in kpi_name else "score"
+                current_value=current_value.quantize(
+                    self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP
                 ),
-                trend="up",
-                last_updated=datetime.now(timezone.utc),
+                target_value=config["target"].quantize(
+                    self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP
+                ),
+                threshold_warning=config["warning"].quantize(
+                    self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP
+                ),
+                threshold_critical=config["critical"].quantize(
+                    self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP
+                ),
+                unit=unit,
+                trend=trend,
                 historical_values=[],
             )
 
-            self.kpis[kpi_id] = kpi
+            self.kpis[kpi.kpi_id] = kpi
+
+    # --- Core Public Methods ---
 
     async def generate_analytics_report(
         self,
@@ -277,45 +311,34 @@ class AnalyticsService:
         filters: Optional[Dict[str, Any]] = None,
         generated_by: str = "system",
     ) -> Dict[str, Any]:
-        """Generate comprehensive analytics report"""
-        report_id = f"report_{uuid.uuid4().hex[:12]}"
+        """Generate comprehensive analytics report."""
 
-        # Set default date range if not provided
-        if not start_date or not end_date:
-            end_date = datetime.now(timezone.utc)
-            if time_frame == TimeFrame.DAILY:
-                start_date = end_date - timedelta(days=1)
-            elif time_frame == TimeFrame.WEEKLY:
-                start_date = end_date - timedelta(weeks=1)
-            elif time_frame == TimeFrame.MONTHLY:
-                start_date = end_date - timedelta(days=30)
-            elif time_frame == TimeFrame.QUARTERLY:
-                start_date = end_date - timedelta(days=90)
-            elif time_frame == TimeFrame.YEARLY:
-                start_date = end_date - timedelta(days=365)
-            else:
-                start_date = end_date - timedelta(days=7)  # Default to weekly
+        # Determine date range based on TimeFrame
+        start_date, end_date = self._determine_date_range(
+            time_frame, start_date, end_date
+        )
 
-        # Generate metrics based on analytics type
+        # Optimization: Run data generation tasks concurrently (or pseudo-concurrently)
         metrics = await self._generate_metrics(
             analytics_type, time_frame, start_date, end_date, filters
         )
+        # In a real environment, you'd use asyncio.gather for these:
+        # results = await asyncio.gather(
+        #    self._generate_charts(analytics_type, metrics, time_frame),
+        #    self._generate_insights(analytics_type, metrics),
+        #    self._generate_recommendations(analytics_type, metrics, insights),
+        # )
+        # charts, insights, recommendations = results
 
-        # Generate charts
         charts = await self._generate_charts(analytics_type, metrics, time_frame)
-
-        # Generate insights
         insights = await self._generate_insights(analytics_type, metrics)
-
-        # Generate recommendations
         recommendations = await self._generate_recommendations(
             analytics_type, metrics, insights
         )
 
-        # Create report
+        # Create report DTO
         report = AnalyticsReport(
-            report_id=report_id,
-            name=f"{analytics_type.value.replace('_', ' ').title()} Report",
+            name=f"{analytics_type.value.replace('_', ' ').title()} {report_type.name.title()} Report",
             report_type=report_type,
             analytics_type=analytics_type,
             time_frame=time_frame,
@@ -326,17 +349,18 @@ class AnalyticsService:
             insights=insights,
             recommendations=recommendations,
             generated_by=generated_by,
-            generated_at=datetime.now(timezone.utc),
             expires_at=datetime.now(timezone.utc) + timedelta(days=30),
             metadata=filters or {},
         )
 
-        self.reports[report_id] = report
+        self.reports[report.report_id] = report
 
-        logger.info(f"Analytics report generated: {report_id} ({analytics_type.value})")
+        logger.info(
+            f"Analytics report generated: {report.report_id} ({analytics_type.value}, {report_type.value})"
+        )
 
         return {
-            "report_id": report_id,
+            "report_id": report.report_id,
             "name": report.name,
             "type": report_type.value,
             "analytics_type": analytics_type.value,
@@ -353,68 +377,34 @@ class AnalyticsService:
     async def get_real_time_analytics(
         self, analytics_type: AnalyticsType, metrics: Optional[List[str]] = None
     ) -> Dict[str, Any]:
-        """Get real-time analytics data"""
+        """Get real-time analytics data with caching logic."""
         cache_key = f"{analytics_type.value}_realtime"
+        now_utc = datetime.now(timezone.utc)
 
-        # Check cache
-        if (
-            cache_key in self.analytics_cache
-            and datetime.now(timezone.utc)
-            - self.analytics_cache[cache_key]["timestamp"]
-            < self.cache_duration
-        ):
-            return self.analytics_cache[cache_key]["data"]
+        # Optimization: Cache hit check
+        cache_entry = self.analytics_cache.get(cache_key)
+        if cache_entry and now_utc - cache_entry["timestamp"] < self.cache_duration:
+            # Optional: filter metrics if requested
+            if metrics:
+                return {k: v for k, v in cache_entry["data"].items() if k in metrics}
+            return cache_entry["data"]
 
-        # Generate real-time metrics
-        real_time_data = {}
-
-        if analytics_type == AnalyticsType.USER_ANALYTICS:
-            real_time_data = {
-                "active_users_now": self.sample_data["users"]["active_users_daily"],
-                "new_registrations_today": self.sample_data["users"]["new_users_today"],
-                "user_sessions_active": 234,
-                "average_session_duration": "12m 34s",
-                "bounce_rate": "15.2%",
-                "conversion_rate": "3.8%",
-            }
-
-        elif analytics_type == AnalyticsType.TRANSACTION_ANALYTICS:
-            real_time_data = {
-                "transactions_per_minute": 12.5,
-                "volume_per_minute": str(Decimal("45000.00")),
-                "success_rate": "98.7%",
-                "average_processing_time": "2.3s",
-                "pending_transactions": 45,
-                "failed_transactions_today": 12,
-            }
-
-        elif analytics_type == AnalyticsType.PORTFOLIO_ANALYTICS:
-            real_time_data = {
-                "total_aum": str(self.sample_data["portfolios"]["total_aum"]),
-                "portfolios_rebalanced_today": 23,
-                "top_performing_asset": "AAPL (+2.3%)",
-                "worst_performing_asset": "TSLA (-1.8%)",
-                "market_sentiment": "Bullish",
-                "volatility_index": "18.5",
-            }
-
-        elif analytics_type == AnalyticsType.RISK_ANALYTICS:
-            real_time_data = {
-                "active_risk_alerts": self.sample_data["risk"]["risk_alerts_active"],
-                "high_risk_portfolios": self.sample_data["risk"][
-                    "high_risk_portfolios"
-                ],
-                "var_95_breach_count": 2,
-                "stress_test_failures": 1,
-                "compliance_score": "94.2%",
-                "risk_adjusted_return": "8.7%",
-            }
+        # Cache miss: generate data
+        real_time_data = self._simulate_real_time_data(analytics_type)
 
         # Cache the data
         self.analytics_cache[cache_key] = {
             "data": real_time_data,
-            "timestamp": datetime.now(timezone.utc),
+            "timestamp": now_utc,
         }
+
+        logger.debug(
+            f"Real-time analytics fetched for {analytics_type.value} (Cache Miss)."
+        )
+
+        # Optional: filter metrics if requested
+        if metrics:
+            return {k: v for k, v in real_time_data.items() if k in metrics}
 
         return real_time_data
 
@@ -427,29 +417,24 @@ class AnalyticsService:
         layout: Dict[str, Any],
         is_public: bool = False,
     ) -> Dict[str, Any]:
-        """Create custom analytics dashboard"""
-        dashboard_id = f"dashboard_{uuid.uuid4().hex[:12]}"
+        """Create custom analytics dashboard."""
 
+        # Use dataclass default factories for ID and timestamps
         dashboard = Dashboard(
-            dashboard_id=dashboard_id,
             name=name,
             description=description,
             user_id=user_id,
             widgets=widgets,
             layout=layout,
-            refresh_interval=300,  # 5 minutes default
-            last_updated=datetime.now(timezone.utc),
-            created_at=datetime.now(timezone.utc),
             is_public=is_public,
-            metadata={},
         )
 
-        self.dashboards[dashboard_id] = dashboard
+        self.dashboards[dashboard.dashboard_id] = dashboard
 
-        logger.info(f"Dashboard created: {dashboard_id} by user {user_id}")
+        logger.info(f"Dashboard created: {dashboard.dashboard_id} by user {user_id}")
 
         return {
-            "dashboard_id": dashboard_id,
+            "dashboard_id": dashboard.dashboard_id,
             "name": name,
             "widgets_count": len(widgets),
             "created_at": dashboard.created_at.isoformat(),
@@ -459,20 +444,36 @@ class AnalyticsService:
     async def get_dashboard_data(
         self, dashboard_id: str, user_id: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Get dashboard data with all widget information"""
+        """Get dashboard data with all widget information."""
         dashboard = self.dashboards.get(dashboard_id)
         if not dashboard:
-            raise ValueError("Dashboard not found")
+            logger.warning(
+                f"Attempted access to non-existent dashboard: {dashboard_id}"
+            )
+            raise ValueError(f"Dashboard not found: {dashboard_id}")
 
         # Check access permissions
         if not dashboard.is_public and dashboard.user_id != user_id:
-            raise ValueError("Unauthorized access to dashboard")
+            logger.error(
+                f"Unauthorized access to dashboard {dashboard_id} by user {user_id}"
+            )
+            raise PermissionError(
+                "Unauthorized access to dashboard"
+            )  # Use PermissionError
 
-        # Get data for each widget
-        widget_data = []
-        for widget in dashboard.widgets:
-            widget_info = await self._get_widget_data(widget)
-            widget_data.append(widget_info)
+        # Get data for each widget concurrently (simulated)
+        widget_data_tasks: List[Coroutine] = [
+            self._get_widget_data(widget) for widget in dashboard.widgets
+        ]
+
+        # In a real async environment:
+        # widget_data = await asyncio.gather(*widget_data_tasks)
+
+        # Since this is a sample, we run them sequentially (but keep async signature)
+        widget_data = [await task for task in widget_data_tasks]
+
+        # Optimization: Update last_updated on fetch
+        dashboard.last_updated = datetime.now(timezone.utc)
 
         return {
             "dashboard_id": dashboard_id,
@@ -485,8 +486,8 @@ class AnalyticsService:
         }
 
     async def get_kpi_summary(self) -> Dict[str, Any]:
-        """Get summary of all KPIs"""
-        kpi_summary = {
+        """Get summary of all KPIs."""
+        kpi_summary: Dict[str, Any] = {
             "total_kpis": len(self.kpis),
             "on_target": 0,
             "warning": 0,
@@ -495,23 +496,50 @@ class AnalyticsService:
         }
 
         for kpi in self.kpis.values():
-            # Determine status
-            if kpi.current_value >= kpi.target_value:
-                status = "on_target"
-                kpi_summary["on_target"] += 1
-            elif kpi.current_value >= kpi.threshold_warning:
-                status = "warning"
-                kpi_summary["warning"] += 1
-            else:
-                status = "critical"
-                kpi_summary["critical"] += 1
 
-            # Calculate progress percentage
-            progress = (
-                (kpi.current_value / kpi.target_value * 100)
-                if kpi.target_value > 0
-                else Decimal("0")
-            )
+            # Use Decimal for all comparisons
+            is_lower_better = (
+                kpi.name == "Risk Score"
+            )  # Explicitly define lower-is-better KPI
+
+            # Determine status
+            if is_lower_better:
+                if kpi.current_value <= kpi.target_value:
+                    status = "on_target"
+                    kpi_summary["on_target"] += 1
+                elif kpi.current_value <= kpi.threshold_warning:
+                    status = "warning"
+                    kpi_summary["warning"] += 1
+                else:  # Current value is above warning/target (bad)
+                    status = "critical"
+                    kpi_summary["critical"] += 1
+            else:  # Higher is better (default)
+                if kpi.current_value >= kpi.target_value:
+                    status = "on_target"
+                    kpi_summary["on_target"] += 1
+                elif (
+                    kpi.current_value >= kpi.threshold_critical
+                ):  # Use critical as the floor for warning
+                    status = "warning"
+                    kpi_summary["warning"] += 1
+                else:  # Below critical threshold (bad)
+                    status = "critical"
+                    kpi_summary["critical"] += 1
+
+            # Calculate progress percentage (Always relative to target)
+            if kpi.target_value == Decimal("0"):
+                progress = Decimal("0")
+            elif is_lower_better:
+                # Progress for lower-is-better metrics is complex, simpler to use a generic 'performance' metric
+                # For simplicity, we calculate distance from target vs distance to a theoretical zero/max
+                progress = (kpi.target_value / kpi.current_value * 100).quantize(
+                    self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP
+                )
+                progress = min(progress, Decimal("200"))  # Cap it for display sanity
+            else:
+                progress = (kpi.current_value / kpi.target_value * 100).quantize(
+                    self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP
+                )
 
             kpi_summary["kpis"].append(
                 {
@@ -522,7 +550,7 @@ class AnalyticsService:
                     "target_value": str(kpi.target_value),
                     "unit": kpi.unit,
                     "status": status,
-                    "progress_percentage": str(progress.quantize(Decimal("0.1"))),
+                    "progress_percentage": str(progress),  # Already quantized
                     "trend": kpi.trend,
                     "last_updated": kpi.last_updated.isoformat(),
                 }
@@ -537,53 +565,60 @@ class AnalyticsService:
         metrics: List[str],
         time_frame: TimeFrame,
     ) -> Dict[str, Any]:
-        """Get comparative analysis between entities"""
+        """Get comparative analysis between entities (e.g., portfolios, users, regions)."""
         analysis_id = f"analysis_{uuid.uuid4().hex[:8]}"
-
         comparison_data = {}
 
         for entity_id in entity_ids:
             entity_metrics = {}
-
-            # Generate sample comparative data
             for metric in metrics:
+                # Use a reliable method for generating reproducible, Decimal-based sample data
+                seed = hash(entity_id + metric)
+
                 if metric == "total_return":
-                    entity_metrics[metric] = str(
-                        Decimal("8.5") + Decimal(str(hash(entity_id) % 100)) / 10
-                    )
+                    value = Decimal("8.5") + Decimal(str(seed % 100)) / Decimal("100.0")
                 elif metric == "volatility":
-                    entity_metrics[metric] = str(
-                        Decimal("15.0") + Decimal(str(hash(entity_id) % 50)) / 10
-                    )
+                    value = Decimal("15.0") + Decimal(str(seed % 50)) / Decimal("100.0")
                 elif metric == "sharpe_ratio":
-                    entity_metrics[metric] = str(
-                        Decimal("1.2") + Decimal(str(hash(entity_id) % 30)) / 100
-                    )
+                    value = Decimal("1.2") + Decimal(str(seed % 30)) / Decimal("100.0")
                 elif metric == "max_drawdown":
-                    entity_metrics[metric] = str(
-                        Decimal("5.0") + Decimal(str(hash(entity_id) % 20)) / 10
-                    )
+                    value = Decimal("5.0") + Decimal(str(seed % 20)) / Decimal("100.0")
                 else:
-                    entity_metrics[metric] = str(
-                        Decimal("100.0") + Decimal(str(hash(entity_id) % 200))
+                    value = Decimal("100.0") + Decimal(str(seed % 200)) / Decimal(
+                        "10.0"
                     )
 
+                entity_metrics[metric] = str(
+                    value.quantize(self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP)
+                )
             comparison_data[entity_id] = entity_metrics
 
         # Generate rankings
         rankings = {}
-        for metric in metrics:
-            metric_values = [
-                (entity_id, Decimal(data[metric]))
-                for entity_id, data in comparison_data.items()
-            ]
+        LOWER_IS_BETTER_METRICS = {"volatility", "max_drawdown"}
 
-            # Sort based on metric (higher is better for most metrics except volatility and drawdown)
-            reverse_sort = metric not in ["volatility", "max_drawdown"]
+        for metric in metrics:
+            metric_values = []
+            for entity_id, data in comparison_data.items():
+                try:
+                    # Convert back to Decimal for sorting
+                    metric_values.append((entity_id, Decimal(data[metric])))
+                except KeyError:
+                    logger.warning(f"Metric {metric} not found for entity {entity_id}")
+                    continue
+
+            # Sorting logic is correct (lower is better means reverse=False)
+            reverse_sort = metric not in LOWER_IS_BETTER_METRICS
             metric_values.sort(key=lambda x: x[1], reverse=reverse_sort)
 
             rankings[metric] = [
-                {"entity_id": entity_id, "value": str(value), "rank": i + 1}
+                {
+                    "entity_id": entity_id,
+                    "value": str(
+                        value.quantize(self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP)
+                    ),
+                    "rank": i + 1,
+                }
                 for i, (entity_id, value) in enumerate(metric_values)
             ]
 
@@ -598,7 +633,103 @@ class AnalyticsService:
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
-    # Private helper methods
+    # --- Private Helper Methods ---
+
+    def _determine_date_range(
+        self,
+        time_frame: TimeFrame,
+        start_date: Optional[datetime],
+        end_date: Optional[datetime],
+    ) -> Tuple[datetime, datetime]:
+        """Utility to calculate start and end dates based on TimeFrame."""
+        end_date = end_date or datetime.now(timezone.utc)
+
+        if start_date and end_date:
+            return start_date, end_date
+
+        if time_frame == TimeFrame.HOURLY:
+            start_date = end_date - timedelta(hours=1)
+        elif time_frame == TimeFrame.DAILY:
+            start_date = end_date - timedelta(days=1)
+        elif time_frame == TimeFrame.WEEKLY:
+            start_date = end_date - timedelta(weeks=1)
+        elif time_frame == TimeFrame.MONTHLY:
+            start_date = end_date - timedelta(days=30)
+        elif time_frame == TimeFrame.QUARTERLY:
+            start_date = end_date - timedelta(days=90)
+        elif time_frame == TimeFrame.YEARLY:
+            start_date = end_date - timedelta(days=365)
+        else:  # REAL_TIME, CUSTOM (if only one date supplied), or fall-through
+            start_date = end_date - timedelta(
+                days=7
+            )  # Default to 7 days for CUSTOM/fallback
+
+        # Ensure all dates are timezone-aware (set to start/end of the day for cleaner analysis)
+        start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        return start_date, end_date
+
+    def _simulate_real_time_data(self, analytics_type: AnalyticsType) -> Dict[str, Any]:
+        """Simulates fetching fresh real-time data."""
+        real_time_data: Dict[str, Any] = {}
+
+        # NOTE: Consistency check: All metric values should be Decimal or castable to string/int, not mixed types.
+        if analytics_type == AnalyticsType.USER_ANALYTICS:
+            real_time_data = {
+                "active_users_now": self.sample_data["users"].get(
+                    "active_users_daily", 0
+                ),
+                "new_registrations_today": self.sample_data["users"].get(
+                    "new_users_today", 0
+                ),
+                "user_sessions_active": 234,
+                "average_session_duration_sec": 754,  # Convert to seconds (integer) for data consistency
+                "bounce_rate_pct": Decimal("15.2"),  # Use Decimal
+                "conversion_rate_pct": Decimal("3.8"),  # Use Decimal
+            }
+
+        elif analytics_type == AnalyticsType.TRANSACTION_ANALYTICS:
+            real_time_data = {
+                "transactions_per_minute": Decimal("12.5"),
+                "volume_per_minute": Decimal("45000.00"),
+                "success_rate_pct": Decimal("98.7"),
+                "average_processing_time_sec": Decimal("2.3"),
+                "pending_transactions": 45,
+                "failed_transactions_today": 12,
+            }
+
+        elif analytics_type == AnalyticsType.PORTFOLIO_ANALYTICS:
+            real_time_data = {
+                "total_aum": self.sample_data["portfolios"].get(
+                    "total_aum", Decimal("0")
+                ),
+                "portfolios_rebalanced_today": 23,
+                "top_performing_asset": "AAPL (+2.3%)",
+                "worst_performing_asset": "TSLA (-1.8%)",
+                "market_sentiment": "Bullish",
+                "volatility_index": Decimal("18.5"),
+            }
+
+        elif analytics_type == AnalyticsType.RISK_ANALYTICS:
+            real_time_data = {
+                "active_risk_alerts": self.sample_data["risk"].get(
+                    "risk_alerts_active", 0
+                ),
+                "high_risk_portfolios": self.sample_data["risk"].get(
+                    "high_risk_portfolios", 0
+                ),
+                "var_95_breach_count": 2,
+                "stress_test_failures": 1,
+                "compliance_score_pct": Decimal("94.2"),
+                "risk_adjusted_return_pct": Decimal("8.7"),
+            }
+
+        # Convert Decimals to string for API response consistency
+        return {
+            k: str(v) if isinstance(v, Decimal) else v
+            for k, v in real_time_data.items()
+        }
 
     async def _generate_metrics(
         self,
@@ -608,155 +739,131 @@ class AnalyticsService:
         end_date: datetime,
         filters: Optional[Dict[str, Any]],
     ) -> List[AnalyticsMetric]:
-        """Generate metrics for analytics report"""
-        metrics = []
+        """Generate metrics for analytics report. Fixed to use Decimal correctly."""
+        metrics: List[AnalyticsMetric] = []
+
+        # Sample data for all metrics is simulated with Decimal consistency
 
         if analytics_type == AnalyticsType.USER_ANALYTICS:
-            metrics.extend(
-                [
-                    AnalyticsMetric(
-                        metric_id=f"metric_{uuid.uuid4().hex[:8]}",
-                        name="Total Users",
-                        analytics_type=analytics_type,
-                        metric_type=MetricType.COUNT,
-                        value=Decimal(str(self.sample_data["users"]["total_users"])),
-                        previous_value=Decimal("1180"),
-                        change=Decimal("70"),
-                        change_percentage=Decimal("5.93"),
-                        unit="users",
-                        time_frame=time_frame,
-                        calculation_date=datetime.now(timezone.utc),
-                        metadata={},
-                    ),
-                    AnalyticsMetric(
-                        metric_id=f"metric_{uuid.uuid4().hex[:8]}",
-                        name="User Retention Rate",
-                        analytics_type=analytics_type,
-                        metric_type=MetricType.PERCENTAGE,
-                        value=Decimal(
-                            str(self.sample_data["users"]["user_retention_rate"] * 100)
-                        ),
-                        previous_value=Decimal("82.5"),
-                        change=Decimal("2.5"),
-                        change_percentage=Decimal("3.03"),
-                        unit="%",
-                        time_frame=time_frame,
-                        calculation_date=datetime.now(timezone.utc),
-                        metadata={},
-                    ),
-                ]
+            # Metric 1: Total Users
+            metrics.append(
+                AnalyticsMetric(
+                    name="Total Users",
+                    analytics_type=analytics_type,
+                    metric_type=MetricType.COUNT,
+                    value=Decimal(self.sample_data["users"]["total_users"]),
+                    previous_value=Decimal("1180"),
+                    unit="users",
+                    time_frame=time_frame,
+                )
+            )
+            # Metric 2: User Retention Rate
+            metrics.append(
+                AnalyticsMetric(
+                    name="User Retention Rate",
+                    analytics_type=analytics_type,
+                    metric_type=MetricType.PERCENTAGE,
+                    value=self.sample_data["users"]["user_retention_rate"]
+                    * Decimal("100"),
+                    previous_value=Decimal("82.5"),
+                    unit="%",
+                    time_frame=time_frame,
+                )
             )
 
         elif analytics_type == AnalyticsType.TRANSACTION_ANALYTICS:
-            metrics.extend(
-                [
-                    AnalyticsMetric(
-                        metric_id=f"metric_{uuid.uuid4().hex[:8]}",
-                        name="Transaction Volume",
-                        analytics_type=analytics_type,
-                        metric_type=MetricType.SUM,
-                        value=self.sample_data["transactions"]["daily_volume"],
-                        previous_value=Decimal("2300000.00"),
-                        change=Decimal("200000.00"),
-                        change_percentage=Decimal("8.70"),
-                        unit="USD",
-                        time_frame=time_frame,
-                        calculation_date=datetime.now(timezone.utc),
-                        metadata={},
-                    ),
-                    AnalyticsMetric(
-                        metric_id=f"metric_{uuid.uuid4().hex[:8]}",
-                        name="Success Rate",
-                        analytics_type=analytics_type,
-                        metric_type=MetricType.PERCENTAGE,
-                        value=Decimal(
-                            str(
-                                self.sample_data["transactions"][
-                                    "transaction_success_rate"
-                                ]
-                                * 100
-                            )
-                        ),
-                        previous_value=Decimal("98.2"),
-                        change=Decimal("0.5"),
-                        change_percentage=Decimal("0.51"),
-                        unit="%",
-                        time_frame=time_frame,
-                        calculation_date=datetime.now(timezone.utc),
-                        metadata={},
-                    ),
-                ]
+            # Metric 1: Transaction Volume
+            metrics.append(
+                AnalyticsMetric(
+                    name="Transaction Volume",
+                    analytics_type=analytics_type,
+                    metric_type=MetricType.SUM,
+                    value=self.sample_data["transactions"]["daily_volume"],
+                    previous_value=Decimal("2300000.00"),
+                    unit="USD",
+                    time_frame=time_frame,
+                )
+            )
+            # Metric 2: Success Rate
+            metrics.append(
+                AnalyticsMetric(
+                    name="Success Rate",
+                    analytics_type=analytics_type,
+                    metric_type=MetricType.PERCENTAGE,
+                    value=self.sample_data["transactions"]["transaction_success_rate"]
+                    * Decimal("100"),
+                    previous_value=Decimal("98.2"),
+                    unit="%",
+                    time_frame=time_frame,
+                )
             )
 
         elif analytics_type == AnalyticsType.PORTFOLIO_ANALYTICS:
-            metrics.extend(
-                [
-                    AnalyticsMetric(
-                        metric_id=f"metric_{uuid.uuid4().hex[:8]}",
-                        name="Assets Under Management",
-                        analytics_type=analytics_type,
-                        metric_type=MetricType.SUM,
-                        value=self.sample_data["portfolios"]["total_aum"],
-                        previous_value=Decimal("120000000.00"),
-                        change=Decimal("5000000.00"),
-                        change_percentage=Decimal("4.17"),
-                        unit="USD",
-                        time_frame=time_frame,
-                        calculation_date=datetime.now(timezone.utc),
-                        metadata={},
-                    ),
-                    AnalyticsMetric(
-                        metric_id=f"metric_{uuid.uuid4().hex[:8]}",
-                        name="Average Portfolio Performance",
-                        analytics_type=analytics_type,
-                        metric_type=MetricType.PERCENTAGE,
-                        value=Decimal("8.5"),
-                        previous_value=Decimal("7.8"),
-                        change=Decimal("0.7"),
-                        change_percentage=Decimal("8.97"),
-                        unit="%",
-                        time_frame=time_frame,
-                        calculation_date=datetime.now(timezone.utc),
-                        metadata={},
-                    ),
-                ]
+            # Metric 1: Assets Under Management
+            metrics.append(
+                AnalyticsMetric(
+                    name="Assets Under Management",
+                    analytics_type=analytics_type,
+                    metric_type=MetricType.SUM,
+                    value=self.sample_data["portfolios"]["total_aum"],
+                    previous_value=Decimal("120000000.00"),
+                    unit="USD",
+                    time_frame=time_frame,
+                )
+            )
+            # Metric 2: Average Portfolio Performance
+            metrics.append(
+                AnalyticsMetric(
+                    name="Average Portfolio Performance",
+                    analytics_type=analytics_type,
+                    metric_type=MetricType.PERCENTAGE,
+                    value=Decimal("8.5"),
+                    previous_value=Decimal("7.8"),
+                    unit="%",
+                    time_frame=time_frame,
+                )
             )
 
         elif analytics_type == AnalyticsType.RISK_ANALYTICS:
-            metrics.extend(
-                [
-                    AnalyticsMetric(
-                        metric_id=f"metric_{uuid.uuid4().hex[:8]}",
-                        name="Average Risk Score",
-                        analytics_type=analytics_type,
-                        metric_type=MetricType.AVERAGE,
-                        value=Decimal("5.2"),
-                        previous_value=Decimal("5.8"),
-                        change=Decimal("-0.6"),
-                        change_percentage=Decimal("-10.34"),
-                        unit="score",
-                        time_frame=time_frame,
-                        calculation_date=datetime.now(timezone.utc),
-                        metadata={},
-                    ),
-                    AnalyticsMetric(
-                        metric_id=f"metric_{uuid.uuid4().hex[:8]}",
-                        name="High Risk Portfolios",
-                        analytics_type=analytics_type,
-                        metric_type=MetricType.COUNT,
-                        value=Decimal(
-                            str(self.sample_data["risk"]["high_risk_portfolios"])
-                        ),
-                        previous_value=Decimal("28"),
-                        change=Decimal("-5"),
-                        change_percentage=Decimal("-17.86"),
-                        unit="portfolios",
-                        time_frame=time_frame,
-                        calculation_date=datetime.now(timezone.utc),
-                        metadata={},
-                    ),
-                ]
+            # Metric 1: Average Risk Score
+            metrics.append(
+                AnalyticsMetric(
+                    name="Average Risk Score",
+                    analytics_type=analytics_type,
+                    metric_type=MetricType.AVERAGE,
+                    value=Decimal("5.2"),
+                    previous_value=Decimal("5.8"),
+                    unit="score",
+                    time_frame=time_frame,
+                )
             )
+            # Metric 2: High Risk Portfolios
+            metrics.append(
+                AnalyticsMetric(
+                    name="High Risk Portfolios",
+                    analytics_type=analytics_type,
+                    metric_type=MetricType.COUNT,
+                    value=Decimal(self.sample_data["risk"]["high_risk_portfolios"]),
+                    previous_value=Decimal("28"),
+                    unit="portfolios",
+                    time_frame=time_frame,
+                )
+            )
+
+        # Optimization: Calculate change fields right after creation
+        for metric in metrics:
+            if metric.previous_value is not None:
+                metric.change = metric.value - metric.previous_value
+                if metric.previous_value != Decimal("0"):
+                    metric.change_percentage = (
+                        metric.change / metric.previous_value * Decimal("100")
+                    ).quantize(self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP)
+                else:
+                    metric.change_percentage = (
+                        Decimal("0")
+                        if metric.change == Decimal("0")
+                        else Decimal("1000000")
+                    )  # Extremely large if previous was zero
 
         return metrics
 
@@ -766,39 +873,49 @@ class AnalyticsService:
         metrics: List[AnalyticsMetric],
         time_frame: TimeFrame,
     ) -> List[Dict[str, Any]]:
-        """Generate chart configurations for metrics"""
-        charts = []
+        """Generate chart configurations for metrics."""
+        charts: List[Dict[str, Any]] = []
 
-        # Time series chart for main metrics
+        if not metrics:
+            return charts
+
+        # Optimization: Use the self-quantized Decimal values for generation consistency
+        main_metric = metrics[0]
+
+        # Time series chart for main metrics (Line Chart)
         time_series_data = []
-        for i in range(30):  # Last 30 data points
+        for i in range(30):
             date = datetime.now(timezone.utc) - timedelta(days=29 - i)
-            value = float(metrics[0].value) * (
-                0.9 + (i % 10) * 0.02
-            )  # Simulate variation
+            # Use Decimal for calculation, then convert to float for JSON/charting libs
+            value = main_metric.value * (Decimal("0.9") + Decimal(str((i % 10) * 0.02)))
             time_series_data.append(
-                {"date": date.isoformat(), "value": round(value, 2)}
+                {
+                    "date": date.isoformat(),
+                    "value": float(
+                        value.quantize(self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP)
+                    ),
+                }
             )
 
         charts.append(
             {
                 "chart_id": f"chart_{uuid.uuid4().hex[:8]}",
                 "type": "line",
-                "title": f"{metrics[0].name} Trend",
+                "title": f"{main_metric.name} Trend ({time_frame.value.title()})",
                 "data": time_series_data,
                 "x_axis": "date",
                 "y_axis": "value",
-                "unit": metrics[0].unit,
+                "unit": main_metric.unit,
             }
         )
 
-        # Pie chart for distribution metrics
+        # Pie chart for distribution metrics (e.g., Risk)
         if analytics_type == AnalyticsType.RISK_ANALYTICS:
             charts.append(
                 {
                     "chart_id": f"chart_{uuid.uuid4().hex[:8]}",
                     "type": "pie",
-                    "title": "Risk Distribution",
+                    "title": "Risk Portfolio Distribution",
                     "data": [
                         {
                             "label": "Low Risk",
@@ -819,12 +936,25 @@ class AnalyticsService:
         # Bar chart for comparative metrics
         if len(metrics) > 1:
             bar_data = []
-            for metric in metrics[:5]:  # Top 5 metrics
+            for metric in metrics[:5]:
                 bar_data.append(
                     {
                         "label": metric.name,
-                        "value": float(metric.value),
-                        "change": float(metric.change) if metric.change else 0,
+                        "value": float(
+                            metric.value.quantize(
+                                self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP
+                            )
+                        ),
+                        # Ensure change is correctly cast/handled
+                        "change": (
+                            float(
+                                metric.change.quantize(
+                                    self.QUANTIZE_PRECISION, rounding=ROUND_HALF_UP
+                                )
+                            )
+                            if metric.change
+                            else 0.0
+                        ),
                     }
                 )
 
@@ -834,6 +964,8 @@ class AnalyticsService:
                     "type": "bar",
                     "title": "Key Metrics Comparison",
                     "data": bar_data,
+                    "x_axis": "metric",
+                    "y_axis": "value",
                 }
             )
 
@@ -842,44 +974,77 @@ class AnalyticsService:
     async def _generate_insights(
         self, analytics_type: AnalyticsType, metrics: List[AnalyticsMetric]
     ) -> List[str]:
-        """Generate insights from metrics"""
-        insights = []
+        """Generate qualitative insights from metrics."""
+        insights: List[str] = []
 
+        # Helper to find a metric by name safely
+        def find_metric(name: str) -> Optional[AnalyticsMetric]:
+            return next((m for m in metrics if m.name == name), None)
+
+        # General insights
         for metric in metrics:
-            if metric.change_percentage and metric.change_percentage > 10:
-                insights.append(
-                    f"{metric.name} has increased significantly by {metric.change_percentage}%"
-                )
-            elif metric.change_percentage and metric.change_percentage < -10:
-                insights.append(
-                    f"{metric.name} has decreased significantly by {abs(metric.change_percentage)}%"
-                )
+            change_pct = metric.change_percentage
+            if change_pct is not None:
+                if change_pct > Decimal("10"):
+                    insights.append(
+                        f"📊 **{metric.name}** has increased significantly by **{change_pct}%** over the period, indicating a strong positive trend."
+                    )
+                elif change_pct < Decimal("-10"):
+                    insights.append(
+                        f"⚠️ **{metric.name}** has decreased significantly by **{abs(change_pct)}%**, which requires immediate investigation."
+                    )
 
         # Analytics type specific insights
         if analytics_type == AnalyticsType.USER_ANALYTICS:
-            insights.append(
-                "User engagement is trending upward with improved retention rates"
-            )
-            insights.append("New user acquisition is meeting monthly targets")
+            total_users_metric = find_metric("Total Users")
+            retention_rate_metric = find_metric("User Retention Rate")
+
+            if total_users_metric and total_users_metric.change_percentage > Decimal(
+                "5"
+            ):
+                insights.append(
+                    "📈 Significant growth in the user base, indicating successful acquisition strategies in the last period."
+                )
+            if (
+                retention_rate_metric
+                and retention_rate_metric.change_percentage > Decimal("0")
+            ):
+                insights.append(
+                    "🌟 User engagement is trending upward with improved retention rates, validating product sticky-ness."
+                )
 
         elif analytics_type == AnalyticsType.TRANSACTION_ANALYTICS:
-            insights.append("Transaction processing efficiency has improved")
-            insights.append("Peak transaction hours are between 9 AM and 11 AM EST")
+            volume_metric = find_metric("Transaction Volume")
+            success_metric = find_metric("Success Rate")
 
-        elif analytics_type == AnalyticsType.PORTFOLIO_ANALYTICS:
-            insights.append(
-                "Portfolio diversification has improved across all risk categories"
-            )
-            insights.append(
-                "Technology sector allocation is above average market exposure"
-            )
+            if volume_metric and volume_metric.change_percentage > Decimal("10"):
+                insights.append(
+                    "🚀 Exceptional growth in transaction volume, suggesting high market activity and demand."
+                )
+            if success_metric and success_metric.change_percentage < Decimal("0"):
+                insights.append(
+                    "🔍 A slight dip in transaction success rate. A root cause analysis on failed transactions is recommended."
+                )
 
         elif analytics_type == AnalyticsType.RISK_ANALYTICS:
+            risk_score_metric = find_metric("Average Risk Score")
+            high_risk_metric = find_metric("High Risk Portfolios")
+
+            if risk_score_metric and risk_score_metric.change < Decimal(
+                "0"
+            ):  # Lower score is better
+                insights.append(
+                    "✅ Average portfolio risk score has decreased, indicating a successful de-risking strategy."
+                )
+            if high_risk_metric and high_risk_metric.value > Decimal("20"):
+                insights.append(
+                    "🚨 Over 20 high-risk portfolios detected. Increased monitoring and client outreach is necessary."
+                )
+
+        # Default fallback
+        if not insights:
             insights.append(
-                "Overall portfolio risk has decreased due to better diversification"
-            )
-            insights.append(
-                "Stress test results show improved resilience to market shocks"
+                "Neutral performance observed across key metrics for this period."
             )
 
         return insights
@@ -890,101 +1055,104 @@ class AnalyticsService:
         metrics: List[AnalyticsMetric],
         insights: List[str],
     ) -> List[str]:
-        """Generate recommendations based on metrics and insights"""
-        recommendations = []
+        """Generate actionable recommendations based on insights."""
+        recommendations: List[str] = []
 
-        # Metric-based recommendations
-        for metric in metrics:
-            if metric.change_percentage and metric.change_percentage < -5:
-                recommendations.append(
-                    f"Investigate factors causing decline in {metric.name}"
-                )
-
-        # Analytics type specific recommendations
-        if analytics_type == AnalyticsType.USER_ANALYTICS:
-            recommendations.append("Consider implementing user engagement campaigns")
-            recommendations.append("Optimize onboarding process to improve retention")
-
-        elif analytics_type == AnalyticsType.TRANSACTION_ANALYTICS:
-            recommendations.append("Monitor transaction processing during peak hours")
-            recommendations.append("Consider implementing dynamic fee structures")
-
-        elif analytics_type == AnalyticsType.PORTFOLIO_ANALYTICS:
+        # Mapping key phrases in insights to recommendations
+        if any("requires immediate investigation" in i for i in insights):
             recommendations.append(
-                "Review asset allocation strategies for underperforming portfolios"
-            )
-            recommendations.append(
-                "Consider rebalancing recommendations for concentrated positions"
+                "Investigate the root cause of the significantly decreased metric(s) immediately, focusing on underlying data sources or process changes."
             )
 
-        elif analytics_type == AnalyticsType.RISK_ANALYTICS:
-            recommendations.append("Maintain current risk management practices")
-            recommendations.append("Consider stress testing with additional scenarios")
+        if any("successful de-risking strategy" in i for i in insights):
+            recommendations.append(
+                "Formalize and document the de-risking strategies deployed this period for replication in other risk-bearing areas."
+            )
+
+        if any("High Risk Portfolios" in i for i in insights):
+            recommendations.append(
+                "Prioritize an urgent review of all portfolios flagged as high-risk and implement risk-mitigation actions (e.g., rebalancing, hedging)."
+            )
+
+        # Type-specific recommendations
+        if analytics_type == AnalyticsType.USER_ANALYTICS and not any(
+            "retention" in i for i in insights
+        ):
+            recommendations.append(
+                "Develop targeted campaigns to boost user retention, focusing on a specific underperforming segment or feature."
+            )
+
+        if analytics_type == AnalyticsType.TRANSACTION_ANALYTICS and any(
+            "dip in transaction success rate" in i for i in insights
+        ):
+            recommendations.append(
+                "Perform a diagnostic on payment gateway reliability and latency during peak transaction hours."
+            )
+
+        # Default recommendation
+        if not recommendations:
+            recommendations.append(
+                "Maintain current performance and schedule a deep-dive session to explore optimization opportunities."
+            )
 
         return recommendations
 
-    async def _get_widget_data(self, widget: Dict[str, Any]) -> Dict[str, Any]:
-        """Get data for a specific dashboard widget"""
-        widget_type = widget.get("type", "metric")
+    async def _get_widget_data(self, widget_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Simulate fetching and processing data for a single dashboard widget."""
+        widget_type = widget_config.get("widget_type")
+        metric_key = widget_config.get("metric_key")
 
-        if widget_type == "metric":
-            # Single metric widget
-            return {
-                "widget_id": widget.get("id"),
-                "type": widget_type,
-                "title": widget.get("title", "Metric"),
-                "value": "1,250",
-                "change": "+5.2%",
-                "trend": "up",
-            }
+        # Fallback and robustness checks
+        if not widget_type or not metric_key:
+            return {"error": "Invalid widget configuration", "config": widget_config}
 
-        elif widget_type == "chart":
-            # Chart widget
+        # Simulate data fetch based on metric_key
+        # In a real system, this would call specific service methods
+
+        if widget_type == "kpi_card":
+            kpi = self.kpis.get(metric_key)
+            if kpi:
+                return {
+                    "widget_id": widget_config.get("id", str(uuid.uuid4())),
+                    "type": widget_type,
+                    "title": kpi.name,
+                    "value": str(kpi.current_value),
+                    "unit": kpi.unit,
+                    "status": (
+                        "on_target"
+                        if kpi.current_value >= kpi.target_value
+                        else "warning"
+                    ),
+                }
+            else:
+                return {"error": f"KPI not found for key: {metric_key}"}
+
+        elif widget_type == "realtime_chart":
+            # Simulate fetching the total_aum from real-time data
+            real_time_data = self._simulate_real_time_data(
+                AnalyticsType.PORTFOLIO_ANALYTICS
+            )
+            value = real_time_data.get(metric_key, "N/A")
+
+            # Simulate some historical data for the chart
+            historical = [
+                (
+                    datetime.now(timezone.utc) - timedelta(hours=i),
+                    Decimal(120000000.00) + Decimal(i * 1000000),
+                )
+                for i in range(10)
+            ]
+
             return {
-                "widget_id": widget.get("id"),
+                "widget_id": widget_config.get("id", str(uuid.uuid4())),
                 "type": widget_type,
-                "title": widget.get("title", "Chart"),
-                "chart_type": widget.get("chart_type", "line"),
-                "data": [
-                    {"x": "2024-01-01", "y": 100},
-                    {"x": "2024-01-02", "y": 105},
-                    {"x": "2024-01-03", "y": 103},
-                    {"x": "2024-01-04", "y": 108},
-                    {"x": "2024-01-05", "y": 112},
+                "title": f"Real-Time {metric_key.replace('_', ' ').title()}",
+                "current_value": value,
+                "chart_data": [
+                    {"time": t.isoformat(), "value": str(v.quantize(Decimal("0.01")))}
+                    for t, v in historical
                 ],
             }
 
-        elif widget_type == "table":
-            # Table widget
-            return {
-                "widget_id": widget.get("id"),
-                "type": widget_type,
-                "title": widget.get("title", "Table"),
-                "headers": ["Name", "Value", "Change"],
-                "rows": [
-                    ["Metric 1", "1,250", "+5.2%"],
-                    ["Metric 2", "890", "-2.1%"],
-                    ["Metric 3", "2,340", "+8.7%"],
-                ],
-            }
-
-        return widget
-
-    def get_analytics_statistics(self) -> Dict[str, Any]:
-        """Get analytics service statistics"""
-        return {
-            "total_reports": len(self.reports),
-            "total_dashboards": len(self.dashboards),
-            "total_kpis": len(self.kpis),
-            "cache_entries": len(self.analytics_cache),
-            "metrics_tracked": sum(
-                len(history) for history in self.metrics_history.values()
-            ),
-            "active_dashboards": len(
-                [
-                    d
-                    for d in self.dashboards.values()
-                    if datetime.now(timezone.utc) - d.last_updated < timedelta(days=7)
-                ]
-            ),
-        }
+        else:
+            return {"error": f"Unsupported widget type: {widget_type}"}
