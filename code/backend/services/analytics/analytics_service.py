@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Callable, Coroutine
+from typing import Any, Dict, List, Optional, Tuple, Coroutine
 
 # Assuming this service exists and is importable
 # from services.security.encryption_service import EncryptionService
