@@ -14,6 +14,10 @@ from typing import Any, Dict, Optional
 
 import yaml
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 class ComplianceValidator:
     """Financial compliance validator for Fluxion infrastructure"""
@@ -80,8 +84,7 @@ class ComplianceValidator:
 
     def validate_kubernetes_manifests(self, k8s_path: str) -> None:
         """Validate Kubernetes manifests for compliance"""
-        print("🔍 Validating Kubernetes manifests...")
-
+        logger.info("🔍 Validating Kubernetes manifests...")
         k8s_dir = Path(k8s_path)
         if not k8s_dir.exists():
             self.violations.append(
@@ -188,8 +191,7 @@ class ComplianceValidator:
 
     def validate_terraform_configuration(self, tf_path: str) -> None:
         """Validate Terraform configuration for compliance"""
-        print("🔍 Validating Terraform configuration...")
-
+        logger.info("🔍 Validating Terraform configuration...")
         tf_dir = Path(tf_path)
         if not tf_dir.exists():
             self.violations.append(
@@ -280,8 +282,7 @@ class ComplianceValidator:
 
     def validate_docker_configuration(self, docker_path: str) -> None:
         """Validate Docker configuration for compliance"""
-        print("🔍 Validating Docker configuration...")
-
+        logger.info("🔍 Validating Docker configuration...")
         # Check Docker Compose files
         compose_files = [
             Path(docker_path) / "docker-compose.yml",
@@ -362,8 +363,7 @@ class ComplianceValidator:
 
     def validate_ansible_configuration(self, ansible_path: str) -> None:
         """Validate Ansible configuration for compliance"""
-        print("🔍 Validating Ansible configuration...")
-
+        logger.info("🔍 Validating Ansible configuration...")
         ansible_dir = Path(ansible_path)
         if not ansible_dir.exists():
             self.violations.append(
@@ -433,8 +433,7 @@ class ComplianceValidator:
 
     def validate_secrets_management(self, base_path: str) -> None:
         """Validate secrets management practices"""
-        print("🔍 Validating secrets management...")
-
+        logger.info("🔍 Validating secrets management...")
         base_dir = Path(base_path)
 
         # Check for hardcoded secrets
@@ -516,8 +515,7 @@ class ComplianceValidator:
         if output_file:
             with open(output_file, "w") as f:
                 json.dump(report, f, indent=2)
-            print(f"📄 Compliance report saved to {output_file}")
-
+            logger.info(f"📄 Compliance report saved to {output_file}")
         return report
 
     def print_summary(self) -> None:
@@ -529,54 +527,53 @@ class ComplianceValidator:
             (len(self.passed_checks) / total_checks * 100) if total_checks > 0 else 0
         )
 
-        print("\n" + "=" * 60)
-        print("🏛️  FINANCIAL COMPLIANCE VALIDATION REPORT")
-        print("=" * 60)
-        print(f"Framework: {self.framework.upper()}")
-        print(f"Compliance Score: {compliance_score:.1f}%")
-        print(
+        logger.info("\n" + "=" * 60)
+        logger.info("🏛️  FINANCIAL COMPLIANCE VALIDATION REPORT")
+        logger.info("=" * 60)
+        logger.info(f"Framework: {self.framework.upper()}")
+        logger.info(f"Compliance Score: {compliance_score:.1f}%")
+        logger.info(
             f"Status: {'✅ COMPLIANT' if len(self.violations) == 0 else '❌ NON-COMPLIANT'}"
         )
-        print()
-
-        print(f"📊 Summary:")
-        print(f"  • Total Checks: {total_checks}")
-        print(f"  • Passed: {len(self.passed_checks)}")
-        print(f"  • Warnings: {len(self.warnings)}")
-        print(f"  • Violations: {len(self.violations)}")
-        print()
-
+        logger.info()
+        logger.info(f"📊 Summary:")
+        logger.info(f"  • Total Checks: {total_checks}")
+        logger.info(f"  • Passed: {len(self.passed_checks)}")
+        logger.info(f"  • Warnings: {len(self.warnings)}")
+        logger.info(f"  • Violations: {len(self.violations)}")
+        logger.info()
         if self.violations:
-            print("🚨 Critical Violations:")
+            logger.info("🚨 Critical Violations:")
             for violation in self.violations:
                 severity_icon = (
                     "🔴"
                     if violation["severity"] == "critical"
                     else "🟠" if violation["severity"] == "high" else "🟡"
                 )
-                print(
+                logger.info(
                     f"  {severity_icon} [{violation['category'].upper()}] {violation['message']}"
                 )
-            print()
-
+            logger.info()
         if self.warnings:
-            print("⚠️  Warnings:")
+            logger.info("⚠️  Warnings:")
             for warning in self.warnings[:5]:  # Show first 5 warnings
-                print(f"  🟡 [{warning['category'].upper()}] {warning['message']}")
+                logger.info(
+                    f"  🟡 [{warning['category'].upper()}] {warning['message']}"
+                )
             if len(self.warnings) > 5:
-                print(f"  ... and {len(self.warnings) - 5} more warnings")
-            print()
-
-        print("✅ Recommendations:")
+                logger.info(f"  ... and {len(self.warnings) - 5} more warnings")
+            logger.info()
+        logger.info("✅ Recommendations:")
         if len(self.violations) == 0:
-            print("  • All critical compliance requirements are met")
-            print("  • Consider addressing warnings to improve security posture")
+            logger.info("  • All critical compliance requirements are met")
+            logger.info("  • Consider addressing warnings to improve security posture")
         else:
-            print("  • Address all critical violations before production deployment")
-            print("  • Implement missing security controls")
-            print("  • Review and update security policies")
-
-        print("=" * 60)
+            logger.info(
+                "  • Address all critical violations before production deployment"
+            )
+            logger.info("  • Implement missing security controls")
+            logger.info("  • Review and update security policies")
+        logger.info("=" * 60)
 
 
 def main():
@@ -605,10 +602,9 @@ def main():
 
     validator = ComplianceValidator(args.framework)
 
-    print("🏛️  Starting Financial Compliance Validation...")
-    print(f"📁 Base path: {args.path}")
-    print()
-
+    logger.info("🏛️  Starting Financial Compliance Validation...")
+    logger.info(f"📁 Base path: {args.path}")
+    logger.info()
     # Run validations
     validator.validate_kubernetes_manifests(args.kubernetes)
     validator.validate_terraform_configuration(args.terraform)

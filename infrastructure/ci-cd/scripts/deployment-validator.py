@@ -16,6 +16,10 @@ import hvac
 import requests
 from kubernetes import client, config
 
+from core.logging import get_logger
+
+logger = get_logger(__name__)
+
 
 class DeploymentValidator:
     """Production deployment readiness validator"""
@@ -59,8 +63,7 @@ class DeploymentValidator:
 
     def validate_kubernetes_cluster(self) -> None:
         """Validate Kubernetes cluster readiness"""
-        print("🔍 Validating Kubernetes cluster...")
-
+        logger.info("🔍 Validating Kubernetes cluster...")
         try:
             # Try to load kubeconfig
             config.load_kube_config()
@@ -143,8 +146,7 @@ class DeploymentValidator:
 
     def validate_secrets_management(self) -> None:
         """Validate secrets management system"""
-        print("🔍 Validating secrets management...")
-
+        logger.info("🔍 Validating secrets management...")
         vault_addr = os.getenv("VAULT_ADDR")
         vault_token = os.getenv("VAULT_TOKEN")
 
@@ -231,8 +233,7 @@ class DeploymentValidator:
 
     def validate_database_connectivity(self) -> None:
         """Validate database connectivity and configuration"""
-        print("🔍 Validating database connectivity...")
-
+        logger.info("🔍 Validating database connectivity...")
         # This would typically connect to your actual database
         # For demo purposes, we'll check environment variables
 
@@ -272,8 +273,7 @@ class DeploymentValidator:
 
     def validate_monitoring_stack(self) -> None:
         """Validate monitoring and alerting stack"""
-        print("🔍 Validating monitoring stack...")
-
+        logger.info("🔍 Validating monitoring stack...")
         # Check Prometheus
         prometheus_url = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
         try:
@@ -319,8 +319,7 @@ class DeploymentValidator:
 
     def validate_logging_stack(self) -> None:
         """Validate centralized logging stack"""
-        print("🔍 Validating logging stack...")
-
+        logger.info("🔍 Validating logging stack...")
         # Check Elasticsearch
         elasticsearch_url = os.getenv("ELASTICSEARCH_URL", "http://elasticsearch:9200")
         try:
@@ -376,8 +375,7 @@ class DeploymentValidator:
 
     def validate_resource_requirements(self) -> None:
         """Validate resource requirements and limits"""
-        print("🔍 Validating resource requirements...")
-
+        logger.info("🔍 Validating resource requirements...")
         # Check if running in Kubernetes
         try:
             config.load_kube_config()
@@ -446,8 +444,7 @@ class DeploymentValidator:
 
     def validate_backup_strategy(self) -> None:
         """Validate backup and disaster recovery strategy"""
-        print("🔍 Validating backup strategy...")
-
+        logger.info("🔍 Validating backup strategy...")
         # Check for backup configuration files
         backup_configs = [
             "infrastructure/scripts/backup.sh",
@@ -502,8 +499,7 @@ class DeploymentValidator:
 
     def validate_network_security(self) -> None:
         """Validate network security configuration"""
-        print("🔍 Validating network security...")
-
+        logger.info("🔍 Validating network security...")
         try:
             config.load_kube_config()
             networking_v1 = client.NetworkingV1Api()
@@ -588,8 +584,7 @@ class DeploymentValidator:
         if output_file:
             with open(output_file, "w") as f:
                 json.dump(report, f, indent=2)
-            print(f"📄 Deployment readiness report saved to {output_file}")
-
+            logger.info(f"📄 Deployment readiness report saved to {output_file}")
         return report
 
     def _generate_recommendations(self) -> List[str]:
@@ -639,54 +634,56 @@ class DeploymentValidator:
         ]
         deployment_ready = len(critical_failures) == 0
 
-        print("\n" + "=" * 60)
-        print("🚀 DEPLOYMENT READINESS VALIDATION REPORT")
-        print("=" * 60)
-        print(f"Environment: {self.environment.upper()}")
-        print(f"Readiness Score: {readiness_score:.1f}%")
-        print(f"Deployment Status: {'✅ READY' if deployment_ready else '❌ BLOCKED'}")
-        print()
-
-        print(f"📊 Summary:")
-        print(f"  • Total Checks: {total_checks}")
-        print(f"  • Passed: {len(self.checks)}")
-        print(f"  • Warnings: {len(self.warnings)}")
-        print(f"  • Failures: {len(self.failures)}")
-        print(f"  • Critical Failures: {len(critical_failures)}")
-        print()
-
+        logger.info("\n" + "=" * 60)
+        logger.info("🚀 DEPLOYMENT READINESS VALIDATION REPORT")
+        logger.info("=" * 60)
+        logger.info(f"Environment: {self.environment.upper()}")
+        logger.info(f"Readiness Score: {readiness_score:.1f}%")
+        logger.info(
+            f"Deployment Status: {'✅ READY' if deployment_ready else '❌ BLOCKED'}"
+        )
+        logger.info()
+        logger.info(f"📊 Summary:")
+        logger.info(f"  • Total Checks: {total_checks}")
+        logger.info(f"  • Passed: {len(self.checks)}")
+        logger.info(f"  • Warnings: {len(self.warnings)}")
+        logger.info(f"  • Failures: {len(self.failures)}")
+        logger.info(f"  • Critical Failures: {len(critical_failures)}")
+        logger.info()
         if critical_failures:
-            print("🚨 Critical Issues (Deployment Blocked):")
+            logger.info("🚨 Critical Issues (Deployment Blocked):")
             for failure in critical_failures:
-                print(f"  🔴 [{failure['category'].upper()}] {failure['message']}")
-            print()
-
+                logger.info(
+                    f"  🔴 [{failure['category'].upper()}] {failure['message']}"
+                )
+            logger.info()
         if self.failures and len(self.failures) > len(critical_failures):
-            print("⚠️  High Priority Issues:")
+            logger.info("⚠️  High Priority Issues:")
             high_failures = [f for f in self.failures if f.get("severity") == "high"]
             for failure in high_failures[:5]:  # Show first 5
-                print(f"  🟠 [{failure['category'].upper()}] {failure['message']}")
-            print()
-
+                logger.info(
+                    f"  🟠 [{failure['category'].upper()}] {failure['message']}"
+                )
+            logger.info()
         if self.warnings:
-            print("💡 Warnings:")
+            logger.info("💡 Warnings:")
             for warning in self.warnings[:5]:  # Show first 5 warnings
-                print(f"  🟡 [{warning['category'].upper()}] {warning['message']}")
+                logger.info(
+                    f"  🟡 [{warning['category'].upper()}] {warning['message']}"
+                )
             if len(self.warnings) > 5:
-                print(f"  ... and {len(self.warnings) - 5} more warnings")
-            print()
-
-        print("📋 Next Steps:")
+                logger.info(f"  ... and {len(self.warnings) - 5} more warnings")
+            logger.info()
+        logger.info("📋 Next Steps:")
         if deployment_ready:
-            print("  ✅ All critical requirements met")
-            print("  🚀 Deployment can proceed")
-            print("  💡 Consider addressing warnings for optimal performance")
+            logger.info("  ✅ All critical requirements met")
+            logger.info("  🚀 Deployment can proceed")
+            logger.info("  💡 Consider addressing warnings for optimal performance")
         else:
-            print("  ❌ Resolve critical failures before deployment")
-            print("  🔧 Review infrastructure and security configuration")
-            print("  📞 Contact DevOps team if assistance needed")
-
-        print("=" * 60)
+            logger.info("  ❌ Resolve critical failures before deployment")
+            logger.info("  🔧 Review infrastructure and security configuration")
+            logger.info("  📞 Contact DevOps team if assistance needed")
+        logger.info("=" * 60)
 
 
 def main():
@@ -708,10 +705,9 @@ def main():
 
     validator = DeploymentValidator(args.environment)
 
-    print("🚀 Starting Deployment Readiness Validation...")
-    print(f"🎯 Target environment: {args.environment}")
-    print()
-
+    logger.info("🚀 Starting Deployment Readiness Validation...")
+    logger.info(f"🎯 Target environment: {args.environment}")
+    logger.info()
     # Run core validations
     validator.validate_kubernetes_cluster()
     validator.validate_monitoring_stack()
