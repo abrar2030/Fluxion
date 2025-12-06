@@ -7,7 +7,6 @@ from code.backend.schemas.base import BaseSchema, TimestampSchema
 from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
-
 from pydantic import EmailStr, Field, validator
 
 
@@ -33,36 +32,36 @@ class UserRegister(BaseSchema):
     privacy_accepted: bool = Field(..., description="Privacy policy accepted")
 
     @validator("password")
-    def validate_password(cls, v):
+    def validate_password(cls: Any, v: Any) -> Any:
         """Validate password strength"""
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long")
-        if not re.search(r"[A-Z]", v):
+        if not re.search("[A-Z]", v):
             raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", v):
+        if not re.search("[a-z]", v):
             raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r"\d", v):
+        if not re.search("\\d", v):
             raise ValueError("Password must contain at least one digit")
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+        if not re.search('[!@#$%^&*(),.?":{}|<>]', v):
             raise ValueError("Password must contain at least one special character")
         return v
 
     @validator("confirm_password")
-    def passwords_match(cls, v, values):
+    def passwords_match(cls: Any, v: Any, values: Any) -> Any:
         if "password" in values and v != values["password"]:
             raise ValueError("Passwords do not match")
         return v
 
     @validator("username")
-    def validate_username(cls, v):
-        if v and not re.match(r"^[a-zA-Z0-9_]+$", v):
+    def validate_username(cls: Any, v: Any) -> Any:
+        if v and (not re.match("^[a-zA-Z0-9_]+$", v)):
             raise ValueError(
                 "Username can only contain letters, numbers, and underscores"
             )
         return v
 
     @validator("terms_accepted", "privacy_accepted")
-    def validate_acceptance(cls, v):
+    def validate_acceptance(cls: Any, v: Any) -> Any:
         if not v:
             raise ValueError("Terms and privacy policy must be accepted")
         return v
@@ -105,22 +104,22 @@ class PasswordChange(BaseSchema):
     confirm_password: str = Field(..., description="New password confirmation")
 
     @validator("new_password")
-    def validate_new_password(cls, v):
+    def validate_new_password(cls: Any, v: Any) -> Any:
         """Validate new password strength"""
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long")
-        if not re.search(r"[A-Z]", v):
+        if not re.search("[A-Z]", v):
             raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", v):
+        if not re.search("[a-z]", v):
             raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r"\d", v):
+        if not re.search("\\d", v):
             raise ValueError("Password must contain at least one digit")
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+        if not re.search('[!@#$%^&*(),.?":{}|<>]', v):
             raise ValueError("Password must contain at least one special character")
         return v
 
     @validator("confirm_password")
-    def passwords_match(cls, v, values):
+    def passwords_match(cls: Any, v: Any, values: Any) -> Any:
         if "new_password" in values and v != values["new_password"]:
             raise ValueError("Passwords do not match")
         return v
@@ -142,22 +141,22 @@ class PasswordResetConfirm(BaseSchema):
     confirm_password: str = Field(..., description="New password confirmation")
 
     @validator("new_password")
-    def validate_new_password(cls, v):
+    def validate_new_password(cls: Any, v: Any) -> Any:
         """Validate new password strength"""
         if len(v) < 8:
             raise ValueError("Password must be at least 8 characters long")
-        if not re.search(r"[A-Z]", v):
+        if not re.search("[A-Z]", v):
             raise ValueError("Password must contain at least one uppercase letter")
-        if not re.search(r"[a-z]", v):
+        if not re.search("[a-z]", v):
             raise ValueError("Password must contain at least one lowercase letter")
-        if not re.search(r"\d", v):
+        if not re.search("\\d", v):
             raise ValueError("Password must contain at least one digit")
-        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+        if not re.search('[!@#$%^&*(),.?":{}|<>]', v):
             raise ValueError("Password must contain at least one special character")
         return v
 
     @validator("confirm_password")
-    def passwords_match(cls, v, values):
+    def passwords_match(cls: Any, v: Any, values: Any) -> Any:
         if "new_password" in values and v != values["new_password"]:
             raise ValueError("Passwords do not match")
         return v
@@ -170,8 +169,8 @@ class MFASetup(BaseSchema):
     phone_number: Optional[str] = Field(None, description="Phone number for SMS MFA")
 
     @validator("phone_number")
-    def validate_phone_for_sms(cls, v, values):
-        if values.get("method") == "sms" and not v:
+    def validate_phone_for_sms(cls: Any, v: Any, values: Any) -> Any:
+        if values.get("method") == "sms" and (not v):
             raise ValueError("Phone number is required for SMS MFA")
         return v
 

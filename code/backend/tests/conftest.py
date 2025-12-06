@@ -6,7 +6,6 @@ import asyncio
 from datetime import datetime
 from typing import AsyncGenerator, Generator
 from uuid import uuid4
-
 import pytest
 import pytest_asyncio
 from app.main import app
@@ -17,7 +16,6 @@ from services.auth.jwt_service import JWTService
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-# Test database URL (SQLite in-memory for testing)
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 
@@ -38,17 +36,13 @@ async def test_db() -> AsyncGenerator[AsyncSession, None]:
         poolclass=StaticPool,
         echo=False,
     )
-
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
     async_session = async_sessionmaker(
         bind=engine, class_=AsyncSession, expire_on_commit=False
     )
-
     async with async_session() as session:
         yield session
-
     await engine.dispose()
 
 
@@ -71,7 +65,7 @@ async def test_user(test_db: AsyncSession) -> User:
         id=uuid4(),
         email="test@example.com",
         username="testuser",
-        hashed_password="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6QJgLppF5.",  # "password"
+        hashed_password="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6QJgLppF5.",
         first_name="Test",
         last_name="User",
         status=UserStatus.ACTIVE,
@@ -81,11 +75,9 @@ async def test_user(test_db: AsyncSession) -> User:
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
     )
-
     test_db.add(user)
     await test_db.commit()
     await test_db.refresh(user)
-
     return user
 
 
@@ -96,7 +88,7 @@ async def admin_user(test_db: AsyncSession) -> User:
         id=uuid4(),
         email="admin@example.com",
         username="admin",
-        hashed_password="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6QJgLppF5.",  # "password"
+        hashed_password="$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj6QJgLppF5.",
         first_name="Admin",
         last_name="User",
         status=UserStatus.ACTIVE,
@@ -106,11 +98,9 @@ async def admin_user(test_db: AsyncSession) -> User:
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
     )
-
     test_db.add(user)
     await test_db.commit()
     await test_db.refresh(user)
-
     return user
 
 
@@ -123,7 +113,6 @@ def auth_headers(test_user: User, jwt_service: JWTService) -> dict:
         "role": test_user.role.value,
     }
     access_token = jwt_service.create_access_token(token_data)
-
     return {"Authorization": f"Bearer {access_token}"}
 
 
@@ -136,7 +125,6 @@ def admin_auth_headers(admin_user: User, jwt_service: JWTService) -> dict:
         "role": admin_user.role.value,
     }
     access_token = jwt_service.create_access_token(token_data)
-
     return {"Authorization": f"Bearer {access_token}"}
 
 
@@ -198,7 +186,7 @@ def mock_blockchain_response() -> dict:
 class MockExternalService:
     """Mock external service for testing."""
 
-    def __init__(self):
+    def __init__(self) -> Any:
         self.calls = []
 
     async def call_api(self, endpoint: str, data: dict = None) -> dict:
@@ -211,9 +199,6 @@ class MockExternalService:
 def mock_external_service() -> MockExternalService:
     """Create mock external service."""
     return MockExternalService()
-
-
-# Test data factories
 
 
 def create_test_user_data(**kwargs) -> dict:
@@ -245,14 +230,11 @@ def create_test_transaction_data(**kwargs) -> dict:
     return default_data
 
 
-# Test utilities
-
-
 class TestUtils:
     """Test utility functions."""
 
     @staticmethod
-    def assert_response_success(response, expected_status: int = 200):
+    def assert_response_success(response: Any, expected_status: int = 200) -> Any:
         """Assert response is successful."""
         assert response.status_code == expected_status
         data = response.json()
@@ -260,7 +242,7 @@ class TestUtils:
         return data
 
     @staticmethod
-    def assert_response_error(response, expected_status: int = 400):
+    def assert_response_error(response: Any, expected_status: int = 400) -> Any:
         """Assert response is an error."""
         assert response.status_code == expected_status
         data = response.json()
@@ -269,7 +251,7 @@ class TestUtils:
         return data
 
     @staticmethod
-    def assert_validation_error(response):
+    def assert_validation_error(response: Any) -> Any:
         """Assert response is a validation error."""
         assert response.status_code == 422
         data = response.json()
@@ -284,16 +266,10 @@ def test_utils() -> TestUtils:
     return TestUtils()
 
 
-# Async test helpers
-
-
 async def async_test_helper():
     """Helper for async tests."""
-    await asyncio.sleep(0.01)  # Simulate async operation
+    await asyncio.sleep(0.01)
     return True
-
-
-# Database test helpers
 
 
 async def create_test_records(db: AsyncSession, model_class, count: int = 5, **kwargs):
@@ -311,20 +287,17 @@ async def create_test_records(db: AsyncSession, model_class, count: int = 5, **k
         record = model_class(**record_data)
         db.add(record)
         records.append(record)
-
     await db.commit()
     return records
 
 
-# Performance test helpers
-
-
 @pytest.fixture
-def performance_timer():
+def performance_timer() -> Any:
     """Timer for performance tests."""
     import time
 
     class Timer:
+
         def __init__(self):
             self.start_time = None
             self.end_time = None
@@ -344,11 +317,7 @@ def performance_timer():
     return Timer()
 
 
-# Cleanup helpers
-
-
 @pytest.fixture(autouse=True)
 async def cleanup_test_data():
     """Cleanup test data after each test."""
     yield
-    # Cleanup logic here if needed

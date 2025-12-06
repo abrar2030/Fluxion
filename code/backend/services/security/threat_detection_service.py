@@ -14,7 +14,6 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from statistics import mean
 from typing import Any, Dict, List, Optional, Set
-
 import numpy as np
 from fastapi import Request
 from services.security.encryption_service import EncryptionService
@@ -76,11 +75,11 @@ class BehaviorProfile:
     """User behavior profile for anomaly detection"""
 
     user_id: str
-    typical_access_times: List[int]  # Hours of day
-    typical_locations: Set[str]  # IP addresses or geographic locations
-    typical_endpoints: Set[str]  # API endpoints accessed
-    typical_request_frequency: float  # Requests per minute
-    typical_session_duration: float  # Minutes
+    typical_access_times: List[int]
+    typical_locations: Set[str]
+    typical_endpoints: Set[str]
+    typical_request_frequency: float
+    typical_session_duration: float
     risk_score_history: List[float]
     last_updated: datetime
 
@@ -95,16 +94,12 @@ class ThreatDetectionService:
     - Statistical analysis for outlier detection
     """
 
-    def __init__(self):
+    def __init__(self) -> Any:
         self.encryption_service = EncryptionService()
-
-        # Threat detection configuration
         self.max_failed_attempts = 5
         self.failed_attempt_window = timedelta(minutes=15)
-        self.suspicious_request_threshold = 100  # requests per minute
+        self.suspicious_request_threshold = 100
         self.anomaly_threshold = 0.7
-
-        # In-memory storage for real-time analysis
         self.failed_attempts: Dict[str, List[datetime]] = defaultdict(list)
         self.request_frequencies: Dict[str, deque] = defaultdict(
             lambda: deque(maxlen=100)
@@ -112,53 +107,47 @@ class ThreatDetectionService:
         self.user_profiles: Dict[str, BehaviorProfile] = {}
         self.ip_reputation: Dict[str, Dict[str, Any]] = {}
         self.threat_events: List[ThreatEvent] = []
-
-        # Machine learning models
         self.anomaly_detector = None
         self.scaler = StandardScaler()
         self._initialize_ml_models()
-
-        # Attack pattern signatures
         self.attack_patterns = {
             ThreatType.SQL_INJECTION: [
-                r"(\bunion\b.*\bselect\b)",
-                r"(\bselect\b.*\bfrom\b.*\bwhere\b)",
-                r"(\bdrop\b.*\btable\b)",
-                r"(\binsert\b.*\binto\b)",
-                r"(\bdelete\b.*\bfrom\b)",
-                r"(\bupdate\b.*\bset\b)",
-                r"(\bor\b.*1\s*=\s*1)",
-                r"(\band\b.*1\s*=\s*1)",
-                r"(\bexec\b.*\bxp_)",
-                r"(\bsp_executesql\b)",
+                "(\\bunion\\b.*\\bselect\\b)",
+                "(\\bselect\\b.*\\bfrom\\b.*\\bwhere\\b)",
+                "(\\bdrop\\b.*\\btable\\b)",
+                "(\\binsert\\b.*\\binto\\b)",
+                "(\\bdelete\\b.*\\bfrom\\b)",
+                "(\\bupdate\\b.*\\bset\\b)",
+                "(\\bor\\b.*1\\s*=\\s*1)",
+                "(\\band\\b.*1\\s*=\\s*1)",
+                "(\\bexec\\b.*\\bxp_)",
+                "(\\bsp_executesql\\b)",
             ],
             ThreatType.XSS_ATTACK: [
-                r"<script[^>]*>.*?</script>",
-                r"javascript:",
-                r"vbscript:",
-                r"onload\s*=",
-                r"onerror\s*=",
-                r"onclick\s*=",
-                r"onmouseover\s*=",
-                r"eval\s*\(",
-                r"document\.cookie",
-                r"document\.write",
+                "<script[^>]*>.*?</script>",
+                "javascript:",
+                "vbscript:",
+                "onload\\s*=",
+                "onerror\\s*=",
+                "onclick\\s*=",
+                "onmouseover\\s*=",
+                "eval\\s*\\(",
+                "document\\.cookie",
+                "document\\.write",
             ],
             ThreatType.SUSPICIOUS_PATTERN: [
-                r"\.\.\/",  # Directory traversal
-                r"\/etc\/passwd",
-                r"\/proc\/",
-                r"cmd\.exe",
-                r"powershell",
-                r"base64",
-                r"eval\(",
-                r"exec\(",
-                r"system\(",
-                r"shell_exec\(",
+                "\\.\\.\\/",
+                "\\/etc\\/passwd",
+                "\\/proc\\/",
+                "cmd\\.exe",
+                "powershell",
+                "base64",
+                "eval\\(",
+                "exec\\(",
+                "system\\(",
+                "shell_exec\\(",
             ],
         }
-
-        # Known malicious user agents
         self.malicious_user_agents = {
             "sqlmap",
             "nikto",
@@ -175,27 +164,19 @@ class ThreatDetectionService:
             "jsql",
             "bbqsql",
         }
-
-        # Suspicious IP ranges (example - in production, use threat intelligence feeds)
         self.suspicious_ip_ranges = [
-            ipaddress.ip_network("10.0.0.0/8"),  # Private networks (if external)
+            ipaddress.ip_network("10.0.0.0/8"),
             ipaddress.ip_network("172.16.0.0/12"),
             ipaddress.ip_network("192.168.0.0/16"),
         ]
 
-    def _initialize_ml_models(self):
+    def _initialize_ml_models(self) -> Any:
         """Initialize machine learning models for anomaly detection"""
         try:
-            # Initialize Isolation Forest for anomaly detection
             self.anomaly_detector = IsolationForest(
-                contamination=0.1,  # Expected proportion of outliers
-                random_state=42,
-                n_estimators=100,
+                contamination=0.1, random_state=42, n_estimators=100
             )
-
-            # In production, load pre-trained models
             logger.info("Machine learning models initialized")
-
         except Exception as e:
             logger.error(f"Failed to initialize ML models: {e}")
             self.anomaly_detector = None
@@ -203,42 +184,29 @@ class ThreatDetectionService:
     async def analyze_request(self, request: Request) -> List[ThreatEvent]:
         """Analyze incoming request for security threats"""
         threats = []
-
-        # Extract request information
         client_ip = self._get_client_ip(request)
         user_agent = request.headers.get("user-agent", "")
         request_path = str(request.url.path)
         request_method = request.method
         user_id = await self._extract_user_id(request)
-
-        # Rule-based threat detection
         rule_threats = await self._detect_rule_based_threats(
             request, client_ip, user_agent, request_path, request_method, user_id
         )
         threats.extend(rule_threats)
-
-        # Behavioral anomaly detection
         if user_id:
             behavior_threats = await self._detect_behavioral_anomalies(
                 request, user_id, client_ip
             )
             threats.extend(behavior_threats)
-
-        # Statistical anomaly detection
         statistical_threats = await self._detect_statistical_anomalies(
             request, client_ip
         )
         threats.extend(statistical_threats)
-
-        # IP reputation analysis
         ip_threats = await self._analyze_ip_reputation(client_ip, request)
         threats.extend(ip_threats)
-
-        # Store threat events
         for threat in threats:
             self.threat_events.append(threat)
             await self._handle_threat_event(threat)
-
         return threats
 
     def _get_client_ip(self, request: Request) -> str:
@@ -246,14 +214,11 @@ class ThreatDetectionService:
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
             return forwarded_for.split(",")[0].strip()
-
         real_ip = request.headers.get("x-real-ip")
         if real_ip:
             return real_ip.strip()
-
         if request.client:
             return request.client.host
-
         return "unknown"
 
     async def _extract_user_id(self, request: Request) -> Optional[str]:
@@ -261,8 +226,7 @@ class ThreatDetectionService:
         try:
             auth_header = request.headers.get("authorization")
             if auth_header and auth_header.startswith("Bearer "):
-                # In production, decode JWT token
-                return "authenticated_user"  # Placeholder
+                return "authenticated_user"
         except Exception:
             pass
         return None
@@ -278,11 +242,11 @@ class ThreatDetectionService:
     ) -> List[ThreatEvent]:
         """Detect threats using rule-based patterns"""
         threats = []
-
-        # Check for malicious user agents
         if any(
-            malicious_ua.lower() in user_agent.lower()
-            for malicious_ua in self.malicious_user_agents
+            (
+                malicious_ua.lower() in user_agent.lower()
+                for malicious_ua in self.malicious_user_agents
+            )
         ):
             threats.append(
                 self._create_threat_event(
@@ -300,8 +264,6 @@ class ThreatDetectionService:
                     ["Block IP address", "Investigate source"],
                 )
             )
-
-        # Check for attack patterns in URL
         for threat_type, patterns in self.attack_patterns.items():
             for pattern in patterns:
                 if re.search(pattern, request_path, re.IGNORECASE):
@@ -321,22 +283,17 @@ class ThreatDetectionService:
                             ["Block request", "Log for analysis"],
                         )
                     )
-
-        # Check for brute force attacks
         if request_path.endswith("/login") and request_method == "POST":
             brute_force_threat = await self._check_brute_force(
                 client_ip, user_id, request_path, request_method, user_agent
             )
             if brute_force_threat:
                 threats.append(brute_force_threat)
-
-        # Check for suspicious request frequency
         frequency_threat = await self._check_request_frequency(
             client_ip, request_path, request_method, user_agent, user_id
         )
         if frequency_threat:
             threats.append(frequency_threat)
-
         return threats
 
     async def _check_brute_force(
@@ -350,18 +307,12 @@ class ThreatDetectionService:
         """Check for brute force attacks"""
         key = f"{client_ip}:{user_id or 'anonymous'}"
         current_time = datetime.now(timezone.utc)
-
-        # Clean old attempts
         self.failed_attempts[key] = [
             attempt
             for attempt in self.failed_attempts[key]
             if current_time - attempt < self.failed_attempt_window
         ]
-
-        # Add current attempt (assuming it might fail)
         self.failed_attempts[key].append(current_time)
-
-        # Check if threshold exceeded
         if len(self.failed_attempts[key]) > self.max_failed_attempts:
             return self._create_threat_event(
                 ThreatType.BRUTE_FORCE,
@@ -381,7 +332,6 @@ class ThreatDetectionService:
                 ["Multiple failed login attempts detected"],
                 ["Temporarily block IP", "Require CAPTCHA", "Alert security team"],
             )
-
         return None
 
     async def _check_request_frequency(
@@ -395,17 +345,12 @@ class ThreatDetectionService:
         """Check for suspicious request frequency (potential DDoS)"""
         current_time = time.time()
         key = client_ip
-
-        # Add current request timestamp
         self.request_frequencies[key].append(current_time)
-
-        # Calculate requests per minute
         minute_ago = current_time - 60
         recent_requests = [
             ts for ts in self.request_frequencies[key] if ts > minute_ago
         ]
         requests_per_minute = len(recent_requests)
-
         if requests_per_minute > self.suspicious_request_threshold:
             return self._create_threat_event(
                 ThreatType.DDoS,
@@ -424,7 +369,6 @@ class ThreatDetectionService:
                 ["Abnormally high request frequency detected"],
                 ["Rate limit IP", "Investigate traffic source"],
             )
-
         return None
 
     async def _detect_behavioral_anomalies(
@@ -432,29 +376,22 @@ class ThreatDetectionService:
     ) -> List[ThreatEvent]:
         """Detect behavioral anomalies for authenticated users"""
         threats = []
-
-        # Get or create user behavior profile
         profile = self.user_profiles.get(user_id)
         if not profile:
             profile = await self._create_user_profile(user_id)
             self.user_profiles[user_id] = profile
-
         current_time = datetime.now(timezone.utc)
         current_hour = current_time.hour
-
-        # Check for unusual access time
         if (
             profile.typical_access_times
             and current_hour not in profile.typical_access_times
         ):
-            # Calculate how unusual this time is
             time_distances = [
                 min(abs(current_hour - t), 24 - abs(current_hour - t))
                 for t in profile.typical_access_times
             ]
             min_distance = min(time_distances)
-
-            if min_distance > 4:  # More than 4 hours from typical times
+            if min_distance > 4:
                 threats.append(
                     self._create_threat_event(
                         ThreatType.ANOMALOUS_BEHAVIOR,
@@ -475,10 +412,7 @@ class ThreatDetectionService:
                         ["Monitor user activity", "Require additional authentication"],
                     )
                 )
-
-        # Check for unusual location
         if profile.typical_locations and client_ip not in profile.typical_locations:
-            # In production, use geolocation to compare geographic locations
             threats.append(
                 self._create_threat_event(
                     ThreatType.ANOMALOUS_BEHAVIOR,
@@ -498,10 +432,7 @@ class ThreatDetectionService:
                     ["Verify user identity", "Monitor session"],
                 )
             )
-
-        # Update user profile
         await self._update_user_profile(profile, request, client_ip)
-
         return threats
 
     async def _detect_statistical_anomalies(
@@ -509,24 +440,14 @@ class ThreatDetectionService:
     ) -> List[ThreatEvent]:
         """Detect anomalies using statistical analysis"""
         threats = []
-
         if not self.anomaly_detector:
             return threats
-
         try:
-            # Extract features for anomaly detection
             features = await self._extract_request_features(request)
-
-            # Reshape for sklearn
             features_array = np.array(features).reshape(1, -1)
-
-            # Scale features
             features_scaled = self.scaler.fit_transform(features_array)
-
-            # Predict anomaly
             anomaly_score = self.anomaly_detector.decision_function(features_scaled)[0]
             is_anomaly = self.anomaly_detector.predict(features_scaled)[0] == -1
-
             if is_anomaly and abs(anomaly_score) > self.anomaly_threshold:
                 threats.append(
                     self._create_threat_event(
@@ -537,46 +458,29 @@ class ThreatDetectionService:
                         str(request.url.path),
                         request.method,
                         request.headers.get("user-agent", ""),
-                        abs(anomaly_score) * 10,  # Scale to 0-10
+                        abs(anomaly_score) * 10,
                         0.7,
                         {"anomaly_score": float(anomaly_score), "features": features},
                         ["Statistical anomaly detected in request pattern"],
                         ["Monitor request", "Analyze pattern"],
                     )
                 )
-
         except Exception as e:
             logger.warning(f"Statistical anomaly detection failed: {e}")
-
         return threats
 
     async def _extract_request_features(self, request: Request) -> List[float]:
         """Extract numerical features from request for ML analysis"""
         features = []
-
-        # URL length
         features.append(len(str(request.url)))
-
-        # Number of query parameters
         features.append(len(request.query_params))
-
-        # Number of headers
         features.append(len(request.headers))
-
-        # User agent length
         user_agent = request.headers.get("user-agent", "")
         features.append(len(user_agent))
-
-        # Request method (encoded)
         method_encoding = {"GET": 1, "POST": 2, "PUT": 3, "DELETE": 4, "PATCH": 5}
         features.append(method_encoding.get(request.method, 0))
-
-        # Time of day (hour)
         features.append(datetime.now().hour)
-
-        # Day of week
         features.append(datetime.now().weekday())
-
         return features
 
     async def _analyze_ip_reputation(
@@ -584,11 +488,8 @@ class ThreatDetectionService:
     ) -> List[ThreatEvent]:
         """Analyze IP reputation and geolocation"""
         threats = []
-
         try:
             ip_addr = ipaddress.ip_address(client_ip)
-
-            # Check if IP is in suspicious ranges
             for suspicious_range in self.suspicious_ip_ranges:
                 if ip_addr in suspicious_range:
                     threats.append(
@@ -610,8 +511,6 @@ class ThreatDetectionService:
                             ["Monitor traffic", "Consider blocking"],
                         )
                     )
-
-            # Check IP reputation cache
             ip_reputation = self.ip_reputation.get(client_ip)
             if ip_reputation and ip_reputation.get("malicious", False):
                 threats.append(
@@ -630,9 +529,7 @@ class ThreatDetectionService:
                         ["Block IP immediately", "Alert security team"],
                     )
                 )
-
         except ValueError:
-            # Invalid IP address
             threats.append(
                 self._create_threat_event(
                     ThreatType.SUSPICIOUS_PATTERN,
@@ -649,7 +546,6 @@ class ThreatDetectionService:
                     ["Log for analysis"],
                 )
             )
-
         return threats
 
     def _create_threat_event(
@@ -669,12 +565,9 @@ class ThreatDetectionService:
     ) -> ThreatEvent:
         """Create a threat event"""
         event_id = self.encryption_service.generate_secure_token(16)
-
-        # Calculate false positive probability based on confidence and threat type
         false_positive_prob = self._calculate_false_positive_probability(
             threat_type, confidence, risk_score
         )
-
         return ThreatEvent(
             event_id=event_id,
             timestamp=datetime.now(timezone.utc),
@@ -697,23 +590,18 @@ class ThreatDetectionService:
         self, threat_type: ThreatType, confidence: float, risk_score: float
     ) -> float:
         """Calculate probability that this is a false positive"""
-        # Base false positive rates by threat type
         base_rates = {
             ThreatType.BRUTE_FORCE: 0.05,
-            ThreatType.SQL_INJECTION: 0.10,
+            ThreatType.SQL_INJECTION: 0.1,
             ThreatType.XSS_ATTACK: 0.15,
-            ThreatType.DDoS: 0.20,
-            ThreatType.MALICIOUS_IP: 0.10,
+            ThreatType.DDoS: 0.2,
+            ThreatType.MALICIOUS_IP: 0.1,
             ThreatType.BOT_ACTIVITY: 0.25,
-            ThreatType.ANOMALOUS_BEHAVIOR: 0.40,
-            ThreatType.SUSPICIOUS_PATTERN: 0.30,
+            ThreatType.ANOMALOUS_BEHAVIOR: 0.4,
+            ThreatType.SUSPICIOUS_PATTERN: 0.3,
         }
-
         base_rate = base_rates.get(threat_type, 0.25)
-
-        # Adjust based on confidence and risk score
         adjusted_rate = base_rate * (1 - confidence) * (10 - risk_score) / 10
-
         return max(0.01, min(0.99, adjusted_rate))
 
     async def _create_user_profile(self, user_id: str) -> BehaviorProfile:
@@ -735,95 +623,59 @@ class ThreatDetectionService:
         """Update user behavior profile with new data"""
         current_time = datetime.now(timezone.utc)
         current_hour = current_time.hour
-
-        # Update typical access times
         if current_hour not in profile.typical_access_times:
             profile.typical_access_times.append(current_hour)
-            # Keep only recent patterns (last 30 days worth)
             if len(profile.typical_access_times) > 24:
                 profile.typical_access_times = profile.typical_access_times[-24:]
-
-        # Update typical locations
         profile.typical_locations.add(client_ip)
-        # Keep only recent locations
         if len(profile.typical_locations) > 10:
-            # In production, implement LRU cache
             pass
-
-        # Update typical endpoints
         profile.typical_endpoints.add(str(request.url.path))
         if len(profile.typical_endpoints) > 50:
-            # Keep most frequent endpoints
             pass
-
         profile.last_updated = current_time
 
     async def _handle_threat_event(self, threat: ThreatEvent):
         """Handle detected threat event"""
-        # Log threat event
         logger.warning(
-            f"Threat detected: {threat.threat_type.value} "
-            f"(Level: {threat.threat_level.value}, Score: {threat.risk_score}) "
-            f"from {threat.source_ip}"
+            f"Threat detected: {threat.threat_type.value} (Level: {threat.threat_level.value}, Score: {threat.risk_score}) from {threat.source_ip}"
         )
-
-        # Take automated actions based on threat level
         if threat.threat_level == ThreatLevel.CRITICAL:
             await self._handle_critical_threat(threat)
         elif threat.threat_level == ThreatLevel.HIGH:
             await self._handle_high_threat(threat)
         elif threat.threat_level == ThreatLevel.MEDIUM:
             await self._handle_medium_threat(threat)
-
-        # Store in persistent storage (in production)
         await self._store_threat_event(threat)
-
-        # Send alerts if necessary
         await self._send_threat_alert(threat)
 
     async def _handle_critical_threat(self, threat: ThreatEvent):
         """Handle critical threat events"""
-        # Immediate blocking
         await self._block_ip_address(threat.source_ip, "Critical threat detected")
-
-        # Alert security team immediately
         await self._send_immediate_alert(threat)
-
-        # Log to security incident system
         await self._create_security_incident(threat)
 
     async def _handle_high_threat(self, threat: ThreatEvent):
         """Handle high-level threat events"""
-        # Temporary rate limiting
         await self._apply_rate_limiting(threat.source_ip)
-
-        # Enhanced monitoring
         await self._enable_enhanced_monitoring(threat.source_ip)
-
-        # Alert security team
         await self._send_threat_alert(threat)
 
     async def _handle_medium_threat(self, threat: ThreatEvent):
         """Handle medium-level threat events"""
-        # Log for analysis
         await self._log_for_analysis(threat)
-
-        # Increase monitoring
         await self._increase_monitoring(threat.source_ip)
 
     async def _block_ip_address(self, ip_address: str, reason: str):
         """Block IP address"""
-        # In production, this would update firewall rules or WAF
         logger.info(f"Blocking IP {ip_address}: {reason}")
 
     async def _apply_rate_limiting(self, ip_address: str):
         """Apply rate limiting to IP address"""
-        # In production, this would update rate limiting rules
         logger.info(f"Applying rate limiting to IP {ip_address}")
 
     async def _enable_enhanced_monitoring(self, ip_address: str):
         """Enable enhanced monitoring for IP address"""
-        # In production, this would configure monitoring systems
         logger.info(f"Enabling enhanced monitoring for IP {ip_address}")
 
     async def _increase_monitoring(self, ip_address: str):
@@ -836,31 +688,24 @@ class ThreatDetectionService:
 
     async def _store_threat_event(self, threat: ThreatEvent):
         """Store threat event in persistent storage"""
-        # In production, store in database
 
     async def _send_threat_alert(self, threat: ThreatEvent):
         """Send threat alert to security team"""
         if threat.threat_level in [ThreatLevel.HIGH, ThreatLevel.CRITICAL]:
-            # In production, send to SIEM, email, Slack, etc.
             logger.warning(f"SECURITY ALERT: {asdict(threat)}")
 
     async def _send_immediate_alert(self, threat: ThreatEvent):
         """Send immediate alert for critical threats"""
-        # In production, send SMS, phone call, or other immediate notification
         logger.critical(f"IMMEDIATE SECURITY ALERT: {asdict(threat)}")
 
     async def _create_security_incident(self, threat: ThreatEvent):
         """Create security incident for critical threats"""
-        # In production, create incident in incident management system
         logger.critical(f"Creating security incident for threat {threat.event_id}")
-
-    # Public API methods
 
     async def log_threat(self, request: Request, threat_type: str, details: str):
         """Log a custom threat event"""
         client_ip = self._get_client_ip(request)
         user_id = await self._extract_user_id(request)
-
         threat = self._create_threat_event(
             ThreatType(threat_type),
             ThreatLevel.MEDIUM,
@@ -875,7 +720,6 @@ class ThreatDetectionService:
             ["Custom threat logged"],
             ["Investigate"],
         )
-
         await self._handle_threat_event(threat)
 
     async def check_request_frequency(self, client_ip: str, request: Request):
@@ -887,14 +731,12 @@ class ThreatDetectionService:
             request.headers.get("user-agent", ""),
             await self._extract_user_id(request),
         )
-
         if threat:
             await self._handle_threat_event(threat)
 
     async def log_ip_block(self, ip_address: str, reason: str):
         """Log IP block event"""
         logger.info(f"IP {ip_address} blocked: {reason}")
-        # In production, store in database
 
     def get_threat_statistics(self) -> Dict[str, Any]:
         """Get threat detection statistics"""
@@ -905,16 +747,13 @@ class ThreatDetectionService:
                 "threats_by_level": {},
                 "top_source_ips": [],
             }
-
         threats_by_type = defaultdict(int)
         threats_by_level = defaultdict(int)
         source_ips = defaultdict(int)
-
         for threat in self.threat_events:
             threats_by_type[threat.threat_type.value] += 1
             threats_by_level[threat.threat_level.value] += 1
             source_ips[threat.source_ip] += 1
-
         return {
             "total_threats": len(self.threat_events),
             "threats_by_type": dict(threats_by_type),
@@ -929,7 +768,6 @@ class ThreatDetectionService:
         profile = self.user_profiles.get(user_id)
         if not profile:
             return {"user_id": user_id, "profile_exists": False}
-
         return {
             "user_id": user_id,
             "profile_exists": True,

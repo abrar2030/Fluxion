@@ -10,7 +10,6 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-
 from services.auth.enhanced_jwt_service import DeviceInfo, EnhancedJWTService
 from services.compliance.kyc_service import KYCService
 from services.security.encryption_service import EncryptionService
@@ -130,25 +129,19 @@ class UserService:
     - User analytics and reporting
     """
 
-    def __init__(self):
+    def __init__(self) -> Any:
         self.encryption_service = EncryptionService()
         self.jwt_service = EnhancedJWTService()
         self.kyc_service = KYCService()
-
-        # User management configuration
         self.password_min_length = 12
         self.password_complexity_required = True
         self.max_failed_login_attempts = 5
         self.account_lockout_duration = timedelta(hours=1)
         self.password_expiry_days = 90
         self.session_timeout_minutes = 30
-
-        # In-memory storage (in production, use database)
         self.users: Dict[str, User] = {}
         self.email_to_user_id: Dict[str, str] = {}
         self.username_to_user_id: Dict[str, str] = {}
-
-        # Default preferences
         self.default_preferences = {
             "notification_preferences": {
                 "account_updates": ["email", "in_app"],
@@ -192,24 +185,15 @@ class UserService:
         device_info: Optional[DeviceInfo] = None,
     ) -> Dict[str, Any]:
         """Register a new user"""
-        # Validate email uniqueness
         if email.lower() in self.email_to_user_id:
             raise ValueError("Email address already registered")
-
-        # Validate password strength
         password_validation = self._validate_password(password)
         if not password_validation["valid"]:
             raise ValueError(
                 f"Password validation failed: {', '.join(password_validation['errors'])}"
             )
-
-        # Generate user ID
         user_id = self._generate_user_id()
-
-        # Hash password
         password_hash, password_salt = self.encryption_service.hash_password(password)
-
-        # Create user profile
         profile = UserProfile(
             user_id=user_id,
             email=email.lower(),
@@ -229,8 +213,6 @@ class UserService:
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
-
-        # Create user preferences
         preferences = UserPreferences(
             user_id=user_id,
             notification_preferences=self.default_preferences[
@@ -244,8 +226,6 @@ class UserService:
             ].copy(),
             updated_at=datetime.now(timezone.utc),
         )
-
-        # Create user security
         security = UserSecurity(
             user_id=user_id,
             password_hash=password_hash,
@@ -261,8 +241,6 @@ class UserService:
             trusted_devices=[],
             login_history=[],
         )
-
-        # Create user entity
         user = User(
             user_id=user_id,
             email=email.lower(),
@@ -278,25 +256,17 @@ class UserService:
             last_login=None,
             metadata={},
         )
-
-        # Store user
         self.users[user_id] = user
         self.email_to_user_id[email.lower()] = user_id
         if profile.username:
             self.username_to_user_id[profile.username.lower()] = user_id
-
-        # Initiate KYC process
         await self.kyc_service.initiate_kyc(user_id, user_type.value)
-
-        # Generate verification token
         verification_token = await self.jwt_service.create_special_token(
             token_type=self.jwt_service.TokenType.EMAIL_VERIFICATION,
             user_id=user_id,
             custom_claims={"email": email},
         )
-
         logger.info(f"User registered: {user_id} ({email})")
-
         return {
             "user_id": user_id,
             "email": email,
@@ -310,21 +280,14 @@ class UserService:
     ) -> Dict[str, Any]:
         """Authenticate user and create session"""
         email = email.lower()
-
-        # Find user
         user_id = self.email_to_user_id.get(email)
         if not user_id:
             raise ValueError("Invalid email or password")
-
         user = self.users[user_id]
-
-        # Check account status
         if user.status == UserStatus.SUSPENDED:
             raise ValueError("Account is suspended")
         elif user.status == UserStatus.CLOSED:
             raise ValueError("Account is closed")
-
-        # Check account lockout
         if (
             user.security.account_locked_until
             and datetime.now(timezone.utc) < user.security.account_locked_until
@@ -335,39 +298,27 @@ class UserService:
             raise ValueError(
                 f"Account is locked. Try again in {remaining_time.total_seconds():.0f} seconds"
             )
-
-        # Verify password
         password_valid = self.encryption_service.verify_password(
             password, user.security.password_hash, user.security.password_salt
         )
-
         if not password_valid:
-            # Record failed login attempt
             await self._record_failed_login(user)
             raise ValueError("Invalid email or password")
-
-        # Reset failed login attempts on successful authentication
         user.security.failed_login_attempts = 0
         user.security.last_failed_login = None
         user.security.account_locked_until = None
-
-        # Check if MFA is required
         mfa_required = user.security.mfa_enabled
         if mfa_required:
-            # Generate MFA token
             mfa_token = await self.jwt_service.create_special_token(
                 token_type=self.jwt_service.TokenType.MFA,
                 user_id=user_id,
                 custom_claims={"step": "mfa_required"},
             )
-
             return {
                 "mfa_required": True,
                 "mfa_token": mfa_token,
                 "message": "MFA verification required",
             }
-
-        # Create session tokens
         access_token, refresh_token = await self.jwt_service.create_token_pair(
             user_id=user_id,
             roles=self._get_user_roles(user),
@@ -375,16 +326,10 @@ class UserService:
             device_info=device_info,
             mfa_verified=False,
         )
-
-        # Update user login information
         user.last_login = datetime.now(timezone.utc)
         user.updated_at = datetime.now(timezone.utc)
-
-        # Record login in history
         await self._record_login(user, device_info, success=True)
-
         logger.info(f"User authenticated: {user_id}")
-
         return {
             "access_token": access_token,
             "refresh_token": refresh_token,
@@ -395,29 +340,20 @@ class UserService:
     async def verify_email(self, verification_token: str) -> Dict[str, Any]:
         """Verify user email address"""
         try:
-            # Validate verification token
             token_claims = self.encryption_service.decrypt_token(verification_token)
             user_id = token_claims.get("sub")
             email = token_claims.get("email")
-
             if not user_id or not email:
                 raise ValueError("Invalid verification token")
-
-            # Find user
             user = self.users.get(user_id)
             if not user:
                 raise ValueError("User not found")
-
             if user.email != email:
                 raise ValueError("Email mismatch")
-
-            # Update user status
             if user.status == UserStatus.PENDING_VERIFICATION:
                 user.status = UserStatus.ACTIVE
                 user.updated_at = datetime.now(timezone.utc)
-
                 logger.info(f"Email verified for user: {user_id}")
-
                 return {
                     "success": True,
                     "message": "Email verified successfully",
@@ -429,7 +365,6 @@ class UserService:
                     "message": "Email already verified",
                     "user_id": user_id,
                 }
-
         except Exception as e:
             logger.warning(f"Email verification failed: {str(e)}")
             raise ValueError("Invalid or expired verification token")
@@ -439,10 +374,7 @@ class UserService:
         user = self.users.get(user_id)
         if not user:
             raise ValueError("User not found")
-
-        # Get KYC status
         kyc_status = await self.kyc_service.get_kyc_status(user_id)
-
         profile_data = asdict(user.profile)
         profile_data.update(
             {
@@ -455,7 +387,6 @@ class UserService:
                 "mfa_enabled": user.security.mfa_enabled,
             }
         )
-
         return profile_data
 
     async def update_user_profile(
@@ -465,8 +396,6 @@ class UserService:
         user = self.users.get(user_id)
         if not user:
             raise ValueError("User not found")
-
-        # Validate updates
         allowed_fields = {
             "first_name",
             "last_name",
@@ -476,21 +405,15 @@ class UserService:
             "language",
             "bio",
         }
-
         invalid_fields = set(updates.keys()) - allowed_fields
         if invalid_fields:
             raise ValueError(f"Invalid fields: {', '.join(invalid_fields)}")
-
-        # Apply updates
         for field, value in updates.items():
             if hasattr(user.profile, field):
                 setattr(user.profile, field, value)
-
         user.profile.updated_at = datetime.now(timezone.utc)
         user.updated_at = datetime.now(timezone.utc)
-
         logger.info(f"Profile updated for user: {user_id}")
-
         return await self.get_user_profile(user_id)
 
     async def update_user_preferences(
@@ -500,36 +423,27 @@ class UserService:
         user = self.users.get(user_id)
         if not user:
             raise ValueError("User not found")
-
-        # Validate and update preferences
         if "notification_preferences" in preferences:
             user.preferences.notification_preferences.update(
                 preferences["notification_preferences"]
             )
-
         if "privacy_settings" in preferences:
             user.preferences.privacy_settings.update(preferences["privacy_settings"])
-
         if "trading_preferences" in preferences:
             user.preferences.trading_preferences.update(
                 preferences["trading_preferences"]
             )
-
         if "display_preferences" in preferences:
             user.preferences.display_preferences.update(
                 preferences["display_preferences"]
             )
-
         if "security_preferences" in preferences:
             user.preferences.security_preferences.update(
                 preferences["security_preferences"]
             )
-
         user.preferences.updated_at = datetime.now(timezone.utc)
         user.updated_at = datetime.now(timezone.utc)
-
         logger.info(f"Preferences updated for user: {user_id}")
-
         return asdict(user.preferences)
 
     async def change_password(
@@ -539,38 +453,25 @@ class UserService:
         user = self.users.get(user_id)
         if not user:
             raise ValueError("User not found")
-
-        # Verify current password
         password_valid = self.encryption_service.verify_password(
             current_password, user.security.password_hash, user.security.password_salt
         )
-
         if not password_valid:
             raise ValueError("Current password is incorrect")
-
-        # Validate new password
         password_validation = self._validate_password(new_password)
         if not password_validation["valid"]:
             raise ValueError(
                 f"New password validation failed: {', '.join(password_validation['errors'])}"
             )
-
-        # Hash new password
         new_password_hash, new_password_salt = self.encryption_service.hash_password(
             new_password
         )
-
-        # Update password
         user.security.password_hash = new_password_hash
         user.security.password_salt = new_password_salt
         user.security.password_changed_at = datetime.now(timezone.utc)
         user.updated_at = datetime.now(timezone.utc)
-
-        # Revoke all existing sessions
         await self.jwt_service.revoke_user_sessions(user_id, "Password changed")
-
         logger.info(f"Password changed for user: {user_id}")
-
         return {
             "success": True,
             "message": "Password changed successfully. Please log in again.",
@@ -581,26 +482,15 @@ class UserService:
         user = self.users.get(user_id)
         if not user:
             raise ValueError("User not found")
-
         if user.security.mfa_enabled:
             return {"success": False, "message": "MFA is already enabled"}
-
-        # Generate MFA secret
         mfa_secret = secrets.token_urlsafe(32)
-
-        # Generate backup codes
         backup_codes = [secrets.token_urlsafe(8) for _ in range(10)]
-
-        # Store MFA configuration (not yet enabled)
         user.security.mfa_secret = mfa_secret
         user.security.backup_codes = backup_codes
         user.updated_at = datetime.now(timezone.utc)
-
-        # Generate QR code data for authenticator app
         qr_code_data = f"otpauth://totp/{user.email}?secret={mfa_secret}&issuer=Fluxion"
-
         logger.info(f"MFA setup initiated for user: {user_id}")
-
         return {
             "success": True,
             "mfa_secret": mfa_secret,
@@ -614,18 +504,12 @@ class UserService:
         user = self.users.get(user_id)
         if not user:
             raise ValueError("User not found")
-
         if not user.security.mfa_secret:
             raise ValueError("MFA setup not initiated")
-
-        # Verify MFA code (simplified - in production, use TOTP library)
         if len(mfa_code) == 6 and mfa_code.isdigit():
-            # Enable MFA
             user.security.mfa_enabled = True
             user.updated_at = datetime.now(timezone.utc)
-
             logger.info(f"MFA enabled for user: {user_id}")
-
             return {"success": True, "message": "MFA enabled successfully"}
         else:
             raise ValueError("Invalid MFA code")
@@ -635,23 +519,16 @@ class UserService:
         user = self.users.get(user_id)
         if not user:
             raise ValueError("User not found")
-
-        # Verify password
         password_valid = self.encryption_service.verify_password(
             password, user.security.password_hash, user.security.password_salt
         )
-
         if not password_valid:
             raise ValueError("Password is incorrect")
-
-        # Disable MFA
         user.security.mfa_enabled = False
         user.security.mfa_secret = None
         user.security.backup_codes = []
         user.updated_at = datetime.now(timezone.utc)
-
         logger.info(f"MFA disabled for user: {user_id}")
-
         return {"success": True, "message": "MFA disabled successfully"}
 
     async def suspend_user(
@@ -661,20 +538,15 @@ class UserService:
         user = self.users.get(user_id)
         if not user:
             raise ValueError("User not found")
-
         user.status = UserStatus.SUSPENDED
         user.updated_at = datetime.now(timezone.utc)
         user.metadata["suspension_reason"] = reason
         user.metadata["suspended_by"] = admin_user_id
         user.metadata["suspended_at"] = datetime.now(timezone.utc).isoformat()
-
-        # Revoke all sessions
         await self.jwt_service.revoke_user_sessions(
             user_id, f"Account suspended: {reason}"
         )
-
         logger.info(f"User suspended: {user_id} by {admin_user_id} - {reason}")
-
         return {"success": True, "message": f"User {user_id} suspended successfully"}
 
     async def reactivate_user(self, user_id: str, admin_user_id: str) -> Dict[str, Any]:
@@ -682,20 +554,14 @@ class UserService:
         user = self.users.get(user_id)
         if not user:
             raise ValueError("User not found")
-
         if user.status != UserStatus.SUSPENDED:
             raise ValueError("User is not suspended")
-
         user.status = UserStatus.ACTIVE
         user.updated_at = datetime.now(timezone.utc)
         user.metadata["reactivated_by"] = admin_user_id
         user.metadata["reactivated_at"] = datetime.now(timezone.utc).isoformat()
-
         logger.info(f"User reactivated: {user_id} by {admin_user_id}")
-
         return {"success": True, "message": f"User {user_id} reactivated successfully"}
-
-    # Private helper methods
 
     def _generate_user_id(self) -> str:
         """Generate unique user ID"""
@@ -704,59 +570,45 @@ class UserService:
     def _validate_password(self, password: str) -> Dict[str, Any]:
         """Validate password strength"""
         errors = []
-
         if len(password) < self.password_min_length:
             errors.append(
                 f"Password must be at least {self.password_min_length} characters long"
             )
-
         if self.password_complexity_required:
-            if not any(c.isupper() for c in password):
+            if not any((c.isupper() for c in password)):
                 errors.append("Password must contain at least one uppercase letter")
-
-            if not any(c.islower() for c in password):
+            if not any((c.islower() for c in password)):
                 errors.append("Password must contain at least one lowercase letter")
-
-            if not any(c.isdigit() for c in password):
+            if not any((c.isdigit() for c in password)):
                 errors.append("Password must contain at least one digit")
-
-            if not any(c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password):
+            if not any((c in "!@#$%^&*()_+-=[]{}|;:,.<>?" for c in password)):
                 errors.append("Password must contain at least one special character")
-
         return {"valid": len(errors) == 0, "errors": errors}
 
     def _get_user_roles(self, user: User) -> List[str]:
         """Get user roles"""
         roles = ["user"]
-
         if user.user_type == UserType.ADMIN:
             roles.append("admin")
         elif user.user_type == UserType.INSTITUTIONAL:
             roles.append("institutional")
         elif user.user_type == UserType.BUSINESS:
             roles.append("business")
-
         return roles
 
     def _get_user_permissions(self, user: User) -> List[str]:
         """Get user permissions"""
         permissions = ["read:profile", "update:profile", "read:transactions"]
-
         if user.user_type == UserType.ADMIN:
             permissions.extend(["admin:users", "admin:system", "admin:reports"])
-
-        # Add permissions based on KYC status
         if user.kyc_status == "verified":
             permissions.extend(["create:transactions", "withdraw:funds"])
-
         return permissions
 
     async def _record_failed_login(self, user: User):
         """Record failed login attempt"""
         user.security.failed_login_attempts += 1
         user.security.last_failed_login = datetime.now(timezone.utc)
-
-        # Lock account if too many failed attempts
         if user.security.failed_login_attempts >= self.max_failed_login_attempts:
             user.security.account_locked_until = (
                 datetime.now(timezone.utc) + self.account_lockout_duration
@@ -764,7 +616,6 @@ class UserService:
             logger.warning(
                 f"Account locked due to failed login attempts: {user.user_id}"
             )
-
         user.updated_at = datetime.now(timezone.utc)
 
     async def _record_login(
@@ -778,10 +629,7 @@ class UserService:
             "user_agent": device_info.user_agent if device_info else "unknown",
             "device_id": device_info.device_id if device_info else None,
         }
-
         user.security.login_history.append(login_record)
-
-        # Keep only last 50 login records
         if len(user.security.login_history) > 50:
             user.security.login_history = user.security.login_history[-50:]
 
@@ -803,7 +651,6 @@ class UserService:
         """Get user service statistics"""
         status_counts = {}
         type_counts = {}
-
         for user in self.users.values():
             status_counts[user.status.value] = (
                 status_counts.get(user.status.value, 0) + 1
@@ -811,12 +658,11 @@ class UserService:
             type_counts[user.user_type.value] = (
                 type_counts.get(user.user_type.value, 0) + 1
             )
-
         return {
             "total_users": len(self.users),
             "status_distribution": status_counts,
             "type_distribution": type_counts,
             "mfa_enabled_count": sum(
-                1 for user in self.users.values() if user.security.mfa_enabled
+                (1 for user in self.users.values() if user.security.mfa_enabled)
             ),
         }

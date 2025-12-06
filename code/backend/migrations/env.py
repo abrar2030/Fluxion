@@ -4,36 +4,20 @@ Alembic environment configuration for Fluxion backend
 
 import asyncio
 from logging.config import fileConfig
-
 from alembic import context
 from config.database import Base
 from config.settings import settings
-
-# Import all models to ensure they are registered with SQLAlchemy
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
 config = context.config
-
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-# add your model's MetaData object here
-# for 'autogenerate' support
 target_metadata = Base.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
-
-def get_database_url():
+def get_database_url() -> Any:
     """Get database URL from settings"""
     return str(settings.database.DATABASE_URL)
 
@@ -60,7 +44,6 @@ def run_migrations_offline() -> None:
         compare_server_default=True,
         include_schemas=True,
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
@@ -73,27 +56,24 @@ def do_run_migrations(connection: Connection) -> None:
         compare_type=True,
         compare_server_default=True,
         include_schemas=True,
-        # Include object names in migration
         include_object=include_object,
-        # Render item for migration
         render_item=render_item,
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
 
-def include_object(object, name, type_, reflected, compare_to):
+def include_object(
+    object: Any, name: Any, type_: Any, reflected: Any, compare_to: Any
+) -> Any:
     """Include object in migration"""
-    # Skip certain objects if needed
     if type_ == "table" and name in ["alembic_version"]:
         return False
     return True
 
 
-def render_item(type_, obj, autogen_context):
+def render_item(type_: Any, obj: Any, autogen_context: Any) -> Any:
     """Render items for migration"""
-    # Custom rendering logic if needed
     return False
 
 
@@ -101,16 +81,11 @@ async def run_async_migrations() -> None:
     """Run migrations in async mode"""
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_database_url()
-
     connectable = async_engine_from_config(
-        configuration,
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
+        configuration, prefix="sqlalchemy.", poolclass=pool.NullPool
     )
-
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
-
     await connectable.dispose()
 
 

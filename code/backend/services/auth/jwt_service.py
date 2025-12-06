@@ -12,7 +12,6 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple
-
 import jwt
 import redis.asyncio as redis
 from config.settings import settings
@@ -60,7 +59,7 @@ class TokenClaims:
     not_before: Optional[datetime]
     issuer: str
     audience: str
-    jti: str  # JWT ID for tracking
+    jti: str
     custom_claims: Dict[str, Any]
 
 
@@ -101,16 +100,12 @@ class EnhancedJWTService:
     - Audit logging
     """
 
-    def __init__(self):
+    def __init__(self) -> Any:
         self.encryption_service = EncryptionService()
-
-        # JWT configuration
         self.algorithm = settings.security.ALGORITHM
         self.secret_key = settings.security.SECRET_KEY
         self.issuer = settings.app.APP_NAME
         self.audience = settings.app.APP_NAME
-
-        # Token expiration settings
         self.access_token_ttl = timedelta(
             minutes=settings.security.ACCESS_TOKEN_EXPIRE_MINUTES
         )
@@ -120,23 +115,17 @@ class EnhancedJWTService:
         self.reset_token_ttl = timedelta(hours=1)
         self.verification_token_ttl = timedelta(hours=24)
         self.mfa_token_ttl = timedelta(minutes=5)
-
-        # Security settings
         self.max_refresh_count = 10
         self.device_binding_enabled = True
-        self.ip_binding_enabled = False  # Can be strict for high-security environments
-
-        # In-memory storage (in production, use Redis)
+        self.ip_binding_enabled = False
         self.blacklisted_tokens: Set[str] = set()
         self.active_sessions: Dict[str, Dict[str, Any]] = {}
         self.device_registry: Dict[str, DeviceInfo] = {}
         self.refresh_token_usage: Dict[str, int] = {}
-
-        # Redis client for distributed token management
         self.redis_client: Optional[redis.Redis] = None
         self._initialize_redis()
 
-    def _initialize_redis(self):
+    def _initialize_redis(self) -> Any:
         """Initialize Redis connection for distributed token management"""
         try:
             if hasattr(settings, "redis") and settings.redis.REDIS_URL:
@@ -163,12 +152,8 @@ class EnhancedJWTService:
         """Create access and refresh token pair"""
         session_id = self._generate_session_id()
         current_time = datetime.now(timezone.utc)
-
-        # Register device if provided
         if device_info:
             await self._register_device(user_id, device_info)
-
-        # Create access token
         access_claims = TokenClaims(
             user_id=user_id,
             session_id=session_id,
@@ -186,8 +171,6 @@ class EnhancedJWTService:
             jti=self._generate_jti(),
             custom_claims=custom_claims or {},
         )
-
-        # Create refresh token
         refresh_claims = TokenClaims(
             user_id=user_id,
             session_id=session_id,
@@ -205,12 +188,8 @@ class EnhancedJWTService:
             jti=self._generate_jti(),
             custom_claims=custom_claims or {},
         )
-
-        # Generate tokens
         access_token = await self._generate_token(access_claims)
         refresh_token = await self._generate_token(refresh_claims)
-
-        # Store session information
         await self._store_session(
             session_id,
             {
@@ -223,12 +202,9 @@ class EnhancedJWTService:
                 "mfa_verified": mfa_verified,
             },
         )
-
-        # Initialize refresh token usage counter
         self.refresh_token_usage[refresh_claims.jti] = 0
-
         logger.info(f"Created token pair for user {user_id}, session {session_id}")
-        return access_token, refresh_token
+        return (access_token, refresh_token)
 
     async def validate_token(
         self,
@@ -238,7 +214,6 @@ class EnhancedJWTService:
     ) -> TokenValidationResult:
         """Validate JWT token with comprehensive security checks"""
         try:
-            # Check if token is blacklisted
             if await self._is_token_blacklisted(token):
                 return TokenValidationResult(
                     status=TokenStatus.BLACKLISTED,
@@ -247,8 +222,6 @@ class EnhancedJWTService:
                     remaining_ttl=None,
                     requires_refresh=False,
                 )
-
-            # Decode and validate token
             payload = jwt.decode(
                 token,
                 self.secret_key,
@@ -262,11 +235,7 @@ class EnhancedJWTService:
                     "require": ["exp", "iat", "jti", "sub"],
                 },
             )
-
-            # Parse claims
             claims = self._parse_token_claims(payload)
-
-            # Validate token type
             if expected_type and claims.token_type != expected_type:
                 return TokenValidationResult(
                     status=TokenStatus.INVALID,
@@ -275,8 +244,6 @@ class EnhancedJWTService:
                     remaining_ttl=None,
                     requires_refresh=False,
                 )
-
-            # Validate session
             session_valid = await self._validate_session(claims.session_id, claims.jti)
             if not session_valid:
                 return TokenValidationResult(
@@ -286,8 +253,6 @@ class EnhancedJWTService:
                     remaining_ttl=None,
                     requires_refresh=False,
                 )
-
-            # Device binding validation
             if self.device_binding_enabled and device_info:
                 device_valid = await self._validate_device_binding(claims, device_info)
                 if not device_valid:
@@ -298,8 +263,6 @@ class EnhancedJWTService:
                         remaining_ttl=None,
                         requires_refresh=False,
                     )
-
-            # IP binding validation (if enabled)
             if self.ip_binding_enabled and device_info and claims.ip_address:
                 if claims.ip_address != device_info.ip_address:
                     return TokenValidationResult(
@@ -309,18 +272,11 @@ class EnhancedJWTService:
                         remaining_ttl=None,
                         requires_refresh=False,
                     )
-
-            # Calculate remaining TTL
             remaining_ttl = int(
                 (claims.expires_at - datetime.now(timezone.utc)).total_seconds()
             )
-            requires_refresh = (
-                remaining_ttl < 300
-            )  # Refresh if less than 5 minutes remaining
-
-            # Update session activity
+            requires_refresh = remaining_ttl < 300
             await self._update_session_activity(claims.session_id)
-
             return TokenValidationResult(
                 status=TokenStatus.VALID,
                 claims=claims,
@@ -328,7 +284,6 @@ class EnhancedJWTService:
                 remaining_ttl=remaining_ttl,
                 requires_refresh=requires_refresh,
             )
-
         except ExpiredSignatureError:
             return TokenValidationResult(
                 status=TokenStatus.EXPIRED,
@@ -359,29 +314,19 @@ class EnhancedJWTService:
         self, refresh_token: str, device_info: Optional[DeviceInfo] = None
     ) -> Tuple[str, str]:
         """Refresh access token using refresh token"""
-        # Validate refresh token
         validation_result = await self.validate_token(
             refresh_token, TokenType.REFRESH, device_info
         )
-
         if validation_result.status != TokenStatus.VALID:
             raise ValueError(
                 f"Invalid refresh token: {validation_result.error_message}"
             )
-
         claims = validation_result.claims
-
-        # Check refresh token usage count
         usage_count = self.refresh_token_usage.get(claims.jti, 0)
         if usage_count >= self.max_refresh_count:
-            # Revoke session due to excessive refresh attempts
             await self._revoke_session(claims.session_id, "Excessive refresh attempts")
             raise ValueError("Refresh token usage limit exceeded")
-
-        # Increment usage count
         self.refresh_token_usage[claims.jti] = usage_count + 1
-
-        # Create new token pair
         new_access_token, new_refresh_token = await self.create_token_pair(
             user_id=claims.user_id,
             roles=claims.roles,
@@ -390,57 +335,40 @@ class EnhancedJWTService:
             mfa_verified=claims.mfa_verified,
             custom_claims=claims.custom_claims,
         )
-
-        # Blacklist old refresh token
         await self._blacklist_token(refresh_token, "Token refreshed")
-
         logger.info(
             f"Refreshed token for user {claims.user_id}, session {claims.session_id}"
         )
-        return new_access_token, new_refresh_token
+        return (new_access_token, new_refresh_token)
 
     async def revoke_token(self, token: str, reason: str = "Manual revocation"):
         """Revoke a specific token"""
         try:
-            # Decode token to get claims (without validation to handle expired tokens)
             payload = jwt.decode(
                 token,
                 self.secret_key,
                 algorithms=[self.algorithm],
                 options={"verify_exp": False, "verify_signature": True},
             )
-
             claims = self._parse_token_claims(payload)
-
-            # Blacklist token
             await self._blacklist_token(token, reason)
-
-            # If it's a refresh token, revoke the entire session
             if claims.token_type == TokenType.REFRESH:
                 await self._revoke_session(claims.session_id, reason)
-
             logger.info(
                 f"Revoked token {claims.jti} for user {claims.user_id}: {reason}"
             )
-
         except Exception as e:
             logger.error(f"Failed to revoke token: {str(e)}")
-            # Still blacklist the token even if we can't decode it
             await self._blacklist_token(token, f"Revocation error: {reason}")
 
     async def revoke_user_sessions(self, user_id: str, reason: str = "User logout"):
         """Revoke all sessions for a user"""
         sessions_to_revoke = []
-
-        # Find all sessions for the user
         for session_id, session_data in self.active_sessions.items():
             if session_data.get("user_id") == user_id:
                 sessions_to_revoke.append(session_id)
-
-        # Revoke each session
         for session_id in sessions_to_revoke:
             await self._revoke_session(session_id, reason)
-
         logger.info(
             f"Revoked {len(sessions_to_revoke)} sessions for user {user_id}: {reason}"
         )
@@ -454,8 +382,6 @@ class EnhancedJWTService:
     ) -> str:
         """Create special-purpose tokens (password reset, email verification, etc.)"""
         current_time = datetime.now(timezone.utc)
-
-        # Determine TTL based on token type
         if ttl is None:
             ttl_map = {
                 TokenType.RESET_PASSWORD: self.reset_token_ttl,
@@ -463,7 +389,6 @@ class EnhancedJWTService:
                 TokenType.MFA: self.mfa_token_ttl,
             }
             ttl = ttl_map.get(token_type, timedelta(hours=1))
-
         claims = TokenClaims(
             user_id=user_id,
             session_id=self._generate_session_id(),
@@ -481,7 +406,6 @@ class EnhancedJWTService:
             jti=self._generate_jti(),
             custom_claims=custom_claims or {},
         )
-
         token = await self._generate_token(claims)
         logger.info(f"Created {token_type.value} token for user {user_id}")
         return token
@@ -504,17 +428,9 @@ class EnhancedJWTService:
             "aud": claims.audience,
             "jti": claims.jti,
         }
-
-        # Add custom claims
         payload.update(claims.custom_claims)
-
-        # Remove None values
         payload = {k: v for k, v in payload.items() if v is not None}
-
-        # Generate token
         token = jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
-
-        # Additional encryption layer for sensitive tokens
         if claims.token_type in [
             TokenType.RESET_PASSWORD,
             TokenType.EMAIL_VERIFICATION,
@@ -524,7 +440,6 @@ class EnhancedJWTService:
                 expires_in=int((claims.expires_at - claims.issued_at).total_seconds()),
             )
             return encrypted_token
-
         return token
 
     def _parse_token_claims(self, payload: Dict[str, Any]) -> TokenClaims:
@@ -589,31 +504,24 @@ class EnhancedJWTService:
     ) -> bool:
         """Validate device binding"""
         if not claims.device_id:
-            return True  # No device binding required
-
+            return True
         if claims.device_id != device_info.device_id:
             logger.warning(
                 f"Device ID mismatch: expected {claims.device_id}, got {device_info.device_id}"
             )
             return False
-
-        # Check if device is registered and trusted
         registered_device = self.device_registry.get(device_info.device_id)
         if not registered_device:
             logger.warning(f"Device {device_info.device_id} not registered")
             return False
-
         if not registered_device.trusted:
             logger.warning(f"Device {device_info.device_id} not trusted")
             return False
-
         return True
 
     async def _store_session(self, session_id: str, session_data: Dict[str, Any]):
         """Store session information"""
         self.active_sessions[session_id] = session_data
-
-        # Store in Redis if available
         if self.redis_client:
             try:
                 await self.redis_client.setex(
@@ -627,9 +535,7 @@ class EnhancedJWTService:
     async def _validate_session(self, session_id: str, token_jti: str) -> bool:
         """Validate session exists and token belongs to it"""
         session_data = self.active_sessions.get(session_id)
-
         if not session_data:
-            # Try to load from Redis
             if self.redis_client:
                 try:
                     session_json = await self.redis_client.get(f"session:{session_id}")
@@ -638,11 +544,8 @@ class EnhancedJWTService:
                         self.active_sessions[session_id] = session_data
                 except Exception as e:
                     logger.warning(f"Failed to load session from Redis: {e}")
-
         if not session_data:
             return False
-
-        # Check if token belongs to this session
         return token_jti == session_data.get(
             "access_token_jti"
         ) or token_jti == session_data.get("refresh_token_jti")
@@ -653,8 +556,6 @@ class EnhancedJWTService:
             self.active_sessions[session_id]["last_activity"] = datetime.now(
                 timezone.utc
             ).isoformat()
-
-            # Update in Redis if available
             if self.redis_client:
                 try:
                     await self.redis_client.setex(
@@ -669,7 +570,6 @@ class EnhancedJWTService:
         """Revoke entire session"""
         session_data = self.active_sessions.get(session_id)
         if session_data:
-            # Blacklist all tokens in the session
             if "access_token_jti" in session_data:
                 await self._blacklist_token_by_jti(
                     session_data["access_token_jti"], reason
@@ -678,25 +578,18 @@ class EnhancedJWTService:
                 await self._blacklist_token_by_jti(
                     session_data["refresh_token_jti"], reason
                 )
-
-            # Remove session
             del self.active_sessions[session_id]
-
-            # Remove from Redis
             if self.redis_client:
                 try:
                     await self.redis_client.delete(f"session:{session_id}")
                 except Exception as e:
                     logger.warning(f"Failed to delete session from Redis: {e}")
-
         logger.info(f"Revoked session {session_id}: {reason}")
 
     async def _blacklist_token(self, token: str, reason: str):
         """Blacklist a token"""
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         self.blacklisted_tokens.add(token_hash)
-
-        # Store in Redis with expiration
         if self.redis_client:
             try:
                 await self.redis_client.setex(
@@ -710,7 +603,6 @@ class EnhancedJWTService:
     async def _blacklist_token_by_jti(self, jti: str, reason: str):
         """Blacklist token by JWT ID"""
         self.blacklisted_tokens.add(jti)
-
         if self.redis_client:
             try:
                 await self.redis_client.setex(
@@ -724,19 +616,13 @@ class EnhancedJWTService:
     async def _is_token_blacklisted(self, token: str) -> bool:
         """Check if token is blacklisted"""
         token_hash = hashlib.sha256(token.encode()).hexdigest()
-
-        # Check in-memory blacklist
         if token_hash in self.blacklisted_tokens:
             return True
-
-        # Check Redis blacklist
         if self.redis_client:
             try:
                 result = await self.redis_client.exists(f"blacklist:{token_hash}")
                 if result:
                     return True
-
-                # Also check by JTI if we can decode the token
                 try:
                     payload = jwt.decode(
                         token,
@@ -752,10 +638,8 @@ class EnhancedJWTService:
                         return bool(jti_result)
                 except:
                     pass
-
             except Exception as e:
                 logger.warning(f"Failed to check token blacklist in Redis: {e}")
-
         return False
 
     def get_token_statistics(self) -> Dict[str, Any]:
@@ -771,8 +655,6 @@ class EnhancedJWTService:
     async def cleanup_expired_data(self):
         """Clean up expired sessions and blacklisted tokens"""
         current_time = datetime.now(timezone.utc)
-
-        # Clean up expired sessions
         expired_sessions = []
         for session_id, session_data in self.active_sessions.items():
             created_at = datetime.fromisoformat(
@@ -780,17 +662,13 @@ class EnhancedJWTService:
             )
             if current_time - created_at > self.refresh_token_ttl:
                 expired_sessions.append(session_id)
-
         for session_id in expired_sessions:
             del self.active_sessions[session_id]
-
         logger.info(f"Cleaned up {len(expired_sessions)} expired sessions")
 
     async def verify_token(self, token: str) -> Dict[str, Any]:
         """Verify token and return claims (for backward compatibility)"""
         validation_result = await self.validate_token(token)
-
         if validation_result.status != TokenStatus.VALID:
             raise ValueError(validation_result.error_message)
-
         return asdict(validation_result.claims)

@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-
 from config.settings import settings
 from fastapi import HTTPException, Request, Response
 from services.compliance.aml_service import AMLService
@@ -85,16 +84,12 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
     including KYC, AML, transaction monitoring, and data protection compliance.
     """
 
-    def __init__(self, app):
+    def __init__(self, app: Any) -> Any:
         super().__init__(app)
-
-        # Initialize compliance services
         self.compliance_service = ComplianceService()
         self.kyc_service = KYCService()
         self.aml_service = AMLService()
         self.transaction_monitoring = TransactionMonitoringService()
-
-        # Compliance configuration
         self.restricted_jurisdictions = {
             "OFAC",
             "IRAN",
@@ -103,8 +98,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
             "CUBA",
             "CRIMEA",
         }
-
-        # Endpoint compliance requirements
         self.endpoint_compliance = {
             "/api/v1/auth/register": {
                 "requires_kyc": False,
@@ -132,98 +125,63 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 "data_classification": "CONFIDENTIAL",
             },
         }
-
-        # Transaction monitoring thresholds
         self.transaction_thresholds = {
             "single_transaction_limit": 10000.0,
             "daily_limit": 50000.0,
             "weekly_limit": 200000.0,
             "monthly_limit": 500000.0,
-            "suspicious_amount_threshold": 9000.0,  # Just under CTR threshold
-            "velocity_threshold": 5,  # transactions per hour
-            "round_amount_threshold": 1000.0,  # Round amounts (potential structuring)
+            "suspicious_amount_threshold": 9000.0,
+            "velocity_threshold": 5,
+            "round_amount_threshold": 1000.0,
         }
-
-        # Compliance cache for performance
         self.compliance_cache: Dict[str, Dict[str, Any]] = {}
-        self.cache_ttl = 300  # 5 minutes
+        self.cache_ttl = 300
 
     async def dispatch(self, request: Request, call_next):
         """Main middleware dispatch method"""
         start_time = time.time()
-
         try:
-            # Create compliance context
             compliance_context = await self._create_compliance_context(request)
-
-            # Perform pre-request compliance checks
             compliance_results = await self._perform_compliance_checks(
                 request, compliance_context
             )
-
-            # Check if request should be blocked
             blocking_violation = self._check_blocking_violations(compliance_results)
             if blocking_violation:
                 return await self._handle_compliance_violation(
                     request, blocking_violation, compliance_results
                 )
-
-            # Process request
             response = await call_next(request)
-
-            # Perform post-request compliance checks
             await self._perform_post_request_compliance(
                 request, response, compliance_context, compliance_results
             )
-
-            # Add compliance headers
             self._add_compliance_headers(response, compliance_results)
-
-            # Log compliance metrics
             await self._log_compliance_metrics(
                 request, response, compliance_results, time.time() - start_time
             )
-
             return response
-
         except HTTPException as e:
-            # Log compliance-related HTTP exceptions
             await self._log_compliance_exception(request, e)
             raise
         except Exception as e:
             logger.error(f"Compliance middleware error: {str(e)}", exc_info=True)
-            # In production, decide whether to fail open or closed
             if settings.compliance.COMPLIANCE_FAIL_CLOSED:
                 raise HTTPException(
                     status_code=503, detail="Compliance service unavailable"
                 )
             else:
-                # Fail open but log the issue
                 logger.critical(f"Compliance check failed, allowing request: {str(e)}")
                 return await call_next(request)
 
     async def _create_compliance_context(self, request: Request) -> ComplianceContext:
         """Create compliance context from request"""
-        # Extract user information
         user_id = await self._extract_user_id(request)
         session_id = await self._extract_session_id(request)
-
-        # Get client information
         client_ip = self._get_client_ip(request)
         user_agent = request.headers.get("user-agent", "Unknown")
-
-        # Get geographic information
         geographic_location = await self._get_geographic_location(client_ip)
-
-        # Generate device fingerprint
         device_fingerprint = self._generate_device_fingerprint(request)
-
-        # Extract request data
         request_data = await self._extract_request_data(request)
-
-        # Extract business context
         business_context = await self._extract_business_context(request, request_data)
-
         return ComplianceContext(
             user_id=user_id,
             session_id=session_id,
@@ -242,25 +200,20 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
         try:
             auth_header = request.headers.get("authorization")
             if auth_header and auth_header.startswith("Bearer "):
-                # In production, decode JWT token
-                return "authenticated_user"  # Placeholder
+                return "authenticated_user"
         except Exception as e:
             logger.warning(f"Failed to extract user ID: {e}")
         return None
 
     async def _extract_session_id(self, request: Request) -> Optional[str]:
         """Extract session ID from request"""
-        # Check headers first
         session_id = request.headers.get("x-session-id")
         if session_id:
             return session_id
-
-        # Check cookies
         cookies = request.headers.get("cookie", "")
         for cookie in cookies.split(";"):
             if "session_id=" in cookie:
                 return cookie.split("session_id=")[1].split(";")[0].strip()
-
         return None
 
     def _get_client_ip(self, request: Request) -> str:
@@ -268,21 +221,17 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
             return forwarded_for.split(",")[0].strip()
-
         real_ip = request.headers.get("x-real-ip")
         if real_ip:
             return real_ip.strip()
-
         if request.client:
             return request.client.host
-
         return "unknown"
 
     async def _get_geographic_location(
         self, ip_address: str
     ) -> Optional[Dict[str, str]]:
         """Get geographic location for IP address"""
-        # In production, use GeoIP service
         return {"country": "US", "region": "Unknown", "city": "Unknown"}
 
     def _generate_device_fingerprint(self, request: Request) -> str:
@@ -295,7 +244,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
             "accept_language": request.headers.get("accept-language", ""),
             "accept_encoding": request.headers.get("accept-encoding", ""),
         }
-
         fingerprint_string = json.dumps(fingerprint_data, sort_keys=True)
         return hashlib.sha256(fingerprint_string.encode()).hexdigest()[:16]
 
@@ -307,8 +255,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
             "method": request.method,
             "path": request.url.path,
         }
-
-        # Extract body for POST/PUT requests
         if request.method in ["POST", "PUT", "PATCH"]:
             try:
                 content_type = request.headers.get("content-type", "")
@@ -318,11 +264,10 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                         data["body"] = json.loads(body.decode("utf-8"))
                 elif "application/x-www-form-urlencoded" in content_type:
                     form_data = await request.form()
-                    data["body"] = dict(form_data)
+                    data["body"] = dict[str, Any]()
             except Exception as e:
                 logger.warning(f"Failed to extract request body: {e}")
                 data["body"] = {}
-
         return data
 
     async def _extract_business_context(
@@ -330,8 +275,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
     ) -> Dict[str, Any]:
         """Extract business context for compliance"""
         context = {}
-
-        # Transaction context
         if "/transactions/" in request.url.path:
             body = request_data.get("body", {})
             context.update(
@@ -342,13 +285,10 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                     "counterparty": body.get("counterparty", "unknown"),
                 }
             )
-
-        # User context
         if "/users/" in request.url.path:
             context.update(
                 {"operation_type": "user_management", "data_sensitivity": "high"}
             )
-
         return context
 
     async def _perform_compliance_checks(
@@ -356,63 +296,41 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
     ) -> List[ComplianceCheck]:
         """Perform comprehensive compliance checks"""
         checks = []
-
-        # Get endpoint compliance requirements
         endpoint_requirements = self._get_endpoint_requirements(context.request_path)
-
-        # Geographic compliance check
         geo_check = await self._check_geographic_compliance(
             context, endpoint_requirements
         )
         checks.append(geo_check)
-
-        # KYC compliance check
         if endpoint_requirements.get("requires_kyc", False):
             kyc_check = await self._check_kyc_compliance(context)
             checks.append(kyc_check)
-
-        # AML compliance check
         if endpoint_requirements.get("requires_aml", False):
             aml_check = await self._check_aml_compliance(context)
             checks.append(aml_check)
-
-        # Transaction monitoring check
         if endpoint_requirements.get("transaction_monitoring", False):
             transaction_check = await self._check_transaction_compliance(context)
             checks.append(transaction_check)
-
-        # Data protection compliance check
         data_protection_reqs = endpoint_requirements.get("data_protection", [])
         if data_protection_reqs:
             data_check = await self._check_data_protection_compliance(
                 context, data_protection_reqs
             )
             checks.append(data_check)
-
-        # Rate limiting compliance check
         rate_check = await self._check_rate_limiting_compliance(
             context, endpoint_requirements
         )
         checks.append(rate_check)
-
-        # Sanctions screening check
         sanctions_check = await self._check_sanctions_compliance(context)
         checks.append(sanctions_check)
-
         return checks
 
     def _get_endpoint_requirements(self, path: str) -> Dict[str, Any]:
         """Get compliance requirements for endpoint"""
-        # Exact match first
         if path in self.endpoint_compliance:
             return self.endpoint_compliance[path]
-
-        # Pattern matching
         for pattern, requirements in self.endpoint_compliance.items():
             if pattern.replace("*", "") in path:
                 return requirements
-
-        # Default requirements
         return {
             "requires_kyc": False,
             "requires_aml": False,
@@ -434,8 +352,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 details={"message": "No geographic restrictions"},
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
-        # Check if user is from restricted jurisdiction
         if context.geographic_location:
             country = context.geographic_location.get("country", "").upper()
             if country in self.restricted_jurisdictions:
@@ -451,7 +367,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                     },
                     timestamp=datetime.now(timezone.utc).isoformat(),
                 )
-
         return ComplianceCheck(
             check_type="geographic",
             passed=True,
@@ -476,13 +391,10 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 details={"message": "User not authenticated"},
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
-        # Check KYC status from cache or service
         kyc_status = await self._get_cached_kyc_status(context.user_id)
         if not kyc_status:
             kyc_status = await self.kyc_service.get_kyc_status(context.user_id)
             await self._cache_kyc_status(context.user_id, kyc_status)
-
         if not kyc_status.get("verified", False):
             return ComplianceCheck(
                 check_type="kyc",
@@ -496,7 +408,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 },
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
         return ComplianceCheck(
             check_type="kyc",
             passed=True,
@@ -511,15 +422,12 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
         self, context: ComplianceContext
     ) -> ComplianceCheck:
         """Check AML compliance"""
-        # Perform AML screening
         aml_result = await self.aml_service.screen_transaction(
             user_id=context.user_id,
             client_ip=context.client_ip,
             transaction_data=context.business_context,
         )
-
         risk_score = aml_result.get("risk_score", 0.0)
-
         if risk_score >= 8.0:
             return ComplianceCheck(
                 check_type="aml",
@@ -540,7 +448,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 details=aml_result,
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
         return ComplianceCheck(
             check_type="aml",
             passed=True,
@@ -556,8 +463,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
     ) -> ComplianceCheck:
         """Check transaction compliance"""
         transaction_amount = context.business_context.get("transaction_amount", 0)
-
-        # Check transaction limits
         if transaction_amount > self.transaction_thresholds["single_transaction_limit"]:
             return ComplianceCheck(
                 check_type="transaction",
@@ -572,14 +477,11 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 },
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
-        # Check for suspicious patterns
         suspicious_patterns = (
             await self.transaction_monitoring.check_suspicious_patterns(
                 context.user_id, context.business_context
             )
         )
-
         if suspicious_patterns:
             return ComplianceCheck(
                 check_type="transaction",
@@ -593,7 +495,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 },
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
         return ComplianceCheck(
             check_type="transaction",
             passed=True,
@@ -609,17 +510,12 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
     ) -> ComplianceCheck:
         """Check data protection compliance (GDPR, CCPA, etc.)"""
         violations = []
-
-        # Check GDPR compliance
         if "GDPR" in requirements:
             gdpr_violations = await self._check_gdpr_compliance(context)
             violations.extend(gdpr_violations)
-
-        # Check CCPA compliance
         if "CCPA" in requirements:
             ccpa_violations = await self._check_ccpa_compliance(context)
             violations.extend(ccpa_violations)
-
         if violations:
             return ComplianceCheck(
                 check_type="data_protection",
@@ -630,7 +526,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 details={"violations": violations},
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
         return ComplianceCheck(
             check_type="data_protection",
             passed=True,
@@ -644,35 +539,25 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
     async def _check_gdpr_compliance(self, context: ComplianceContext) -> List[str]:
         """Check GDPR compliance requirements"""
         violations = []
-
-        # Check if user has given consent for data processing
         if context.user_id:
             consent_status = await self._get_user_consent_status(context.user_id)
             if not consent_status.get("data_processing", False):
                 violations.append("Missing data processing consent")
-
-        # Check for data minimization
         if self._contains_excessive_data_collection(context.request_data):
             violations.append("Excessive data collection detected")
-
         return violations
 
     async def _check_ccpa_compliance(self, context: ComplianceContext) -> List[str]:
         """Check CCPA compliance requirements"""
         violations = []
-
-        # Check if user is from California
         if (
             context.geographic_location
             and context.geographic_location.get("region", "").upper() == "CA"
         ):
-
-            # Check opt-out status
             if context.user_id:
                 opt_out_status = await self._get_user_opt_out_status(context.user_id)
                 if opt_out_status.get("sale_opt_out", False):
                     violations.append("User has opted out of data sale")
-
         return violations
 
     async def _check_rate_limiting_compliance(
@@ -690,12 +575,9 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 details={"message": "No rate limiting required"},
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
-        # Check daily attempts for this IP/user
         daily_attempts = await self._get_daily_attempts(
             context.client_ip, context.user_id, context.request_path
         )
-
         if daily_attempts >= max_daily_attempts:
             return ComplianceCheck(
                 check_type="rate_limiting",
@@ -710,7 +592,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 },
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
         return ComplianceCheck(
             check_type="rate_limiting",
             passed=True,
@@ -725,13 +606,11 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
         self, context: ComplianceContext
     ) -> ComplianceCheck:
         """Check sanctions compliance"""
-        # Screen against sanctions lists
         sanctions_result = await self.aml_service.screen_sanctions(
             user_id=context.user_id,
             client_ip=context.client_ip,
             geographic_location=context.geographic_location,
         )
-
         if sanctions_result.get("match", False):
             return ComplianceCheck(
                 check_type="sanctions",
@@ -742,7 +621,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 details=sanctions_result,
                 timestamp=datetime.now(timezone.utc).isoformat(),
             )
-
         return ComplianceCheck(
             check_type="sanctions",
             passed=True,
@@ -769,7 +647,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
         all_results: List[ComplianceCheck],
     ) -> JSONResponse:
         """Handle compliance violation"""
-        # Log the violation
         await self.compliance_service.log_violation(
             violation_type=violation.violation_type,
             details=violation.details,
@@ -779,10 +656,7 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 "client_ip": self._get_client_ip(request),
             },
         )
-
-        # Return appropriate error response
         error_message = self._get_user_friendly_error_message(violation)
-
         return JSONResponse(
             status_code=403,
             content={
@@ -802,7 +676,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
             ComplianceViolationType.SANCTIONS_MATCH.value: "Access denied due to regulatory restrictions",
             ComplianceViolationType.PRIVACY_VIOLATION.value: "Request violates data protection requirements",
         }
-
         return messages.get(
             violation.violation_type, "Request blocked due to compliance requirements"
         )
@@ -815,34 +688,26 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
         compliance_results: List[ComplianceCheck],
     ):
         """Perform post-request compliance checks"""
-        # Log successful transactions for monitoring
         if "/transactions/" in context.request_path and response.status_code < 300:
             await self.transaction_monitoring.log_transaction(
                 user_id=context.user_id,
                 transaction_data=context.business_context,
                 compliance_results=compliance_results,
             )
-
-        # Update compliance metrics
         await self.compliance_service.update_metrics(compliance_results)
 
     def _add_compliance_headers(
         self, response: Response, compliance_results: List[ComplianceCheck]
-    ):
+    ) -> Any:
         """Add compliance-related headers to response"""
-        # Add compliance status header
         overall_status = (
             "COMPLIANT"
-            if all(r.passed for r in compliance_results)
+            if all((r.passed for r in compliance_results))
             else "NON_COMPLIANT"
         )
         response.headers["X-Compliance-Status"] = overall_status
-
-        # Add risk score header
         max_risk_score = max((r.risk_score for r in compliance_results), default=0.0)
         response.headers["X-Compliance-Risk-Score"] = str(max_risk_score)
-
-        # Add compliance check timestamp
         response.headers["X-Compliance-Check-Time"] = datetime.now(
             timezone.utc
         ).isoformat()
@@ -867,7 +732,6 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                 (r.risk_score for r in compliance_results), default=0.0
             ),
         }
-
         logger.info(f"Compliance metrics: {json.dumps(metrics)}")
 
     async def _log_compliance_exception(
@@ -875,20 +739,15 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
     ):
         """Log compliance-related exceptions"""
         logger.warning(
-            f"Compliance exception: {exception.status_code} - {exception.detail} "
-            f"for {request.method} {request.url.path}"
+            f"Compliance exception: {exception.status_code} - {exception.detail} for {request.method} {request.url.path}"
         )
-
-    # Helper methods for caching and data retrieval
 
     async def _get_cached_kyc_status(self, user_id: str) -> Optional[Dict[str, Any]]:
         """Get cached KYC status"""
         cache_key = f"kyc:{user_id}"
         cached_data = self.compliance_cache.get(cache_key)
-
         if cached_data and time.time() - cached_data["timestamp"] < self.cache_ttl:
             return cached_data["data"]
-
         return None
 
     async def _cache_kyc_status(self, user_id: str, status: Dict[str, Any]):
@@ -898,28 +757,23 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
 
     async def _get_user_consent_status(self, user_id: str) -> Dict[str, bool]:
         """Get user consent status for GDPR"""
-        # In production, this would query the database
         return {"data_processing": True, "marketing": False, "analytics": True}
 
     async def _get_user_opt_out_status(self, user_id: str) -> Dict[str, bool]:
         """Get user opt-out status for CCPA"""
-        # In production, this would query the database
         return {"sale_opt_out": False, "sharing_opt_out": False}
 
     def _contains_excessive_data_collection(self, request_data: Dict[str, Any]) -> bool:
         """Check if request contains excessive data collection"""
-        # Simplified check - in production, this would be more sophisticated
         body = request_data.get("body", {})
         sensitive_fields = ["ssn", "tax_id", "passport", "drivers_license"]
-
-        return any(field in str(body).lower() for field in sensitive_fields)
+        return any((field in str(body).lower() for field in sensitive_fields))
 
     async def _get_daily_attempts(
         self, client_ip: str, user_id: Optional[str], path: str
     ) -> int:
         """Get daily attempt count for rate limiting"""
-        # In production, this would query Redis or database
-        return 0  # Placeholder
+        return 0
 
     async def get_compliance_dashboard_data(self) -> Dict[str, Any]:
         """Get compliance dashboard data"""

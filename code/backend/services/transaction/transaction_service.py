@@ -12,7 +12,6 @@ from datetime import datetime, timedelta, timezone
 from decimal import ROUND_HALF_UP, Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
-
 from services.compliance.kyc_service import KYCService
 from services.security.encryption_service import EncryptionService
 
@@ -150,11 +149,9 @@ class TransactionService:
     - Audit trail and reporting
     """
 
-    def __init__(self):
+    def __init__(self) -> Any:
         self.encryption_service = EncryptionService()
         self.kyc_service = KYCService()
-
-        # Transaction processing configuration
         self.default_transaction_limits = {
             TransactionType.DEPOSIT: {
                 "daily_limit": Decimal("50000.00"),
@@ -175,22 +172,18 @@ class TransactionService:
                 "single_transaction_limit": Decimal("50000.00"),
             },
         }
-
-        # Risk assessment thresholds
         self.risk_thresholds = {
             "high_amount": Decimal("10000.00"),
-            "suspicious_velocity": 5,  # transactions per hour
+            "suspicious_velocity": 5,
             "round_amount_threshold": Decimal("1000.00"),
-            "unusual_time_hours": [0, 1, 2, 3, 4, 5],  # Unusual hours
+            "unusual_time_hours": [0, 1, 2, 3, 4, 5],
         }
-
-        # Fee structure
         self.fee_structure = {
             TransactionType.DEPOSIT: {
                 PaymentMethod.BANK_TRANSFER: Decimal("0.00"),
                 PaymentMethod.WIRE_TRANSFER: Decimal("25.00"),
-                PaymentMethod.CREDIT_CARD: Decimal("0.029"),  # 2.9%
-                PaymentMethod.DEBIT_CARD: Decimal("0.015"),  # 1.5%
+                PaymentMethod.CREDIT_CARD: Decimal("0.029"),
+                PaymentMethod.DEBIT_CARD: Decimal("0.015"),
             },
             TransactionType.WITHDRAWAL: {
                 PaymentMethod.BANK_TRANSFER: Decimal("5.00"),
@@ -199,23 +192,16 @@ class TransactionService:
             },
             TransactionType.TRANSFER: {PaymentMethod.INTERNAL: Decimal("0.00")},
         }
-
-        # In-memory storage (in production, use database with ACID properties)
         self.transactions: Dict[str, Transaction] = {}
         self.balances: Dict[Tuple[str, Currency], Balance] = {}
         self.transaction_limits: Dict[str, List[TransactionLimit]] = {}
         self.pending_transactions: Dict[str, Transaction] = {}
-
-        # Transaction processing queues
         self.processing_queue: List[str] = []
         self.settlement_queue: List[str] = []
-
-        # Initialize default balances and limits
         self._initialize_default_configurations()
 
-    def _initialize_default_configurations(self):
+    def _initialize_default_configurations(self) -> Any:
         """Initialize default configurations"""
-        # This would be loaded from database in production
 
     async def create_transaction(
         self,
@@ -227,45 +213,32 @@ class TransactionService:
         details: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Create a new transaction"""
-        # Validate user KYC status
         kyc_status = await self.kyc_service.get_kyc_status(user_id)
         if not kyc_status["verified"] and transaction_type in [
             TransactionType.WITHDRAWAL,
             TransactionType.TRANSFER,
         ]:
             raise ValueError("KYC verification required for this transaction type")
-
-        # Validate transaction amount
         if amount <= 0:
             raise ValueError("Transaction amount must be positive")
-
-        # Check transaction limits
         limit_check = await self._check_transaction_limits(
             user_id, transaction_type, amount, currency
         )
         if not limit_check["allowed"]:
             raise ValueError(f"Transaction exceeds limits: {limit_check['reason']}")
-
-        # Calculate fees
         fee_amount = await self._calculate_fee(transaction_type, amount, payment_method)
         net_amount = (
             amount - fee_amount
             if transaction_type == TransactionType.WITHDRAWAL
             else amount
         )
-
-        # Check balance for withdrawals and transfers
         if transaction_type in [TransactionType.WITHDRAWAL, TransactionType.TRANSFER]:
             balance_check = await self._check_balance_availability(
                 user_id, currency, amount + fee_amount
             )
             if not balance_check["sufficient"]:
                 raise ValueError("Insufficient balance for transaction")
-
-        # Generate transaction ID
         transaction_id = self._generate_transaction_id()
-
-        # Create transaction details
         transaction_details = TransactionDetails(
             description=details.get(
                 "description", f"{transaction_type.value.title()} transaction"
@@ -277,23 +250,15 @@ class TransactionService:
             routing_info=details.get("routing_info", {}),
             metadata=details.get("metadata", {}),
         )
-
-        # Perform risk assessment
         risk_assessment = await self._assess_transaction_risk(
             user_id, transaction_type, amount, currency, transaction_details
         )
-
-        # Perform compliance checks
         compliance_checks = await self._perform_compliance_checks(
             user_id, transaction_type, amount, currency, transaction_details
         )
-
-        # Determine initial status based on risk and compliance
         initial_status = self._determine_initial_status(
             risk_assessment, compliance_checks
         )
-
-        # Create transaction
         transaction = Transaction(
             transaction_id=transaction_id,
             user_id=user_id,
@@ -313,8 +278,6 @@ class TransactionService:
             compliance_checks=compliance_checks,
             audit_trail=[],
         )
-
-        # Add initial audit entry
         await self._add_audit_entry(
             transaction,
             "transaction_created",
@@ -324,22 +287,13 @@ class TransactionService:
                 "risk_score": risk_assessment["risk_score"],
             },
         )
-
-        # Store transaction
         self.transactions[transaction_id] = transaction
-
-        # Reserve balance for outgoing transactions
         if transaction_type in [TransactionType.WITHDRAWAL, TransactionType.TRANSFER]:
             await self._reserve_balance(user_id, currency, amount + fee_amount)
-
-        # Add to processing queue if not on hold
         if initial_status != TransactionStatus.ON_HOLD:
             self.processing_queue.append(transaction_id)
-            # Start async processing
             asyncio.create_task(self._process_transaction_async(transaction_id))
-
         logger.info(f"Transaction created: {transaction_id} for user {user_id}")
-
         return {
             "transaction_id": transaction_id,
             "status": transaction.status.value,
@@ -359,11 +313,8 @@ class TransactionService:
         transaction = self.transactions.get(transaction_id)
         if not transaction:
             raise ValueError("Transaction not found")
-
-        # Check user authorization
         if user_id and transaction.user_id != user_id:
             raise ValueError("Unauthorized access to transaction")
-
         return {
             "transaction_id": transaction.transaction_id,
             "user_id": transaction.user_id,
@@ -404,28 +355,19 @@ class TransactionService:
         user_transactions = [
             tx for tx in self.transactions.values() if tx.user_id == user_id
         ]
-
-        # Apply filters
         if status:
             user_transactions = [
                 tx for tx in user_transactions if tx.status.value == status
             ]
-
         if transaction_type:
             user_transactions = [
                 tx
                 for tx in user_transactions
                 if tx.transaction_type.value == transaction_type
             ]
-
-        # Sort by creation date (newest first)
         user_transactions.sort(key=lambda x: x.created_at, reverse=True)
-
-        # Apply pagination
         total_count = len(user_transactions)
         paginated_transactions = user_transactions[offset : offset + limit]
-
-        # Format transactions
         formatted_transactions = []
         for tx in paginated_transactions:
             formatted_transactions.append(
@@ -444,7 +386,6 @@ class TransactionService:
                     ),
                 }
             )
-
         return {
             "transactions": formatted_transactions,
             "total_count": total_count,
@@ -459,9 +400,7 @@ class TransactionService:
         """Get user's balance for specific currency"""
         balance_key = (user_id, currency)
         balance = self.balances.get(balance_key)
-
         if not balance:
-            # Initialize balance if not exists
             balance = Balance(
                 user_id=user_id,
                 currency=currency,
@@ -472,7 +411,6 @@ class TransactionService:
                 last_updated=datetime.now(timezone.utc),
             )
             self.balances[balance_key] = balance
-
         return {
             "user_id": balance.user_id,
             "currency": balance.currency.value,
@@ -486,7 +424,6 @@ class TransactionService:
     async def get_user_balances(self, user_id: str) -> Dict[str, Any]:
         """Get all user balances"""
         user_balances = {}
-
         for (uid, currency), balance in self.balances.items():
             if uid == user_id:
                 user_balances[currency.value] = {
@@ -496,7 +433,6 @@ class TransactionService:
                     "reserved_balance": str(balance.reserved_balance),
                     "last_updated": balance.last_updated.isoformat(),
                 }
-
         return {"user_id": user_id, "balances": user_balances}
 
     async def cancel_transaction(
@@ -506,10 +442,8 @@ class TransactionService:
         transaction = self.transactions.get(transaction_id)
         if not transaction:
             raise ValueError("Transaction not found")
-
         if transaction.user_id != user_id:
             raise ValueError("Unauthorized access to transaction")
-
         if transaction.status not in [
             TransactionStatus.PENDING,
             TransactionStatus.ON_HOLD,
@@ -517,12 +451,8 @@ class TransactionService:
             raise ValueError(
                 f"Cannot cancel transaction with status: {transaction.status.value}"
             )
-
-        # Update transaction status
         transaction.status = TransactionStatus.CANCELLED
         transaction.updated_at = datetime.now(timezone.utc)
-
-        # Release reserved balance
         if transaction.transaction_type in [
             TransactionType.WITHDRAWAL,
             TransactionType.TRANSFER,
@@ -532,27 +462,19 @@ class TransactionService:
                 transaction.currency,
                 transaction.amount + transaction.fee_amount,
             )
-
-        # Add audit entry
         await self._add_audit_entry(
             transaction,
             "transaction_cancelled",
             {"cancelled_by": user_id, "reason": reason},
         )
-
-        # Remove from processing queue
         if transaction_id in self.processing_queue:
             self.processing_queue.remove(transaction_id)
-
         logger.info(f"Transaction cancelled: {transaction_id} by user {user_id}")
-
         return {
             "transaction_id": transaction_id,
             "status": transaction.status.value,
             "message": "Transaction cancelled successfully",
         }
-
-    # Private helper methods
 
     def _generate_transaction_id(self) -> str:
         """Generate unique transaction ID"""
@@ -566,16 +488,13 @@ class TransactionService:
         currency: Currency,
     ) -> Dict[str, Any]:
         """Check if transaction is within limits"""
-        # Get user's transaction limits
         user_limits = self.transaction_limits.get(user_id, [])
-
-        # Find applicable limit
         applicable_limit = None
         for limit in user_limits:
             if (
                 limit.transaction_type == transaction_type
                 and limit.currency == currency
-                and limit.effective_date <= datetime.now(timezone.utc)
+                and (limit.effective_date <= datetime.now(timezone.utc))
                 and (
                     not limit.expiry_date
                     or limit.expiry_date > datetime.now(timezone.utc)
@@ -583,8 +502,6 @@ class TransactionService:
             ):
                 applicable_limit = limit
                 break
-
-        # Use default limits if no custom limit found
         if not applicable_limit:
             default_limits = self.default_transaction_limits.get(transaction_type, {})
             applicable_limit = TransactionLimit(
@@ -600,37 +517,29 @@ class TransactionService:
                 effective_date=datetime.now(timezone.utc),
                 expiry_date=None,
             )
-
-        # Check single transaction limit
         if amount > applicable_limit.single_transaction_limit:
             return {
                 "allowed": False,
                 "reason": f"Amount exceeds single transaction limit of {applicable_limit.single_transaction_limit}",
             }
-
-        # Check daily, weekly, monthly limits
         current_usage = await self._calculate_current_usage(
             user_id, transaction_type, currency
         )
-
         if current_usage["daily"] + amount > applicable_limit.daily_limit:
             return {
                 "allowed": False,
                 "reason": f"Amount exceeds daily limit of {applicable_limit.daily_limit}",
             }
-
         if current_usage["weekly"] + amount > applicable_limit.weekly_limit:
             return {
                 "allowed": False,
                 "reason": f"Amount exceeds weekly limit of {applicable_limit.weekly_limit}",
             }
-
         if current_usage["monthly"] + amount > applicable_limit.monthly_limit:
             return {
                 "allowed": False,
                 "reason": f"Amount exceeds monthly limit of {applicable_limit.monthly_limit}",
             }
-
         return {"allowed": True}
 
     async def _calculate_current_usage(
@@ -641,25 +550,23 @@ class TransactionService:
         daily_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         weekly_start = daily_start - timedelta(days=now.weekday())
         monthly_start = daily_start.replace(day=1)
-
         usage = {"daily": Decimal("0"), "weekly": Decimal("0"), "monthly": Decimal("0")}
-
         for tx in self.transactions.values():
             if (
                 tx.user_id == user_id
                 and tx.transaction_type == transaction_type
-                and tx.currency == currency
-                and tx.status
-                in [TransactionStatus.COMPLETED, TransactionStatus.PROCESSING]
+                and (tx.currency == currency)
+                and (
+                    tx.status
+                    in [TransactionStatus.COMPLETED, TransactionStatus.PROCESSING]
+                )
             ):
-
                 if tx.created_at >= daily_start:
                     usage["daily"] += tx.amount
                 if tx.created_at >= weekly_start:
                     usage["weekly"] += tx.amount
                 if tx.created_at >= monthly_start:
                     usage["monthly"] += tx.amount
-
         return usage
 
     async def _calculate_fee(
@@ -672,12 +579,11 @@ class TransactionService:
         fee_config = self.fee_structure.get(transaction_type, {}).get(
             payment_method, Decimal("0")
         )
-
-        if fee_config < 1:  # Percentage fee
+        if fee_config < 1:
             return (amount * fee_config).quantize(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
-        else:  # Fixed fee
+        else:
             return fee_config
 
     async def _check_balance_availability(
@@ -686,12 +592,9 @@ class TransactionService:
         """Check if user has sufficient balance"""
         balance_key = (user_id, currency)
         balance = self.balances.get(balance_key)
-
         if not balance:
             return {"sufficient": False, "available": Decimal("0")}
-
         available = balance.available_balance - balance.reserved_balance
-
         return {
             "sufficient": available >= required_amount,
             "available": available,
@@ -709,43 +612,30 @@ class TransactionService:
         """Assess transaction risk score"""
         risk_score = 0.0
         risk_factors = []
-
-        # Amount-based risk
         if amount >= self.risk_thresholds["high_amount"]:
             risk_score += 3.0
             risk_factors.append("high_amount")
-
-        # Round amount risk (potential structuring)
         if amount % self.risk_thresholds["round_amount_threshold"] == 0:
             risk_score += 1.0
             risk_factors.append("round_amount")
-
-        # Time-based risk
         current_hour = datetime.now(timezone.utc).hour
         if current_hour in self.risk_thresholds["unusual_time_hours"]:
             risk_score += 1.5
             risk_factors.append("unusual_time")
-
-        # Velocity risk
         recent_transactions = await self._get_recent_transaction_count(user_id, hours=1)
         if recent_transactions >= self.risk_thresholds["suspicious_velocity"]:
             risk_score += 2.0
             risk_factors.append("high_velocity")
-
-        # Payment method risk
         if details.payment_method in [PaymentMethod.CRYPTO]:
             risk_score += 1.0
             risk_factors.append("high_risk_payment_method")
-
-        # Counterparty risk
         if details.counterparty and await self._is_high_risk_counterparty(
             details.counterparty
         ):
             risk_score += 2.5
             risk_factors.append("high_risk_counterparty")
-
         return {
-            "risk_score": min(risk_score, 10.0),  # Cap at 10
+            "risk_score": min(risk_score, 10.0),
             "risk_factors": risk_factors,
             "risk_level": (
                 "high" if risk_score >= 7 else "medium" if risk_score >= 4 else "low"
@@ -768,40 +658,27 @@ class TransactionService:
             "ctr_required": False,
             "sar_required": False,
         }
-
-        # KYC check
         kyc_status = await self.kyc_service.get_kyc_status(user_id)
         checks["kyc_verified"] = kyc_status["verified"]
-
-        # CTR (Currency Transaction Report) check
         if amount >= Decimal("10000.00"):
             checks["ctr_required"] = True
-
-        # SAR (Suspicious Activity Report) check
         if (
             amount >= Decimal("5000.00")
             and details.payment_method == PaymentMethod.CRYPTO
         ):
             checks["sar_required"] = True
-
         return checks
 
     def _determine_initial_status(
         self, risk_assessment: Dict[str, Any], compliance_checks: Dict[str, Any]
     ) -> TransactionStatus:
         """Determine initial transaction status"""
-        # High risk transactions go on hold
         if risk_assessment["risk_score"] >= 7.0:
             return TransactionStatus.ON_HOLD
-
-        # Compliance issues put transaction on hold
         if not compliance_checks["kyc_verified"]:
             return TransactionStatus.ON_HOLD
-
         if compliance_checks["ctr_required"] or compliance_checks["sar_required"]:
             return TransactionStatus.ON_HOLD
-
-        # Otherwise, start processing
         return TransactionStatus.PENDING
 
     async def _process_transaction_async(self, transaction_id: str):
@@ -810,51 +687,35 @@ class TransactionService:
             transaction = self.transactions.get(transaction_id)
             if not transaction:
                 return
-
-            # Update status to processing
             transaction.status = TransactionStatus.PROCESSING
             transaction.updated_at = datetime.now(timezone.utc)
-
             await self._add_audit_entry(transaction, "processing_started", {})
-
-            # Simulate processing time
             await asyncio.sleep(2)
-
-            # Process based on transaction type
             if transaction.transaction_type == TransactionType.DEPOSIT:
                 await self._process_deposit(transaction)
             elif transaction.transaction_type == TransactionType.WITHDRAWAL:
                 await self._process_withdrawal(transaction)
             elif transaction.transaction_type == TransactionType.TRANSFER:
                 await self._process_transfer(transaction)
-
-            # Update status to completed
             transaction.status = TransactionStatus.COMPLETED
             transaction.processed_at = datetime.now(timezone.utc)
             transaction.settlement_date = datetime.now(timezone.utc) + timedelta(days=1)
             transaction.confirmation_number = self._generate_confirmation_number()
             transaction.updated_at = datetime.now(timezone.utc)
-
             await self._add_audit_entry(
                 transaction,
                 "processing_completed",
                 {"confirmation_number": transaction.confirmation_number},
             )
-
             logger.info(f"Transaction processed successfully: {transaction_id}")
-
         except Exception as e:
-            # Handle processing failure
             transaction = self.transactions.get(transaction_id)
             if transaction:
                 transaction.status = TransactionStatus.FAILED
                 transaction.updated_at = datetime.now(timezone.utc)
-
                 await self._add_audit_entry(
                     transaction, "processing_failed", {"error": str(e)}
                 )
-
-                # Release reserved balance on failure
                 if transaction.transaction_type in [
                     TransactionType.WITHDRAWAL,
                     TransactionType.TRANSFER,
@@ -864,27 +725,22 @@ class TransactionService:
                         transaction.currency,
                         transaction.amount + transaction.fee_amount,
                     )
-
             logger.error(f"Transaction processing failed: {transaction_id} - {str(e)}")
 
     async def _process_deposit(self, transaction: Transaction):
         """Process deposit transaction"""
-        # Update user balance
         await self._update_balance(
             transaction.user_id, transaction.currency, transaction.net_amount, "credit"
         )
 
     async def _process_withdrawal(self, transaction: Transaction):
         """Process withdrawal transaction"""
-        # Deduct from balance (already reserved)
         await self._update_balance(
             transaction.user_id,
             transaction.currency,
             -(transaction.amount + transaction.fee_amount),
             "debit",
         )
-
-        # Release reserved amount
         await self._release_reserved_balance(
             transaction.user_id,
             transaction.currency,
@@ -893,16 +749,12 @@ class TransactionService:
 
     async def _process_transfer(self, transaction: Transaction):
         """Process transfer transaction"""
-        # For internal transfers, this would involve two balance updates
-        # For now, just deduct from sender
         await self._update_balance(
             transaction.user_id,
             transaction.currency,
             -(transaction.amount + transaction.fee_amount),
             "debit",
         )
-
-        # Release reserved amount
         await self._release_reserved_balance(
             transaction.user_id,
             transaction.currency,
@@ -915,7 +767,6 @@ class TransactionService:
         """Update user balance"""
         balance_key = (user_id, currency)
         balance = self.balances.get(balance_key)
-
         if not balance:
             balance = Balance(
                 user_id=user_id,
@@ -927,21 +778,18 @@ class TransactionService:
                 last_updated=datetime.now(timezone.utc),
             )
             self.balances[balance_key] = balance
-
         if operation == "credit":
             balance.available_balance += amount
             balance.total_balance += amount
         elif operation == "debit":
-            balance.available_balance += amount  # amount is negative for debits
+            balance.available_balance += amount
             balance.total_balance += amount
-
         balance.last_updated = datetime.now(timezone.utc)
 
     async def _reserve_balance(self, user_id: str, currency: Currency, amount: Decimal):
         """Reserve balance for pending transaction"""
         balance_key = (user_id, currency)
         balance = self.balances.get(balance_key)
-
         if balance:
             balance.reserved_balance += amount
             balance.available_balance -= amount
@@ -953,10 +801,8 @@ class TransactionService:
         """Release reserved balance"""
         balance_key = (user_id, currency)
         balance = self.balances.get(balance_key)
-
         if balance:
             balance.reserved_balance -= amount
-            # Don't add back to available - it was already deducted during processing
             balance.last_updated = datetime.now(timezone.utc)
 
     async def _add_audit_entry(
@@ -969,29 +815,25 @@ class TransactionService:
             "details": details,
             "system_info": {"version": "1.0.0", "node": "primary"},
         }
-
         transaction.audit_trail.append(audit_entry)
 
     async def _get_recent_transaction_count(self, user_id: str, hours: int = 1) -> int:
         """Get count of recent transactions for velocity check"""
         cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
-
         count = 0
         for tx in self.transactions.values():
             if (
                 tx.user_id == user_id
                 and tx.created_at >= cutoff_time
-                and tx.status != TransactionStatus.CANCELLED
+                and (tx.status != TransactionStatus.CANCELLED)
             ):
                 count += 1
-
         return count
 
     async def _is_high_risk_counterparty(self, counterparty: str) -> bool:
         """Check if counterparty is high risk"""
-        # In production, check against sanctions lists and risk databases
         high_risk_patterns = ["suspicious", "blocked", "sanctioned"]
-        return any(pattern in counterparty.lower() for pattern in high_risk_patterns)
+        return any((pattern in counterparty.lower() for pattern in high_risk_patterns))
 
     def _generate_confirmation_number(self) -> str:
         """Generate transaction confirmation number"""
@@ -1016,7 +858,6 @@ class TransactionService:
         status_counts = {}
         type_counts = {}
         total_volume = Decimal("0")
-
         for tx in self.transactions.values():
             status_counts[tx.status.value] = status_counts.get(tx.status.value, 0) + 1
             type_counts[tx.transaction_type.value] = (
@@ -1024,7 +865,6 @@ class TransactionService:
             )
             if tx.status == TransactionStatus.COMPLETED:
                 total_volume += tx.amount
-
         return {
             "total_transactions": len(self.transactions),
             "status_distribution": status_counts,

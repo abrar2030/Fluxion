@@ -12,7 +12,6 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional
-
 from services.security.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)
@@ -173,11 +172,9 @@ class PortfolioService:
     - Reporting and analytics
     """
 
-    def __init__(self):
+    def __init__(self) -> Any:
         self.encryption_service = EncryptionService()
-
-        # Portfolio management configuration
-        self.default_rebalancing_threshold = Decimal("0.05")  # 5%
+        self.default_rebalancing_threshold = Decimal("0.05")
         self.performance_calculation_periods = [
             "1D",
             "1W",
@@ -188,11 +185,7 @@ class PortfolioService:
             "3Y",
             "5Y",
         ]
-
-        # Risk-free rate for calculations (would be dynamic in production)
-        self.risk_free_rate = Decimal("0.02")  # 2%
-
-        # Default target allocations by risk profile
+        self.risk_free_rate = Decimal("0.02")
         self.default_allocations = {
             RiskProfile.CONSERVATIVE: {
                 "stocks": Decimal("0.30"),
@@ -215,18 +208,14 @@ class PortfolioService:
                 "cash": Decimal("0.05"),
             },
         }
-
-        # In-memory storage (in production, use database)
         self.portfolios: Dict[str, Portfolio] = {}
         self.assets: Dict[str, Asset] = {}
         self.positions: Dict[str, Position] = {}
         self.performance_history: Dict[str, List[PerformanceMetrics]] = {}
         self.price_history: Dict[str, List[Dict[str, Any]]] = {}
-
-        # Initialize sample assets
         self._initialize_sample_assets()
 
-    def _initialize_sample_assets(self):
+    def _initialize_sample_assets(self) -> Any:
         """Initialize sample assets for demonstration"""
         sample_assets = [
             {
@@ -270,7 +259,6 @@ class PortfolioService:
                 "exchange": "Multiple",
             },
         ]
-
         for asset_data in sample_assets:
             asset_id = f"asset_{uuid.uuid4().hex[:8]}"
             asset = Asset(
@@ -300,16 +288,11 @@ class PortfolioService:
     ) -> Dict[str, Any]:
         """Create a new portfolio"""
         portfolio_id = f"portfolio_{uuid.uuid4().hex[:12]}"
-
-        # Use default allocation if not provided
         if not target_allocation:
             target_allocation = self.default_allocations[risk_profile].copy()
-
-        # Validate allocation sums to 100%
         total_allocation = sum(target_allocation.values())
         if abs(total_allocation - Decimal("1.0")) > Decimal("0.01"):
             raise ValueError("Target allocation must sum to 100%")
-
         portfolio = Portfolio(
             portfolio_id=portfolio_id,
             user_id=user_id,
@@ -333,11 +316,8 @@ class PortfolioService:
             performance_metrics={},
             metadata={},
         )
-
         self.portfolios[portfolio_id] = portfolio
-
         logger.info(f"Portfolio created: {portfolio_id} for user {user_id}")
-
         return {
             "portfolio_id": portfolio_id,
             "name": name,
@@ -354,13 +334,9 @@ class PortfolioService:
         portfolio = self.portfolios.get(portfolio_id)
         if not portfolio:
             raise ValueError("Portfolio not found")
-
         if user_id and portfolio.user_id != user_id:
             raise ValueError("Unauthorized access to portfolio")
-
-        # Update portfolio values
         await self._update_portfolio_values(portfolio)
-
         return {
             "portfolio_id": portfolio.portfolio_id,
             "user_id": portfolio.user_id,
@@ -398,11 +374,8 @@ class PortfolioService:
             for portfolio in self.portfolios.values()
             if portfolio.user_id == user_id
         ]
-
-        # Update values for all portfolios
         for portfolio in user_portfolios:
             await self._update_portfolio_values(portfolio)
-
         formatted_portfolios = []
         for portfolio in user_portfolios:
             formatted_portfolios.append(
@@ -419,7 +392,6 @@ class PortfolioService:
                     "updated_at": portfolio.updated_at.isoformat(),
                 }
             )
-
         return {
             "user_id": user_id,
             "portfolios": formatted_portfolios,
@@ -438,42 +410,32 @@ class PortfolioService:
         portfolio = self.portfolios.get(portfolio_id)
         if not portfolio:
             raise ValueError("Portfolio not found")
-
-        # Find asset by symbol
         asset = None
         for a in self.assets.values():
             if a.symbol == asset_symbol:
                 asset = a
                 break
-
         if not asset:
             raise ValueError(f"Asset not found: {asset_symbol}")
-
         if purchase_date is None:
             purchase_date = datetime.now(timezone.utc)
-
-        # Check if position already exists
         existing_position = None
         for position in portfolio.positions:
             if position.asset_id == asset.asset_id:
                 existing_position = position
                 break
-
         if existing_position:
-            # Update existing position
             total_quantity = existing_position.quantity + quantity
             total_cost = (
                 existing_position.quantity * existing_position.average_cost
-            ) + (quantity * purchase_price)
+                + quantity * purchase_price
+            )
             new_average_cost = total_cost / total_quantity
-
             existing_position.quantity = total_quantity
             existing_position.average_cost = new_average_cost
             existing_position.cost_basis = total_cost
             existing_position.acquisition_dates.append(purchase_date)
             existing_position.last_updated = datetime.now(timezone.utc)
-
-            # Add tax lot
             existing_position.tax_lots.append(
                 {
                     "quantity": quantity,
@@ -482,24 +444,21 @@ class PortfolioService:
                     "cost_basis": quantity * purchase_price,
                 }
             )
-
             position_id = existing_position.position_id
         else:
-            # Create new position
             position_id = f"pos_{uuid.uuid4().hex[:12]}"
-
             position = Position(
                 position_id=position_id,
                 portfolio_id=portfolio_id,
                 asset_id=asset.asset_id,
                 quantity=quantity,
                 average_cost=purchase_price,
-                current_price=purchase_price,  # Will be updated with market data
+                current_price=purchase_price,
                 market_value=quantity * purchase_price,
                 unrealized_pnl=Decimal("0.00"),
                 realized_pnl=Decimal("0.00"),
                 cost_basis=quantity * purchase_price,
-                weight=Decimal("0.00"),  # Will be calculated
+                weight=Decimal("0.00"),
                 last_updated=datetime.now(timezone.utc),
                 acquisition_dates=[purchase_date],
                 tax_lots=[
@@ -511,17 +470,12 @@ class PortfolioService:
                     }
                 ],
             )
-
             portfolio.positions.append(position)
             self.positions[position_id] = position
-
-        # Update portfolio values
         await self._update_portfolio_values(portfolio)
-
         logger.info(
             f"Position added to portfolio {portfolio_id}: {asset_symbol} x {quantity}"
         )
-
         return {
             "position_id": position_id,
             "asset_symbol": asset_symbol,
@@ -543,13 +497,9 @@ class PortfolioService:
         portfolio = self.portfolios.get(portfolio_id)
         if not portfolio:
             raise ValueError("Portfolio not found")
-
         if user_id and portfolio.user_id != user_id:
             raise ValueError("Unauthorized access to portfolio")
-
-        # Update portfolio values
         await self._update_portfolio_values(portfolio)
-
         formatted_positions = []
         for position in portfolio.positions:
             asset = self.assets.get(position.asset_id)
@@ -575,7 +525,6 @@ class PortfolioService:
                         "last_updated": position.last_updated.isoformat(),
                     }
                 )
-
         return {
             "portfolio_id": portfolio_id,
             "positions": formatted_positions,
@@ -590,31 +539,22 @@ class PortfolioService:
         portfolio = self.portfolios.get(portfolio_id)
         if not portfolio:
             raise ValueError("Portfolio not found")
-
-        # Update portfolio values
         await self._update_portfolio_values(portfolio)
-
-        # Get historical data (simulated for now)
         historical_values = await self._get_portfolio_historical_values(
             portfolio_id, period
         )
-
         if len(historical_values) < 2:
             return {
                 "portfolio_id": portfolio_id,
                 "period": period,
                 "error": "Insufficient historical data",
             }
-
-        # Calculate returns
         returns = []
         for i in range(1, len(historical_values)):
             daily_return = (
                 historical_values[i] - historical_values[i - 1]
             ) / historical_values[i - 1]
             returns.append(float(daily_return))
-
-        # Calculate metrics
         total_return = (
             historical_values[-1] - historical_values[0]
         ) / historical_values[0]
@@ -624,20 +564,14 @@ class PortfolioService:
             if len(returns) > 1
             else Decimal("0")
         )
-
-        # Risk-adjusted metrics
-        excess_returns = [
-            r - float(self.risk_free_rate) / 252 for r in returns
-        ]  # Daily risk-free rate
+        excess_returns = [r - float(self.risk_free_rate) / 252 for r in returns]
         sharpe_ratio = (
             Decimal(str(statistics.mean(excess_returns)))
             / volatility
-            * Decimal("15.87")  # sqrt(252)
+            * Decimal("15.87")
             if volatility > 0
             else Decimal("0")
         )
-
-        # Downside deviation for Sortino ratio
         negative_returns = [r for r in returns if r < 0]
         downside_deviation = (
             Decimal(str(statistics.stdev(negative_returns)))
@@ -651,16 +585,10 @@ class PortfolioService:
             if downside_deviation > 0
             else Decimal("0")
         )
-
-        # Maximum drawdown
         max_drawdown = self._calculate_max_drawdown(historical_values)
-
-        # Calmar ratio
         calmar_ratio = (
             annualized_return / abs(max_drawdown) if max_drawdown != 0 else Decimal("0")
         )
-
-        # VaR and CVaR (95% confidence)
         var_95 = (
             Decimal(str(statistics.quantiles(returns, n=20)[0]))
             if len(returns) >= 20
@@ -672,7 +600,6 @@ class PortfolioService:
             if tail_returns
             else Decimal("0")
         )
-
         metrics = PerformanceMetrics(
             portfolio_id=portfolio_id,
             period=period,
@@ -681,29 +608,23 @@ class PortfolioService:
             volatility=volatility,
             sharpe_ratio=sharpe_ratio,
             max_drawdown=max_drawdown,
-            beta=Decimal("1.0"),  # Would calculate against benchmark
-            alpha=Decimal("0.0"),  # Would calculate against benchmark
-            information_ratio=Decimal("0.0"),  # Would calculate against benchmark
+            beta=Decimal("1.0"),
+            alpha=Decimal("0.0"),
+            information_ratio=Decimal("0.0"),
             sortino_ratio=sortino_ratio,
             calmar_ratio=calmar_ratio,
             var_95=var_95,
             cvar_95=cvar_95,
             calculated_at=datetime.now(timezone.utc),
         )
-
-        # Store metrics
         if portfolio_id not in self.performance_history:
             self.performance_history[portfolio_id] = []
         self.performance_history[portfolio_id].append(metrics)
-
-        # Update portfolio performance metrics
         portfolio.performance_metrics[period] = asdict(metrics)
         portfolio.updated_at = datetime.now(timezone.utc)
-
         logger.info(
             f"Performance metrics calculated for portfolio {portfolio_id}, period {period}"
         )
-
         return {
             "portfolio_id": portfolio_id,
             "period": period,
@@ -738,14 +659,9 @@ class PortfolioService:
         portfolio = self.portfolios.get(portfolio_id)
         if not portfolio:
             raise ValueError("Portfolio not found")
-
-        # Update portfolio values
         await self._update_portfolio_values(portfolio)
-
-        # Check if rebalancing is needed
         rebalancing_needed = False
         allocation_drifts = {}
-
         for category, target_weight in portfolio.target_allocation.items():
             current_weight = portfolio.current_allocation.get(category, Decimal("0"))
             drift = abs(current_weight - target_weight)
@@ -755,10 +671,8 @@ class PortfolioService:
                 "drift": drift,
                 "drift_percentage": (drift * 100).quantize(Decimal("0.01")),
             }
-
             if drift > portfolio.rebalancing_threshold:
                 rebalancing_needed = True
-
         if not rebalancing_needed:
             return {
                 "portfolio_id": portfolio_id,
@@ -774,17 +688,13 @@ class PortfolioService:
                 },
                 "message": "Portfolio is within rebalancing thresholds",
             }
-
-        # Generate rebalancing recommendations
         recommended_trades = []
         total_value = portfolio.total_value
-
         for category, allocation_info in allocation_drifts.items():
             if allocation_info["drift"] > portfolio.rebalancing_threshold:
                 target_value = total_value * allocation_info["target"]
                 current_value = total_value * allocation_info["current"]
                 trade_value = target_value - current_value
-
                 if trade_value != 0:
                     recommended_trades.append(
                         {
@@ -795,17 +705,12 @@ class PortfolioService:
                             "target_allocation": str(allocation_info["target"]),
                         }
                     )
-
-        # Estimate costs and benefits
-        estimated_cost = len(recommended_trades) * Decimal(
-            "9.99"
-        )  # Simplified commission
+        estimated_cost = len(recommended_trades) * Decimal("9.99")
         estimated_benefit = (
-            sum(allocation_drifts[cat]["drift"] for cat in allocation_drifts)
+            sum((allocation_drifts[cat]["drift"] for cat in allocation_drifts))
             * total_value
             * Decimal("0.01")
         )
-
         recommendation = RebalancingRecommendation(
             portfolio_id=portfolio_id,
             recommended_trades=recommended_trades,
@@ -814,11 +719,9 @@ class PortfolioService:
             risk_impact={"volatility_change": "minimal"},
             created_at=datetime.now(timezone.utc),
         )
-
         logger.info(
             f"Rebalancing recommendations generated for portfolio {portfolio_id}"
         )
-
         return {
             "portfolio_id": portfolio_id,
             "rebalancing_needed": True,
@@ -842,38 +745,25 @@ class PortfolioService:
             "created_at": recommendation.created_at.isoformat(),
         }
 
-    # Private helper methods
-
     async def _update_portfolio_values(self, portfolio: Portfolio):
         """Update portfolio values based on current market prices"""
         total_value = portfolio.cash_balance
         invested_amount = Decimal("0.00")
         total_return = Decimal("0.00")
-
-        # Calculate allocation by asset type
         allocation_by_type = {}
-
         for position in portfolio.positions:
-            # Simulate price updates (in production, get from market data service)
-            position.current_price = position.average_cost * Decimal(
-                "1.05"
-            )  # 5% gain simulation
+            position.current_price = position.average_cost * Decimal("1.05")
             position.market_value = position.quantity * position.current_price
             position.unrealized_pnl = position.market_value - position.cost_basis
-
             total_value += position.market_value
             invested_amount += position.cost_basis
             total_return += position.unrealized_pnl
-
-            # Get asset for allocation calculation
             asset = self.assets.get(position.asset_id)
             if asset:
                 asset_category = self._get_asset_category(asset.asset_type)
                 if asset_category not in allocation_by_type:
                     allocation_by_type[asset_category] = Decimal("0.00")
                 allocation_by_type[asset_category] += position.market_value
-
-        # Update portfolio totals
         portfolio.total_value = total_value
         portfolio.invested_amount = invested_amount
         portfolio.total_return = total_return
@@ -882,27 +772,20 @@ class PortfolioService:
             if invested_amount > 0
             else Decimal("0.00")
         )
-
-        # Update current allocation
         portfolio.current_allocation = {}
         if total_value > 0:
             for category, value in allocation_by_type.items():
                 portfolio.current_allocation[category] = value / total_value
-
-            # Add cash allocation
             if portfolio.cash_balance > 0:
                 portfolio.current_allocation["cash"] = (
                     portfolio.cash_balance / total_value
                 )
-
-        # Update position weights
         for position in portfolio.positions:
             position.weight = (
                 position.market_value / total_value
                 if total_value > 0
                 else Decimal("0.00")
             )
-
         portfolio.updated_at = datetime.now(timezone.utc)
 
     def _get_asset_category(self, asset_type: AssetType) -> str:
@@ -923,31 +806,21 @@ class PortfolioService:
         self, portfolio_id: str, period: str
     ) -> List[Decimal]:
         """Get historical portfolio values (simulated)"""
-        # In production, this would query historical data
-        # For now, simulate some historical values
         days = {"1D": 1, "1W": 7, "1M": 30, "3M": 90, "6M": 180, "1Y": 365}.get(
             period, 365
         )
-
         portfolio = self.portfolios[portfolio_id]
         current_value = portfolio.total_value
-
-        # Generate simulated historical values with some volatility
         historical_values = []
         for i in range(days):
-            # Simulate daily returns with some randomness
-            daily_return = Decimal("0.0005")  # 0.05% daily return on average
-            volatility = Decimal("0.01")  # 1% daily volatility
-
-            # Simple simulation - in production use actual historical data
+            daily_return = Decimal("0.0005")
+            volatility = Decimal("0.01")
             if i == 0:
-                value = current_value * Decimal("0.95")  # Start 5% lower
+                value = current_value * Decimal("0.95")
             else:
-                change = daily_return + (volatility * Decimal("0.5"))  # Simplified
+                change = daily_return + volatility * Decimal("0.5")
                 value = historical_values[-1] * (Decimal("1.0") + change)
-
             historical_values.append(value)
-
         return historical_values
 
     def _calculate_annualized_return(
@@ -956,32 +829,23 @@ class PortfolioService:
         """Calculate annualized return"""
         if not returns:
             return Decimal("0.00")
-
-        # Calculate compound return
         compound_return = 1.0
         for r in returns:
             compound_return *= 1.0 + r
-
         total_return = compound_return - 1.0
-
-        # Annualize based on period
         days = {"1D": 1, "1W": 7, "1M": 30, "3M": 90, "6M": 180, "1Y": 365}.get(
             period, 365
         )
         annualization_factor = 365.0 / days
-
         annualized = (1.0 + total_return) ** annualization_factor - 1.0
-
         return Decimal(str(annualized))
 
     def _calculate_max_drawdown(self, values: List[Decimal]) -> Decimal:
         """Calculate maximum drawdown"""
         if len(values) < 2:
             return Decimal("0.00")
-
         peak = values[0]
         max_drawdown = Decimal("0.00")
-
         for value in values[1:]:
             if value > peak:
                 peak = value
@@ -989,16 +853,13 @@ class PortfolioService:
                 drawdown = (peak - value) / peak
                 if drawdown > max_drawdown:
                     max_drawdown = drawdown
-
         return max_drawdown
 
     def get_portfolio_statistics(self) -> Dict[str, Any]:
         """Get portfolio service statistics"""
-        total_value = sum(p.total_value for p in self.portfolios.values())
-
+        total_value = sum((p.total_value for p in self.portfolios.values()))
         type_counts = {}
         risk_profile_counts = {}
-
         for portfolio in self.portfolios.values():
             type_counts[portfolio.portfolio_type.value] = (
                 type_counts.get(portfolio.portfolio_type.value, 0) + 1
@@ -1006,7 +867,6 @@ class PortfolioService:
             risk_profile_counts[portfolio.risk_profile.value] = (
                 risk_profile_counts.get(portfolio.risk_profile.value, 0) + 1
             )
-
         return {
             "total_portfolios": len(self.portfolios),
             "total_positions": len(self.positions),

@@ -11,7 +11,6 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional
 from uuid import UUID
-
 import numpy as np
 from models.blockchain import LiquidityPool
 from models.portfolio import Portfolio, PortfolioAsset
@@ -130,25 +129,18 @@ class AdvancedAnalyticsService:
     - Automated reporting and alerts
     """
 
-    def __init__(self):
-        # Analytics configuration
-        self.cache_ttl = 300  # 5 minutes cache for expensive calculations
-        self.real_time_update_interval = 30  # 30 seconds for real-time metrics
-
-        # Performance benchmarks
+    def __init__(self) -> Any:
+        self.cache_ttl = 300
+        self.real_time_update_interval = 30
         self.benchmarks = {
-            "portfolio_return": 0.08,  # 8% annual return
+            "portfolio_return": 0.08,
             "sharpe_ratio": 1.0,
-            "max_drawdown": -0.15,  # -15%
-            "volatility": 0.20,  # 20%
-            "win_rate": 0.55,  # 55%
+            "max_drawdown": -0.15,
+            "volatility": 0.2,
+            "win_rate": 0.55,
             "profit_factor": 1.5,
         }
-
-        # Risk-free rate for calculations
-        self.risk_free_rate = 0.02  # 2% annual
-
-        # Market data cache
+        self.risk_free_rate = 0.02
         self._metrics_cache = {}
         self._cache_timestamps = {}
 
@@ -160,59 +152,41 @@ class AdvancedAnalyticsService:
     ) -> PortfolioAnalytics:
         """Get comprehensive portfolio analytics"""
         try:
-            # Check cache first
             cache_key = f"portfolio_analytics_{portfolio_id}_{timeframe.value}"
             if self._is_cache_valid(cache_key):
                 return self._metrics_cache[cache_key]
-
-            # Get portfolio data
             portfolio_result = await db.execute(
                 select(Portfolio)
                 .options(selectinload(Portfolio.assets))
                 .where(Portfolio.id == portfolio_id)
             )
             portfolio = portfolio_result.scalar_one_or_none()
-
             if not portfolio:
                 raise ValueError(f"Portfolio {portfolio_id} not found")
-
-            # Get historical transaction data
             transactions = await self._get_portfolio_transactions(
                 db, portfolio_id, timeframe
             )
-
-            # Calculate portfolio value and returns
-            current_value = sum(asset.current_value for asset in portfolio.assets)
+            current_value = sum((asset.current_value for asset in portfolio.assets))
             historical_values = await self._calculate_historical_values(
                 db, portfolio_id, timeframe
             )
-
-            # Calculate performance metrics
             returns = self._calculate_returns(historical_values)
             total_return = self._calculate_total_return(historical_values)
             annualized_return = self._calculate_annualized_return(returns, timeframe)
             volatility = self._calculate_volatility(returns)
             sharpe_ratio = self._calculate_sharpe_ratio(returns, volatility)
             max_drawdown = self._calculate_max_drawdown(historical_values)
-
-            # Calculate trading metrics
             win_rate = self._calculate_win_rate(transactions)
             profit_factor = self._calculate_profit_factor(transactions)
-
-            # Calculate allocations
             asset_allocation = self._calculate_asset_allocation(
                 portfolio.assets, current_value
             )
             sector_allocation = await self._calculate_sector_allocation(
                 portfolio.assets, current_value
             )
-
-            # Performance attribution analysis
             performance_attribution = await self._calculate_performance_attribution(
                 db, portfolio.assets, returns, timeframe
             )
-
-            # Risk metrics
             risk_metrics = {
                 "value_at_risk_95": self._calculate_var(returns, 0.95),
                 "expected_shortfall": self._calculate_expected_shortfall(returns, 0.95),
@@ -222,8 +196,6 @@ class AdvancedAnalyticsService:
                 ),
                 "tracking_error": await self._calculate_tracking_error(db, returns),
             }
-
-            # Create analytics object
             analytics = PortfolioAnalytics(
                 portfolio_id=str(portfolio_id),
                 total_value=current_value,
@@ -240,18 +212,12 @@ class AdvancedAnalyticsService:
                 risk_metrics=risk_metrics,
                 calculated_at=datetime.utcnow(),
             )
-
-            # Cache results
             self._metrics_cache[cache_key] = analytics
             self._cache_timestamps[cache_key] = datetime.utcnow()
-
             logger.info(
-                f"Portfolio analytics calculated for {portfolio_id}: "
-                f"Return: {annualized_return:.2%}, Sharpe: {sharpe_ratio:.2f}"
+                f"Portfolio analytics calculated for {portfolio_id}: Return: {annualized_return:.2%}, Sharpe: {sharpe_ratio:.2f}"
             )
-
             return analytics
-
         except Exception as e:
             logger.error(
                 f"Portfolio analytics calculation failed for {portfolio_id}: {str(e)}"
@@ -263,12 +229,9 @@ class AdvancedAnalyticsService:
     ) -> MarketAnalytics:
         """Get comprehensive market analytics"""
         try:
-            # Check cache
             cache_key = f"market_analytics_{timeframe.value}"
             if self._is_cache_valid(cache_key):
                 return self._metrics_cache[cache_key]
-
-            # Calculate time window
             end_time = datetime.utcnow()
             if timeframe == TimeFrame.DAILY:
                 start_time = end_time - timedelta(days=1)
@@ -278,8 +241,6 @@ class AdvancedAnalyticsService:
                 start_time = end_time - timedelta(days=30)
             else:
                 start_time = end_time - timedelta(hours=1)
-
-            # Get transaction volume and count
             volume_result = await db.execute(
                 select(
                     func.sum(Transaction.usd_value).label("total_volume"),
@@ -297,35 +258,21 @@ class AdvancedAnalyticsService:
                 )
             )
             volume_metrics = volume_result.first()
-
-            # Get liquidity metrics
             liquidity_result = await db.execute(
                 select(func.sum(LiquidityPool.total_liquidity)).where(
                     LiquidityPool.active == True
                 )
             )
             total_liquidity = liquidity_result.scalar() or Decimal("0")
-
-            # Calculate top assets by volume
             top_assets = await self._get_top_assets_by_volume(db, start_time, end_time)
-
-            # Calculate liquidity utilization
             liquidity_utilization = await self._calculate_liquidity_utilization(
                 db, start_time, end_time
             )
-
-            # Calculate market volatility
             market_volatility = await self._calculate_market_volatility(db, timeframe)
-
-            # Price impact analysis
             price_impact_analysis = await self._analyze_price_impact(
                 db, start_time, end_time
             )
-
-            # Identify arbitrage opportunities
             arbitrage_opportunities = await self._identify_arbitrage_opportunities(db)
-
-            # Create market analytics
             analytics = MarketAnalytics(
                 total_volume_24h=volume_metrics.total_volume or Decimal("0"),
                 total_liquidity=total_liquidity,
@@ -340,18 +287,12 @@ class AdvancedAnalyticsService:
                 arbitrage_opportunities=arbitrage_opportunities,
                 calculated_at=datetime.utcnow(),
             )
-
-            # Cache results
             self._metrics_cache[cache_key] = analytics
             self._cache_timestamps[cache_key] = datetime.utcnow()
-
             logger.info(
-                f"Market analytics calculated: Volume: ${volume_metrics.total_volume or 0}, "
-                f"Users: {volume_metrics.active_users or 0}"
+                f"Market analytics calculated: Volume: ${volume_metrics.total_volume or 0}, Users: {volume_metrics.active_users or 0}"
             )
-
             return analytics
-
         except Exception as e:
             logger.error(f"Market analytics calculation failed: {str(e)}")
             raise
@@ -359,12 +300,9 @@ class AdvancedAnalyticsService:
     async def get_real_time_metrics(self, db: AsyncSession) -> RealTimeMetrics:
         """Get real-time system metrics"""
         try:
-            # Check cache (shorter TTL for real-time metrics)
             cache_key = "real_time_metrics"
-            if self._is_cache_valid(cache_key, ttl=30):  # 30 second cache
+            if self._is_cache_valid(cache_key, ttl=30):
                 return self._metrics_cache[cache_key]
-
-            # Get active users (last 5 minutes)
             five_minutes_ago = datetime.utcnow() - timedelta(minutes=5)
             active_users_result = await db.execute(
                 select(func.count(func.distinct(Transaction.user_id))).where(
@@ -372,8 +310,6 @@ class AdvancedAnalyticsService:
                 )
             )
             active_users = active_users_result.scalar() or 0
-
-            # Calculate transactions per second (last minute)
             one_minute_ago = datetime.utcnow() - timedelta(minutes=1)
             tps_result = await db.execute(
                 select(func.count(Transaction.id)).where(
@@ -385,24 +321,18 @@ class AdvancedAnalyticsService:
             )
             transactions_last_minute = tps_result.scalar() or 0
             transactions_per_second = transactions_last_minute / 60.0
-
-            # Get total value locked
             tvl_result = await db.execute(
                 select(func.sum(LiquidityPool.total_liquidity)).where(
                     LiquidityPool.active == True
                 )
             )
             total_value_locked = tvl_result.scalar() or Decimal("0")
-
-            # Simulate other metrics (in real implementation, these would come from monitoring systems)
             gas_price_gwei = await self._get_current_gas_price()
             network_congestion = await self._calculate_network_congestion(db)
             system_health_score = await self._calculate_system_health(db)
             api_response_time_ms = await self._get_api_response_time()
             error_rate_percent = await self._calculate_error_rate(db)
             uptime_percent = await self._calculate_uptime()
-
-            # Create real-time metrics
             metrics = RealTimeMetrics(
                 active_users=active_users,
                 transactions_per_second=transactions_per_second,
@@ -415,13 +345,9 @@ class AdvancedAnalyticsService:
                 uptime_percent=uptime_percent,
                 timestamp=datetime.utcnow(),
             )
-
-            # Cache with short TTL
             self._metrics_cache[cache_key] = metrics
             self._cache_timestamps[cache_key] = datetime.utcnow()
-
             return metrics
-
         except Exception as e:
             logger.error(f"Real-time metrics calculation failed: {str(e)}")
             raise
@@ -444,29 +370,19 @@ class AdvancedAnalyticsService:
                 "insights": [],
                 "recommendations": [],
             }
-
-            # Get market analytics
             market_analytics = await self.get_market_analytics(db, timeframe)
             report["metrics"]["market"] = asdict(market_analytics)
-
-            # Get real-time metrics
             real_time_metrics = await self.get_real_time_metrics(db)
             report["metrics"]["real_time"] = asdict(real_time_metrics)
-
-            # User-specific analytics if user_id provided
             if user_id:
                 user_portfolios = await self._get_user_portfolios(db, user_id)
                 portfolio_analytics = []
-
                 for portfolio in user_portfolios:
                     analytics = await self.get_portfolio_analytics(
                         db, portfolio.id, timeframe
                     )
                     portfolio_analytics.append(asdict(analytics))
-
                 report["metrics"]["portfolios"] = portfolio_analytics
-
-            # Generate summary
             report["summary"] = {
                 "total_volume": float(market_analytics.total_volume_24h),
                 "active_users": market_analytics.active_users_24h,
@@ -474,35 +390,26 @@ class AdvancedAnalyticsService:
                 "system_health": real_time_metrics.system_health_score,
                 "market_volatility": market_analytics.market_volatility,
             }
-
-            # Generate insights
             insights = await self._generate_insights(
                 market_analytics, real_time_metrics
             )
             report["insights"] = insights
-
-            # Generate recommendations
             recommendations = await self._generate_recommendations(
                 market_analytics, real_time_metrics
             )
             report["recommendations"] = recommendations
-
             logger.info(
                 f"Analytics report generated: {report_type}, timeframe: {timeframe.value}"
             )
             return report
-
         except Exception as e:
             logger.error(f"Analytics report generation failed: {str(e)}")
             raise
-
-    # Private helper methods
 
     def _is_cache_valid(self, cache_key: str, ttl: int = None) -> bool:
         """Check if cached data is still valid"""
         if cache_key not in self._cache_timestamps:
             return False
-
         cache_age = (
             datetime.utcnow() - self._cache_timestamps[cache_key]
         ).total_seconds()
@@ -512,17 +419,15 @@ class AdvancedAnalyticsService:
         self, db: AsyncSession, portfolio_id: UUID, timeframe: TimeFrame
     ) -> List[Transaction]:
         """Get portfolio transactions for analysis"""
-        # Calculate time window
         end_time = datetime.utcnow()
         if timeframe == TimeFrame.DAILY:
-            start_time = end_time - timedelta(days=30)  # 30 days for daily analysis
+            start_time = end_time - timedelta(days=30)
         elif timeframe == TimeFrame.WEEKLY:
-            start_time = end_time - timedelta(days=90)  # 90 days for weekly
+            start_time = end_time - timedelta(days=90)
         elif timeframe == TimeFrame.MONTHLY:
-            start_time = end_time - timedelta(days=365)  # 1 year for monthly
+            start_time = end_time - timedelta(days=365)
         else:
-            start_time = end_time - timedelta(days=7)  # Default 7 days
-
+            start_time = end_time - timedelta(days=7)
         result = await db.execute(
             select(Transaction)
             .where(
@@ -534,16 +439,12 @@ class AdvancedAnalyticsService:
             )
             .order_by(Transaction.created_at)
         )
-
         return result.scalars().all()
 
     async def _calculate_historical_values(
         self, db: AsyncSession, portfolio_id: UUID, timeframe: TimeFrame
     ) -> List[float]:
         """Calculate historical portfolio values"""
-        # In a real implementation, this would query historical portfolio values
-        # For now, simulate with random walk
-
         if timeframe == TimeFrame.DAILY:
             periods = 30
         elif timeframe == TimeFrame.WEEKLY:
@@ -552,24 +453,17 @@ class AdvancedAnalyticsService:
             periods = 12
         else:
             periods = 7
-
-        # Simulate portfolio value evolution
-        np.random.seed(
-            int(str(portfolio_id)[-6:], 16) % 2**32
-        )  # Deterministic but portfolio-specific
-        returns = np.random.normal(0.001, 0.02, periods)  # Daily returns
-        values = [10000.0]  # Starting value
-
+        np.random.seed(int(str(portfolio_id)[-6:], 16) % 2**32)
+        returns = np.random.normal(0.001, 0.02, periods)
+        values = [10000.0]
         for ret in returns:
             values.append(values[-1] * (1 + ret))
-
         return values
 
     def _calculate_returns(self, values: List[float]) -> np.ndarray:
         """Calculate returns from value series"""
         if len(values) < 2:
             return np.array([])
-
         values_array = np.array(values)
         returns = np.diff(values_array) / values_array[:-1]
         return returns
@@ -578,7 +472,6 @@ class AdvancedAnalyticsService:
         """Calculate total return"""
         if len(values) < 2:
             return 0.0
-
         return (values[-1] - values[0]) / values[0]
 
     def _calculate_annualized_return(
@@ -587,57 +480,46 @@ class AdvancedAnalyticsService:
         """Calculate annualized return"""
         if len(returns) == 0:
             return 0.0
-
-        # Determine periods per year
         if timeframe == TimeFrame.DAILY:
-            periods_per_year = 252  # Trading days
+            periods_per_year = 252
         elif timeframe == TimeFrame.WEEKLY:
             periods_per_year = 52
         elif timeframe == TimeFrame.MONTHLY:
             periods_per_year = 12
         else:
             periods_per_year = 252
-
         mean_return = np.mean(returns)
         annualized_return = (1 + mean_return) ** periods_per_year - 1
-
         return float(annualized_return)
 
     def _calculate_volatility(self, returns: np.ndarray) -> float:
         """Calculate annualized volatility"""
         if len(returns) == 0:
             return 0.0
-
-        return float(np.std(returns) * np.sqrt(252))  # Annualized
+        return float(np.std(returns) * np.sqrt(252))
 
     def _calculate_sharpe_ratio(self, returns: np.ndarray, volatility: float) -> float:
         """Calculate Sharpe ratio"""
         if len(returns) == 0 or volatility == 0:
             return 0.0
-
-        excess_return = (
-            np.mean(returns) * 252 - self.risk_free_rate
-        )  # Annualized excess return
+        excess_return = np.mean(returns) * 252 - self.risk_free_rate
         return float(excess_return / volatility)
 
     def _calculate_max_drawdown(self, values: List[float]) -> float:
         """Calculate maximum drawdown"""
         if len(values) < 2:
             return 0.0
-
         values_array = np.array(values)
         running_max = np.maximum.accumulate(values_array)
         drawdown = (values_array - running_max) / running_max
-
         return float(np.min(drawdown))
 
     def _calculate_win_rate(self, transactions: List[Transaction]) -> float:
         """Calculate win rate from transactions"""
         if not transactions:
             return 0.0
-
         profitable_trades = sum(
-            1 for tx in transactions if tx.profit_loss and tx.profit_loss > 0
+            (1 for tx in transactions if tx.profit_loss and tx.profit_loss > 0)
         )
         return profitable_trades / len(transactions)
 
@@ -645,23 +527,24 @@ class AdvancedAnalyticsService:
         """Calculate profit factor"""
         if not transactions:
             return 0.0
-
         gross_profit = sum(
-            tx.profit_loss
-            for tx in transactions
-            if tx.profit_loss and tx.profit_loss > 0
+            (
+                tx.profit_loss
+                for tx in transactions
+                if tx.profit_loss and tx.profit_loss > 0
+            )
         )
         gross_loss = abs(
             sum(
-                tx.profit_loss
-                for tx in transactions
-                if tx.profit_loss and tx.profit_loss < 0
+                (
+                    tx.profit_loss
+                    for tx in transactions
+                    if tx.profit_loss and tx.profit_loss < 0
+                )
             )
         )
-
         if gross_loss == 0:
             return float("inf") if gross_profit > 0 else 0.0
-
         return float(gross_profit / gross_loss)
 
     def _calculate_asset_allocation(
@@ -670,11 +553,9 @@ class AdvancedAnalyticsService:
         """Calculate asset allocation percentages"""
         if total_value == 0:
             return {}
-
         allocation = {}
         for asset in assets:
             allocation[asset.symbol] = float(asset.current_value / total_value)
-
         return allocation
 
     async def _calculate_sector_allocation(
@@ -683,8 +564,6 @@ class AdvancedAnalyticsService:
         """Calculate sector allocation percentages"""
         if total_value == 0:
             return {}
-
-        # Simulate sector mapping (in real implementation, this would come from asset metadata)
         sector_mapping = {
             "BTC": "Cryptocurrency",
             "ETH": "Cryptocurrency",
@@ -694,14 +573,12 @@ class AdvancedAnalyticsService:
             "GOOGL": "Technology",
             "TSLA": "Automotive",
         }
-
         sector_allocation = {}
         for asset in assets:
             sector = sector_mapping.get(asset.symbol, "Other")
             if sector not in sector_allocation:
                 sector_allocation[sector] = 0.0
             sector_allocation[sector] += float(asset.current_value / total_value)
-
         return sector_allocation
 
     async def _calculate_performance_attribution(
@@ -712,22 +589,17 @@ class AdvancedAnalyticsService:
         timeframe: TimeFrame,
     ) -> Dict[str, float]:
         """Calculate performance attribution by asset"""
-        # Simulate performance attribution
         attribution = {}
-
         for asset in assets:
-            # In real implementation, this would calculate actual contribution to returns
             np.random.seed(hash(asset.symbol) % 2**32)
-            contribution = np.random.normal(0.0, 0.01)  # Random contribution
+            contribution = np.random.normal(0.0, 0.01)
             attribution[asset.symbol] = float(contribution)
-
         return attribution
 
     def _calculate_var(self, returns: np.ndarray, confidence_level: float) -> float:
         """Calculate Value at Risk"""
         if len(returns) == 0:
             return 0.0
-
         return float(np.percentile(returns, (1 - confidence_level) * 100))
 
     def _calculate_expected_shortfall(
@@ -736,30 +608,22 @@ class AdvancedAnalyticsService:
         """Calculate Expected Shortfall (Conditional VaR)"""
         if len(returns) == 0:
             return 0.0
-
         var_threshold = np.percentile(returns, (1 - confidence_level) * 100)
         tail_returns = returns[returns <= var_threshold]
-
         if len(tail_returns) == 0:
             return var_threshold
-
         return float(np.mean(tail_returns))
 
     async def _calculate_beta(self, db: AsyncSession, returns: np.ndarray) -> float:
         """Calculate portfolio beta"""
         if len(returns) == 0:
             return 1.0
-
-        # Simulate market returns (in real implementation, use actual market data)
         np.random.seed(42)
         market_returns = np.random.normal(0.0008, 0.015, len(returns))
-
         covariance = np.cov(returns, market_returns)[0, 1]
         market_variance = np.var(market_returns)
-
         if market_variance == 0:
             return 1.0
-
         return float(covariance / market_variance)
 
     async def _calculate_market_correlation(
@@ -768,11 +632,8 @@ class AdvancedAnalyticsService:
         """Calculate correlation with market"""
         if len(returns) == 0:
             return 0.0
-
-        # Simulate market returns
         np.random.seed(42)
         market_returns = np.random.normal(0.0008, 0.015, len(returns))
-
         correlation_matrix = np.corrcoef(returns, market_returns)
         return float(correlation_matrix[0, 1])
 
@@ -782,14 +643,10 @@ class AdvancedAnalyticsService:
         """Calculate tracking error vs benchmark"""
         if len(returns) == 0:
             return 0.0
-
-        # Simulate benchmark returns
         np.random.seed(123)
         benchmark_returns = np.random.normal(0.0006, 0.012, len(returns))
-
         excess_returns = returns - benchmark_returns
-        tracking_error = np.std(excess_returns) * np.sqrt(252)  # Annualized
-
+        tracking_error = np.std(excess_returns) * np.sqrt(252)
         return float(tracking_error)
 
     async def _get_top_assets_by_volume(
@@ -813,7 +670,6 @@ class AdvancedAnalyticsService:
             .order_by(desc("volume"))
             .limit(10)
         )
-
         top_assets = []
         for row in result:
             top_assets.append(
@@ -823,22 +679,18 @@ class AdvancedAnalyticsService:
                     "trade_count": row.trade_count or 0,
                 }
             )
-
         return top_assets
 
     async def _calculate_liquidity_utilization(
         self, db: AsyncSession, start_time: datetime, end_time: datetime
     ) -> float:
         """Calculate liquidity utilization rate"""
-        # Get total liquidity
         total_liquidity_result = await db.execute(
             select(func.sum(LiquidityPool.total_liquidity)).where(
                 LiquidityPool.active == True
             )
         )
         total_liquidity = total_liquidity_result.scalar() or Decimal("0")
-
-        # Get volume traded
         volume_result = await db.execute(
             select(func.sum(Transaction.usd_value)).where(
                 and_(
@@ -849,23 +701,16 @@ class AdvancedAnalyticsService:
             )
         )
         volume_traded = volume_result.scalar() or Decimal("0")
-
         if total_liquidity == 0:
             return 0.0
-
         return float(volume_traded / total_liquidity)
 
     async def _calculate_market_volatility(
         self, db: AsyncSession, timeframe: TimeFrame
     ) -> float:
         """Calculate overall market volatility"""
-        # In a real implementation, this would calculate from price data
-        # For now, simulate based on recent transaction patterns
-
-        # Get recent transaction volumes to estimate volatility
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(days=30)
-
         result = await db.execute(
             select(
                 func.date(Transaction.created_at).label("date"),
@@ -880,28 +725,21 @@ class AdvancedAnalyticsService:
             .group_by(func.date(Transaction.created_at))
             .order_by("date")
         )
-
         daily_volumes = [float(row.daily_volume or 0) for row in result]
-
         if len(daily_volumes) < 2:
             return 0.0
-
-        # Calculate volatility of daily volumes as proxy for market volatility
         volume_returns = np.diff(daily_volumes) / np.array(daily_volumes[:-1])
-        volume_returns = volume_returns[np.isfinite(volume_returns)]  # Remove inf/nan
-
+        volume_returns = volume_returns[np.isfinite(volume_returns)]
         if len(volume_returns) == 0:
             return 0.0
-
         return float(np.std(volume_returns))
 
     async def _analyze_price_impact(
         self, db: AsyncSession, start_time: datetime, end_time: datetime
     ) -> Dict[str, float]:
         """Analyze price impact of trades"""
-        # Simulate price impact analysis
         return {
-            "average_impact_bps": 15.5,  # basis points
+            "average_impact_bps": 15.5,
             "large_trade_impact_bps": 45.2,
             "small_trade_impact_bps": 8.1,
             "impact_efficiency_score": 0.85,
@@ -911,9 +749,6 @@ class AdvancedAnalyticsService:
         self, db: AsyncSession
     ) -> List[Dict[str, Any]]:
         """Identify potential arbitrage opportunities"""
-        # In a real implementation, this would compare prices across different pools/exchanges
-        # For now, return simulated opportunities
-
         opportunities = [
             {
                 "asset_pair": "ETH/USDC",
@@ -932,58 +767,46 @@ class AdvancedAnalyticsService:
                 "confidence": 0.72,
             },
         ]
-
         return opportunities
 
     async def _get_current_gas_price(self) -> float:
         """Get current gas price"""
-        # In a real implementation, this would query blockchain network
-        return 25.5  # Simulate gas price in gwei
+        return 25.5
 
     async def _calculate_network_congestion(self, db: AsyncSession) -> float:
         """Calculate network congestion score"""
-        # Simulate network congestion based on transaction volume
         recent_tx_count = await db.execute(
             select(func.count(Transaction.id)).where(
                 Transaction.created_at >= datetime.utcnow() - timedelta(minutes=10)
             )
         )
         tx_count = recent_tx_count.scalar() or 0
-
-        # Normalize to 0-1 scale (higher = more congested)
         congestion_score = min(tx_count / 100.0, 1.0)
         return congestion_score
 
     async def _calculate_system_health(self, db: AsyncSession) -> float:
         """Calculate overall system health score"""
-        # Simulate system health based on various factors
         error_rate = await self._calculate_error_rate(db)
         uptime = await self._calculate_uptime()
         response_time = await self._get_api_response_time()
-
-        # Weighted health score
         health_score = (
-            (1 - error_rate / 100) * 0.4  # Error rate weight
-            + (uptime / 100) * 0.4  # Uptime weight
-            + max(0, (200 - response_time) / 200) * 0.2  # Response time weight
+            (1 - error_rate / 100) * 0.4
+            + uptime / 100 * 0.4
+            + max(0, (200 - response_time) / 200) * 0.2
         )
-
         return min(max(health_score, 0.0), 1.0)
 
     async def _get_api_response_time(self) -> float:
         """Get average API response time"""
-        # In a real implementation, this would come from monitoring systems
-        return 125.5  # Simulate response time in ms
+        return 125.5
 
     async def _calculate_error_rate(self, db: AsyncSession) -> float:
         """Calculate error rate percentage"""
-        # Simulate error rate calculation
-        return 0.5  # 0.5% error rate
+        return 0.5
 
     async def _calculate_uptime(self) -> float:
         """Calculate system uptime percentage"""
-        # In a real implementation, this would come from monitoring systems
-        return 99.95  # 99.95% uptime
+        return 99.95
 
     async def _get_user_portfolios(
         self, db: AsyncSession, user_id: UUID
@@ -1001,33 +824,24 @@ class AdvancedAnalyticsService:
     ) -> List[str]:
         """Generate analytical insights"""
         insights = []
-
-        # Volume insights
-        if market_analytics.total_volume_24h > 1000000:  # $1M
+        if market_analytics.total_volume_24h > 1000000:
             insights.append("High trading volume indicates strong market activity")
-        elif market_analytics.total_volume_24h < 100000:  # $100K
+        elif market_analytics.total_volume_24h < 100000:
             insights.append("Low trading volume suggests reduced market interest")
-
-        # Liquidity insights
         if market_analytics.liquidity_utilization > 0.8:
             insights.append(
                 "High liquidity utilization may indicate capital efficiency"
             )
         elif market_analytics.liquidity_utilization < 0.2:
             insights.append("Low liquidity utilization suggests excess capital")
-
-        # System health insights
         if real_time_metrics.system_health_score > 0.95:
             insights.append("System operating at optimal performance levels")
         elif real_time_metrics.system_health_score < 0.8:
             insights.append("System performance degradation detected")
-
-        # Market volatility insights
         if market_analytics.market_volatility > 0.3:
             insights.append(
                 "High market volatility presents both risks and opportunities"
             )
-
         return insights
 
     async def _generate_recommendations(
@@ -1035,31 +849,22 @@ class AdvancedAnalyticsService:
     ) -> List[str]:
         """Generate actionable recommendations"""
         recommendations = []
-
-        # Performance recommendations
         if real_time_metrics.api_response_time_ms > 200:
             recommendations.append(
                 "Consider optimizing API performance to improve user experience"
             )
-
         if real_time_metrics.error_rate_percent > 1.0:
             recommendations.append("Investigate and address elevated error rates")
-
-        # Market recommendations
         if market_analytics.liquidity_utilization < 0.3:
             recommendations.append(
                 "Consider incentivizing trading activity to improve capital efficiency"
             )
-
         if len(market_analytics.arbitrage_opportunities) > 5:
             recommendations.append(
                 "Multiple arbitrage opportunities detected - consider automated market making"
             )
-
-        # Gas price recommendations
         if real_time_metrics.gas_price_gwei > 50:
             recommendations.append(
                 "High gas prices may impact user adoption - consider Layer 2 solutions"
             )
-
         return recommendations

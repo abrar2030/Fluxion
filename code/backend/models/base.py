@@ -5,7 +5,6 @@ Base model classes for Fluxion backend
 import uuid
 from datetime import datetime
 from typing import Any, Dict, Optional
-
 from config.database import Base
 from sqlalchemy import JSON, Boolean, Column, DateTime, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -17,7 +16,6 @@ class BaseModel(Base):
     """Base model class with common fields"""
 
     __abstract__ = True
-
     id = Column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -27,7 +25,7 @@ class BaseModel(Base):
     )
 
     @declared_attr
-    def __tablename__(cls):
+    def __tablename__(cls: Any) -> Any:
         """Generate table name from class name"""
         return cls.__name__.lower() + "s"
 
@@ -56,7 +54,6 @@ class TimestampMixin:
         nullable=False,
         comment="Record creation timestamp",
     )
-
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
@@ -72,7 +69,6 @@ class SoftDeleteMixin:
     deleted_at = Column(
         DateTime(timezone=True), nullable=True, comment="Soft delete timestamp"
     )
-
     is_deleted = Column(
         Boolean, default=False, nullable=False, index=True, comment="Soft delete flag"
     )
@@ -94,11 +90,9 @@ class AuditMixin:
     created_by = Column(
         UUID(as_uuid=True), nullable=True, comment="User who created the record"
     )
-
     updated_by = Column(
         UUID(as_uuid=True), nullable=True, comment="User who last updated the record"
     )
-
     version = Column(
         String(50), nullable=True, comment="Record version for optimistic locking"
     )
@@ -108,11 +102,11 @@ class EncryptedMixin:
     """Mixin for encrypted fields"""
 
     @declared_attr
-    def encrypted_fields(cls):
+    def encrypted_fields(cls: Any) -> Any:
         """Define which fields should be encrypted"""
         return []
 
-    def encrypt_sensitive_data(self, encryption_service) -> None:
+    def encrypt_sensitive_data(self, encryption_service: Any) -> None:
         """Encrypt sensitive fields"""
         for field_name in self.encrypted_fields:
             if hasattr(self, field_name):
@@ -121,7 +115,7 @@ class EncryptedMixin:
                     encrypted_value = encryption_service.encrypt(str(value))
                     setattr(self, field_name, encrypted_value)
 
-    def decrypt_sensitive_data(self, encryption_service) -> None:
+    def decrypt_sensitive_data(self, encryption_service: Any) -> None:
         """Decrypt sensitive fields"""
         for field_name in self.encrypted_fields:
             if hasattr(self, field_name):
@@ -131,7 +125,6 @@ class EncryptedMixin:
                         decrypted_value = encryption_service.decrypt(value)
                         setattr(self, field_name, decrypted_value)
                     except Exception:
-                        # Handle decryption errors gracefully
                         pass
 
 
@@ -139,9 +132,7 @@ class MetadataMixin:
     """Mixin for metadata fields"""
 
     metadata = Column(JSON, nullable=True, comment="Additional metadata in JSON format")
-
     tags = Column(JSON, nullable=True, comment="Tags for categorization")
-
     notes = Column(Text, nullable=True, comment="Additional notes")
 
     def add_metadata(self, key: str, value: Any) -> None:
@@ -177,15 +168,12 @@ class ComplianceMixin:
     """Mixin for compliance-related fields"""
 
     compliance_status = Column(String(50), nullable=True, comment="Compliance status")
-
     compliance_checked_at = Column(
         DateTime(timezone=True),
         nullable=True,
         comment="Last compliance check timestamp",
     )
-
     compliance_notes = Column(Text, nullable=True, comment="Compliance notes")
-
     risk_score = Column(String(20), nullable=True, comment="Risk score (encrypted)")
 
     def update_compliance_status(

@@ -5,7 +5,6 @@ Base Pydantic schemas for Fluxion backend
 from datetime import datetime
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 from uuid import UUID
-
 from pydantic import BaseModel, Field, validator
 from pydantic.generics import GenericModel
 
@@ -138,7 +137,7 @@ class FilterBase(BaseSchema):
     )
 
     @validator("sort_order")
-    def validate_sort_order(cls, v):
+    def validate_sort_order(cls: Any, v: Any) -> Any:
         if v and v not in ["asc", "desc"]:
             raise ValueError('sort_order must be either "asc" or "desc"')
         return v
@@ -151,8 +150,8 @@ class DateRangeFilter(BaseSchema):
     end_date: Optional[datetime] = Field(None, description="End date")
 
     @validator("end_date")
-    def validate_date_range(cls, v, values):
-        if v and values.get("start_date") and v <= values["start_date"]:
+    def validate_date_range(cls: Any, v: Any, values: Any) -> Any:
+        if v and values.get("start_date") and (v <= values["start_date"]):
             raise ValueError("end_date must be after start_date")
         return v
 

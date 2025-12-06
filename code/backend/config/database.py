@@ -6,7 +6,6 @@ import logging
 from code.backend.config.settings import settings
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
-
 from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -27,7 +26,7 @@ class Base(DeclarativeBase):
 class DatabaseManager:
     """Database connection manager"""
 
-    def __init__(self):
+    def __init__(self) -> Any:
         self._engine: Optional[AsyncEngine] = None
         self._session_factory: Optional[async_sessionmaker] = None
         self._read_engine: Optional[AsyncEngine] = None
@@ -39,7 +38,7 @@ class DatabaseManager:
         """Create database engine with optimized settings"""
         engine_kwargs = {
             "url": database_url,
-            "echo": settings.database.DB_ECHO and not is_read_replica,
+            "echo": settings.database.DB_ECHO and (not is_read_replica),
             "poolclass": QueuePool,
             "pool_size": settings.database.DB_POOL_SIZE,
             "max_overflow": settings.database.DB_MAX_OVERFLOW,
@@ -48,20 +47,17 @@ class DatabaseManager:
             "pool_pre_ping": True,
             "connect_args": {
                 "server_settings": {
-                    "application_name": f"fluxion_{'read' if is_read_replica else 'write'}",
+                    "application_name": f"fluxion_{('read' if is_read_replica else 'write')}",
                     "jit": "off",
                 }
             },
         }
-
         engine = create_async_engine(**engine_kwargs)
 
-        # Add connection event listeners
         @event.listens_for(engine.sync_engine, "connect")
         def set_sqlite_pragma(dbapi_connection, connection_record):
             """Set database-specific optimizations"""
             if "postgresql" in str(engine.url):
-                # PostgreSQL optimizations
                 with dbapi_connection.cursor() as cursor:
                     cursor.execute("SET timezone TO 'UTC'")
                     cursor.execute("SET statement_timeout = '300s'")
@@ -72,7 +68,6 @@ class DatabaseManager:
     async def init_database(self):
         """Initialize database connections"""
         try:
-            # Create main engine
             self._engine = self.create_engine(str(settings.database.DATABASE_URL))
             self._session_factory = async_sessionmaker(
                 bind=self._engine,
@@ -81,8 +76,6 @@ class DatabaseManager:
                 autoflush=True,
                 autocommit=False,
             )
-
-            # Create read replica engine if configured
             if settings.database.DATABASE_READ_URL:
                 self._read_engine = self.create_engine(
                     str(settings.database.DATABASE_READ_URL), is_read_replica=True
@@ -94,11 +87,8 @@ class DatabaseManager:
                     autoflush=False,
                     autocommit=False,
                 )
-
-            # Test connections
             await self.test_connection()
             logger.info("Database connections initialized successfully")
-
         except Exception as e:
             logger.error(f"Failed to initialize database: {e}")
             raise
@@ -109,12 +99,10 @@ class DatabaseManager:
             async with self._engine.begin() as conn:
                 result = await conn.execute(text("SELECT 1"))
                 assert result.scalar() == 1
-
             if self._read_engine:
                 async with self._read_engine.begin() as conn:
                     result = await conn.execute(text("SELECT 1"))
                     assert result.scalar() == 1
-
         except Exception as e:
             logger.error(f"Database connection test failed: {e}")
             raise
@@ -125,11 +113,9 @@ class DatabaseManager:
             if self._engine:
                 await self._engine.dispose()
                 logger.info("Main database connection closed")
-
             if self._read_engine:
                 await self._read_engine.dispose()
                 logger.info("Read replica database connection closed")
-
         except Exception as e:
             logger.error(f"Error closing database connections: {e}")
 
@@ -142,10 +128,8 @@ class DatabaseManager:
             session_factory = self._read_session_factory
         else:
             session_factory = self._session_factory
-
         if not session_factory:
             raise RuntimeError("Database not initialized")
-
         async with session_factory() as session:
             try:
                 yield session
@@ -163,10 +147,8 @@ class DatabaseManager:
             session_factory = self._read_session_factory
         else:
             session_factory = self._session_factory
-
         if not session_factory:
             raise RuntimeError("Database not initialized")
-
         return session_factory()
 
     @property
@@ -182,7 +164,6 @@ class DatabaseManager:
         return self._read_engine
 
 
-# Global database manager instance
 db_manager = DatabaseManager()
 
 
@@ -222,7 +203,6 @@ class DatabaseHealthCheck:
                 latency_start = logger.time()
                 await session.execute(text("SELECT pg_sleep(0.001)"))
                 latency = (logger.time() - latency_start) * 1000
-
                 return {
                     "status": "healthy",
                     "latency_ms": round(latency, 2),
@@ -241,7 +221,6 @@ class DatabaseHealthCheck:
         """Check read database health"""
         if not db_manager.read_engine:
             return {"status": "not_configured"}
-
         try:
             async with db_manager.get_session(read_only=True) as session:
                 await session.execute(text("SELECT 1"))

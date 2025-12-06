@@ -8,7 +8,6 @@ import string
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
 from uuid import UUID
-
 import bcrypt
 from config.settings import settings
 from models.compliance import AuditLog, AuditLogLevel
@@ -41,7 +40,7 @@ class AuthService:
         mfa_service: MFAService,
         session_service: SessionService,
         security_service: SecurityService,
-    ):
+    ) -> Any:
         self.jwt_service = jwt_service
         self.mfa_service = mfa_service
         self.session_service = session_service
@@ -56,23 +55,16 @@ class AuthService:
     ) -> Tuple[User, str]:
         """Register a new user"""
         try:
-            # Check if user already exists
             existing_user = await self._get_user_by_email(db, user_data.email)
             if existing_user:
                 raise AuthenticationError("User with this email already exists")
-
-            # Check username uniqueness if provided
             if user_data.username:
                 existing_username = await self._get_user_by_username(
                     db, user_data.username
                 )
                 if existing_username:
                     raise AuthenticationError("Username already taken")
-
-            # Hash password
             hashed_password = self._hash_password(user_data.password)
-
-            # Create user
             user = User(
                 email=user_data.email,
                 username=user_data.username,
@@ -85,14 +77,9 @@ class AuthService:
                 terms_accepted_at=datetime.utcnow(),
                 privacy_accepted_at=datetime.utcnow(),
             )
-
             db.add(user)
             await db.flush()
-
-            # Generate email verification token
             verification_token = self._generate_verification_token()
-
-            # Log registration
             await self._log_user_activity(
                 db,
                 user.id,
@@ -102,7 +89,6 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await self._create_audit_log(
                 db,
                 user.id,
@@ -112,12 +98,9 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await db.commit()
-
             logger.info(f"User registered successfully: {user.email}")
-            return user, verification_token
-
+            return (user, verification_token)
         except Exception as e:
             await db.rollback()
             logger.error(f"User registration failed: {str(e)}")
@@ -128,74 +111,51 @@ class AuthService:
     ) -> Tuple[User, TokenResponse, Optional[UserSession]]:
         """Authenticate user and return tokens"""
         try:
-            # Get user by email
             user = await self._get_user_by_email(db, login_data.email)
             if not user:
                 await self._log_failed_login(
                     db, login_data.email, "user_not_found", ip_address, user_agent
                 )
                 raise AuthenticationError("Invalid credentials")
-
-            # Check if user account is locked
             if user.is_locked():
                 await self._log_failed_login(
                     db, login_data.email, "account_locked", ip_address, user_agent
                 )
                 raise AuthenticationError("Account is locked")
-
-            # Verify password
             if not self._verify_password(login_data.password, user.hashed_password):
                 await self._handle_failed_login(db, user, ip_address, user_agent)
                 raise AuthenticationError("Invalid credentials")
-
-            # Check if email is verified
             if not user.is_email_verified:
                 raise AuthenticationError("Email not verified")
-
-            # Check MFA if enabled
             if user.mfa_enabled:
                 if not login_data.mfa_code:
                     raise AuthenticationError("MFA code required")
-
                 if not await self.mfa_service.verify_code(user, login_data.mfa_code):
                     await self._handle_failed_login(db, user, ip_address, user_agent)
                     raise AuthenticationError("Invalid MFA code")
-
-            # Reset failed login attempts
             user.failed_login_attempts = 0
             user.locked_until = None
             user.last_login_at = datetime.utcnow()
             user.last_login_ip = ip_address
-
-            # Create session
             session = await self.session_service.create_session(
                 db, user.id, ip_address, user_agent, login_data.remember_me
             )
-
-            # Generate tokens
             token_data = {
                 "user_id": str(user.id),
                 "session_id": str(session.id),
                 "email": user.email,
                 "role": user.role.value,
             }
-
             access_token = self.jwt_service.create_access_token(token_data)
             refresh_token = self.jwt_service.create_refresh_token(token_data)
-
-            # Update session with tokens
             session.session_token = access_token
             session.refresh_token = refresh_token
-
-            # Create token response
             token_response = TokenResponse(
                 access_token=access_token,
                 refresh_token=refresh_token,
                 token_type="bearer",
                 expires_in=settings.auth.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             )
-
-            # Log successful login
             await self._log_user_activity(
                 db,
                 user.id,
@@ -205,7 +165,6 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await self._create_audit_log(
                 db,
                 user.id,
@@ -215,12 +174,9 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await db.commit()
-
             logger.info(f"User authenticated successfully: {user.email}")
-            return user, token_response, session
-
+            return (user, token_response, session)
         except AuthenticationError:
             await db.rollback()
             raise
@@ -234,44 +190,32 @@ class AuthService:
     ) -> TokenResponse:
         """Refresh access token"""
         try:
-            # Verify refresh token
             payload = self.jwt_service.verify_refresh_token(refresh_token)
             user_id = UUID(payload["user_id"])
             session_id = UUID(payload["session_id"])
-
-            # Get user and session
             user = await self._get_user_by_id(db, user_id)
             if not user or not user.can_login():
                 raise AuthenticationError("Invalid user")
-
             session = await self.session_service.get_session(db, session_id)
             if not session or not session.is_valid():
                 raise AuthenticationError("Invalid session")
-
-            # Generate new tokens
             token_data = {
                 "user_id": str(user.id),
                 "session_id": str(session.id),
                 "email": user.email,
                 "role": user.role.value,
             }
-
             access_token = self.jwt_service.create_access_token(token_data)
             new_refresh_token = self.jwt_service.create_refresh_token(token_data)
-
-            # Update session
             session.session_token = access_token
             session.refresh_token = new_refresh_token
             session.last_activity_at = datetime.utcnow()
-
             token_response = TokenResponse(
                 access_token=access_token,
                 refresh_token=new_refresh_token,
                 token_type="bearer",
                 expires_in=settings.auth.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
             )
-
-            # Log token refresh
             await self._log_user_activity(
                 db,
                 user.id,
@@ -281,12 +225,9 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await db.commit()
-
             logger.info(f"Token refreshed for user: {user.email}")
             return token_response
-
         except Exception as e:
             await db.rollback()
             logger.error(f"Token refresh failed: {str(e)}")
@@ -302,10 +243,7 @@ class AuthService:
     ) -> None:
         """Logout user and invalidate session"""
         try:
-            # Invalidate session
             await self.session_service.invalidate_session(db, session_id)
-
-            # Log logout
             await self._log_user_activity(
                 db,
                 user_id,
@@ -315,7 +253,6 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await self._create_audit_log(
                 db,
                 user_id,
@@ -325,11 +262,8 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await db.commit()
-
             logger.info(f"User logged out: {user_id}")
-
         except Exception as e:
             await db.rollback()
             logger.error(f"Logout failed: {str(e)}")
@@ -348,26 +282,16 @@ class AuthService:
             user = await self._get_user_by_id(db, user_id)
             if not user:
                 raise AuthenticationError("User not found")
-
-            # Verify current password
             if not self._verify_password(
                 password_data.current_password, user.hashed_password
             ):
                 raise AuthenticationError("Invalid current password")
-
-            # Hash new password
             new_hashed_password = self._hash_password(password_data.new_password)
-
-            # Update password
             user.hashed_password = new_hashed_password
             user.password_changed_at = datetime.utcnow()
-
-            # Invalidate all sessions except current one
             await self.session_service.invalidate_user_sessions(
                 db, user_id, exclude_current=True
             )
-
-            # Log password change
             await self._log_user_activity(
                 db,
                 user_id,
@@ -377,7 +301,6 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await self._create_audit_log(
                 db,
                 user_id,
@@ -388,11 +311,8 @@ class AuthService:
                 user_agent,
                 level=AuditLogLevel.WARNING,
             )
-
             await db.commit()
-
             logger.info(f"Password changed for user: {user.email}")
-
         except Exception as e:
             await db.rollback()
             logger.error(f"Password change failed: {str(e)}")
@@ -403,27 +323,14 @@ class AuthService:
     ) -> User:
         """Verify user email"""
         try:
-            # In a real implementation, you would verify the token
-            # For now, we'll assume the token is valid and contains user_id
-
-            # This is a simplified implementation
-            # In production, you would store verification tokens in database
-            # and verify them properly
-
             user_id = self._extract_user_id_from_token(token)
             user = await self._get_user_by_id(db, user_id)
-
             if not user:
                 raise AuthenticationError("Invalid verification token")
-
             if user.is_email_verified:
                 raise AuthenticationError("Email already verified")
-
-            # Mark email as verified
             user.is_email_verified = True
             user.status = UserStatus.ACTIVE
-
-            # Log email verification
             await self._log_user_activity(
                 db,
                 user.id,
@@ -433,7 +340,6 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await self._create_audit_log(
                 db,
                 user.id,
@@ -443,18 +349,13 @@ class AuthService:
                 ip_address,
                 user_agent,
             )
-
             await db.commit()
-
             logger.info(f"Email verified for user: {user.email}")
             return user
-
         except Exception as e:
             await db.rollback()
             logger.error(f"Email verification failed: {str(e)}")
             raise
-
-    # Private helper methods
 
     async def _get_user_by_email(self, db: AsyncSession, email: str) -> Optional[User]:
         """Get user by email"""
@@ -491,14 +392,11 @@ class AuthService:
     def _generate_verification_token(self) -> str:
         """Generate email verification token"""
         return "".join(
-            secrets.choice(string.ascii_letters + string.digits) for _ in range(32)
+            (secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
         )
 
     def _extract_user_id_from_token(self, token: str) -> UUID:
         """Extract user ID from verification token"""
-        # This is a simplified implementation
-        # In production, you would properly decode and verify the token
-        # For now, we'll return a dummy UUID
         return UUID("00000000-0000-0000-0000-000000000000")
 
     async def _handle_failed_login(
@@ -506,14 +404,11 @@ class AuthService:
     ) -> None:
         """Handle failed login attempt"""
         user.failed_login_attempts += 1
-
-        # Lock account if too many failed attempts
         if user.failed_login_attempts >= settings.auth.MAX_LOGIN_ATTEMPTS:
             user.status = UserStatus.LOCKED
             user.locked_until = datetime.utcnow() + timedelta(
                 minutes=settings.auth.ACCOUNT_LOCKOUT_DURATION
             )
-
         await self._log_failed_login(
             db, user.email, "invalid_credentials", ip_address, user_agent
         )

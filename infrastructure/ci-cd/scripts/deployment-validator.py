@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Fluxion Deployment Validator
 Validates deployment readiness and configuration for production environments
@@ -11,11 +10,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-
 import hvac
 import requests
 from kubernetes import client, config
-
 from core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -24,13 +21,11 @@ logger = get_logger(__name__)
 class DeploymentValidator:
     """Production deployment readiness validator"""
 
-    def __init__(self, environment: str = "production"):
+    def __init__(self, environment: str = "production") -> Any:
         self.environment = environment
         self.checks = []
         self.failures = []
         self.warnings = []
-
-        # Deployment requirements
         self.requirements = {
             "infrastructure": {
                 "kubernetes_cluster": True,
@@ -65,11 +60,8 @@ class DeploymentValidator:
         """Validate Kubernetes cluster readiness"""
         logger.info("🔍 Validating Kubernetes cluster...")
         try:
-            # Try to load kubeconfig
             config.load_kube_config()
             v1 = client.CoreV1Api()
-
-            # Check cluster connectivity
             nodes = v1.list_node()
             if not nodes.items:
                 self.failures.append(
@@ -80,15 +72,12 @@ class DeploymentValidator:
                     }
                 )
                 return
-
-            # Check node readiness
             ready_nodes = 0
             for node in nodes.items:
                 for condition in node.status.conditions:
                     if condition.type == "Ready" and condition.status == "True":
                         ready_nodes += 1
                         break
-
             if ready_nodes == 0:
                 self.failures.append(
                     {
@@ -99,13 +88,11 @@ class DeploymentValidator:
                 )
             else:
                 self.checks.append(f"Kubernetes cluster ready with {ready_nodes} nodes")
-
-            # Check system namespaces
             namespaces = v1.list_namespace()
             system_namespaces = ["kube-system", "kube-public", "kube-node-lease"]
             for ns in system_namespaces:
                 if not any(
-                    namespace.metadata.name == ns for namespace in namespaces.items
+                    (namespace.metadata.name == ns for namespace in namespaces.items)
                 ):
                     self.failures.append(
                         {
@@ -114,11 +101,11 @@ class DeploymentValidator:
                             "severity": "high",
                         }
                     )
-
-            # Check for monitoring namespace
             if not any(
-                namespace.metadata.name == "monitoring"
-                for namespace in namespaces.items
+                (
+                    namespace.metadata.name == "monitoring"
+                    for namespace in namespaces.items
+                )
             ):
                 self.warnings.append(
                     {
@@ -126,15 +113,12 @@ class DeploymentValidator:
                         "message": "Monitoring namespace not found",
                     }
                 )
-
-            # Check for logging namespace
             if not any(
-                namespace.metadata.name == "logging" for namespace in namespaces.items
+                (namespace.metadata.name == "logging" for namespace in namespaces.items)
             ):
                 self.warnings.append(
                     {"category": "kubernetes", "message": "Logging namespace not found"}
                 )
-
         except Exception as e:
             self.failures.append(
                 {
@@ -149,7 +133,6 @@ class DeploymentValidator:
         logger.info("🔍 Validating secrets management...")
         vault_addr = os.getenv("VAULT_ADDR")
         vault_token = os.getenv("VAULT_TOKEN")
-
         if not vault_addr:
             self.failures.append(
                 {
@@ -159,12 +142,8 @@ class DeploymentValidator:
                 }
             )
             return
-
         try:
-            # Initialize Vault client
             vault_client = hvac.Client(url=vault_addr, token=vault_token)
-
-            # Check Vault connectivity
             if not vault_client.is_authenticated():
                 self.failures.append(
                     {
@@ -174,10 +153,7 @@ class DeploymentValidator:
                     }
                 )
                 return
-
             self.checks.append("Vault authentication successful")
-
-            # Check if Vault is sealed
             if vault_client.sys.is_sealed():
                 self.failures.append(
                     {
@@ -187,17 +163,13 @@ class DeploymentValidator:
                     }
                 )
                 return
-
             self.checks.append("Vault is unsealed and ready")
-
-            # Check for required secret paths
             required_secrets = [
                 "secret/data/jwt",
                 "secret/data/api",
                 "secret/data/encryption",
                 "secret/data/database",
             ]
-
             for secret_path in required_secrets:
                 try:
                     response = vault_client.secrets.kv.v2.read_secret_version(
@@ -221,7 +193,6 @@ class DeploymentValidator:
                             "severity": "high",
                         }
                     )
-
         except Exception as e:
             self.failures.append(
                 {
@@ -234,9 +205,6 @@ class DeploymentValidator:
     def validate_database_connectivity(self) -> None:
         """Validate database connectivity and configuration"""
         logger.info("🔍 Validating database connectivity...")
-        # This would typically connect to your actual database
-        # For demo purposes, we'll check environment variables
-
         db_url = os.getenv("DATABASE_URL")
         if not db_url:
             self.failures.append(
@@ -247,8 +215,6 @@ class DeploymentValidator:
                 }
             )
             return
-
-        # Check database URL format
         if not db_url.startswith(("postgresql://", "mysql://", "mongodb://")):
             self.failures.append(
                 {
@@ -259,8 +225,6 @@ class DeploymentValidator:
             )
         else:
             self.checks.append("Database URL format is valid")
-
-        # Check for SSL requirement
         if "sslmode=require" not in db_url and "ssl=true" not in db_url:
             self.warnings.append(
                 {
@@ -274,7 +238,6 @@ class DeploymentValidator:
     def validate_monitoring_stack(self) -> None:
         """Validate monitoring and alerting stack"""
         logger.info("🔍 Validating monitoring stack...")
-        # Check Prometheus
         prometheus_url = os.getenv("PROMETHEUS_URL", "http://prometheus:9090")
         try:
             response = requests.get(
@@ -298,8 +261,6 @@ class DeploymentValidator:
                     "severity": "high",
                 }
             )
-
-        # Check Grafana
         grafana_url = os.getenv("GRAFANA_URL", "http://grafana:3000")
         try:
             response = requests.get(f"{grafana_url}/api/health", timeout=10)
@@ -320,7 +281,6 @@ class DeploymentValidator:
     def validate_logging_stack(self) -> None:
         """Validate centralized logging stack"""
         logger.info("🔍 Validating logging stack...")
-        # Check Elasticsearch
         elasticsearch_url = os.getenv("ELASTICSEARCH_URL", "http://elasticsearch:9200")
         try:
             response = requests.get(f"{elasticsearch_url}/_cluster/health", timeout=10)
@@ -354,8 +314,6 @@ class DeploymentValidator:
                     "severity": "high",
                 }
             )
-
-        # Check Kibana
         kibana_url = os.getenv("KIBANA_URL", "http://kibana:5601")
         try:
             response = requests.get(f"{kibana_url}/api/status", timeout=10)
@@ -376,26 +334,18 @@ class DeploymentValidator:
     def validate_resource_requirements(self) -> None:
         """Validate resource requirements and limits"""
         logger.info("🔍 Validating resource requirements...")
-        # Check if running in Kubernetes
         try:
             config.load_kube_config()
             client.CoreV1Api()
             apps_v1 = client.AppsV1Api()
-
-            # Get all deployments
             deployments = apps_v1.list_deployment_for_all_namespaces()
-
             for deployment in deployments.items:
                 deployment_name = deployment.metadata.name
                 namespace = deployment.metadata.namespace
-
-                # Skip system deployments
                 if namespace in ["kube-system", "kube-public", "kube-node-lease"]:
                     continue
-
                 containers = deployment.spec.template.spec.containers
                 for container in containers:
-                    # Check resource limits
                     if not container.resources or not container.resources.limits:
                         self.warnings.append(
                             {
@@ -407,8 +357,6 @@ class DeploymentValidator:
                         self.checks.append(
                             f"Resource limits set for {container.name} in {deployment_name}"
                         )
-
-                    # Check resource requests
                     if not container.resources or not container.resources.requests:
                         self.warnings.append(
                             {
@@ -416,8 +364,6 @@ class DeploymentValidator:
                                 "message": f"Container {container.name} in {deployment_name} missing resource requests",
                             }
                         )
-
-                    # Check health checks
                     if not container.liveness_probe:
                         self.warnings.append(
                             {
@@ -425,7 +371,6 @@ class DeploymentValidator:
                                 "message": f"Container {container.name} in {deployment_name} missing liveness probe",
                             }
                         )
-
                     if not container.readiness_probe:
                         self.warnings.append(
                             {
@@ -433,7 +378,6 @@ class DeploymentValidator:
                                 "message": f"Container {container.name} in {deployment_name} missing readiness probe",
                             }
                         )
-
         except Exception as e:
             self.warnings.append(
                 {
@@ -445,20 +389,17 @@ class DeploymentValidator:
     def validate_backup_strategy(self) -> None:
         """Validate backup and disaster recovery strategy"""
         logger.info("🔍 Validating backup strategy...")
-        # Check for backup configuration files
         backup_configs = [
             "infrastructure/scripts/backup.sh",
             "infrastructure/kubernetes/base/backup-cronjob.yaml",
             "infrastructure/terraform/modules/backup",
         ]
-
         backup_found = False
         for config_path in backup_configs:
             if Path(config_path).exists():
                 backup_found = True
                 self.checks.append(f"Backup configuration found: {config_path}")
                 break
-
         if not backup_found:
             self.failures.append(
                 {
@@ -467,13 +408,11 @@ class DeploymentValidator:
                     "severity": "high",
                 }
             )
-
-        # Check backup retention policy
         backup_retention = os.getenv("BACKUP_RETENTION_DAYS")
         if backup_retention:
             try:
                 retention_days = int(backup_retention)
-                if retention_days >= 2555:  # 7 years for financial compliance
+                if retention_days >= 2555:
                     self.checks.append(
                         f"Backup retention meets compliance: {retention_days} days"
                     )
@@ -503,10 +442,7 @@ class DeploymentValidator:
         try:
             config.load_kube_config()
             networking_v1 = client.NetworkingV1Api()
-
-            # Check for network policies
             network_policies = networking_v1.list_network_policy_for_all_namespaces()
-
             if not network_policies.items:
                 self.failures.append(
                     {
@@ -519,11 +455,8 @@ class DeploymentValidator:
                 self.checks.append(
                     f"Found {len(network_policies.items)} network policies"
                 )
-
-            # Check for ingress controllers
             v1 = client.CoreV1Api()
             services = v1.list_service_for_all_namespaces()
-
             ingress_found = False
             for service in services.items:
                 if (
@@ -535,12 +468,10 @@ class DeploymentValidator:
                         f"Ingress controller found: {service.metadata.name}"
                     )
                     break
-
             if not ingress_found:
                 self.warnings.append(
                     {"category": "network", "message": "No ingress controller found"}
                 )
-
         except Exception as e:
             self.warnings.append(
                 {
@@ -553,15 +484,12 @@ class DeploymentValidator:
         """Generate deployment readiness report"""
         total_checks = len(self.checks) + len(self.warnings) + len(self.failures)
         readiness_score = (
-            (len(self.checks) / total_checks * 100) if total_checks > 0 else 0
+            len(self.checks) / total_checks * 100 if total_checks > 0 else 0
         )
-
-        # Determine deployment readiness
         critical_failures = [
             f for f in self.failures if f.get("severity") == "critical"
         ]
         deployment_ready = len(critical_failures) == 0
-
         report = {
             "timestamp": datetime.now().isoformat(),
             "environment": self.environment,
@@ -580,7 +508,6 @@ class DeploymentValidator:
             "requirements": self.requirements,
             "recommendations": self._generate_recommendations(),
         }
-
         if output_file:
             with open(output_file, "w") as f:
                 json.dump(report, f, indent=2)
@@ -590,11 +517,9 @@ class DeploymentValidator:
     def _generate_recommendations(self) -> List[str]:
         """Generate deployment recommendations"""
         recommendations = []
-
         critical_failures = [
             f for f in self.failures if f.get("severity") == "critical"
         ]
-
         if critical_failures:
             recommendations.append(
                 "❌ DEPLOYMENT BLOCKED: Resolve all critical failures before deployment"
@@ -605,42 +530,38 @@ class DeploymentValidator:
             recommendations.append(
                 "✅ No critical issues found - deployment can proceed"
             )
-
         if self.warnings:
             recommendations.append(
                 "⚠️  Address warnings to improve deployment reliability:"
             )
-            for warning in self.warnings[:3]:  # Show top 3 warnings
+            for warning in self.warnings[:3]:
                 recommendations.append(f"  • {warning['message']}")
-
         if len(self.failures) > len(critical_failures):
             recommendations.append(
                 "🔧 Fix high-priority issues for optimal deployment:"
             )
             high_failures = [f for f in self.failures if f.get("severity") == "high"]
-            for failure in high_failures[:3]:  # Show top 3 high-priority failures
+            for failure in high_failures[:3]:
                 recommendations.append(f"  • {failure['message']}")
-
         return recommendations
 
     def print_summary(self) -> None:
         """Print deployment readiness summary"""
         total_checks = len(self.checks) + len(self.warnings) + len(self.failures)
         readiness_score = (
-            (len(self.checks) / total_checks * 100) if total_checks > 0 else 0
+            len(self.checks) / total_checks * 100 if total_checks > 0 else 0
         )
         critical_failures = [
             f for f in self.failures if f.get("severity") == "critical"
         ]
         deployment_ready = len(critical_failures) == 0
-
         logger.info("\n" + "=" * 60)
         logger.info("🚀 DEPLOYMENT READINESS VALIDATION REPORT")
         logger.info("=" * 60)
         logger.info(f"Environment: {self.environment.upper()}")
         logger.info(f"Readiness Score: {readiness_score:.1f}%")
         logger.info(
-            f"Deployment Status: {'✅ READY' if deployment_ready else '❌ BLOCKED'}"
+            f"Deployment Status: {('✅ READY' if deployment_ready else '❌ BLOCKED')}"
         )
         logger.info()
         logger.info(f"📊 Summary:")
@@ -660,14 +581,14 @@ class DeploymentValidator:
         if self.failures and len(self.failures) > len(critical_failures):
             logger.info("⚠️  High Priority Issues:")
             high_failures = [f for f in self.failures if f.get("severity") == "high"]
-            for failure in high_failures[:5]:  # Show first 5
+            for failure in high_failures[:5]:
                 logger.info(
                     f"  🟠 [{failure['category'].upper()}] {failure['message']}"
                 )
             logger.info()
         if self.warnings:
             logger.info("💡 Warnings:")
-            for warning in self.warnings[:5]:  # Show first 5 warnings
+            for warning in self.warnings[:5]:
                 logger.info(
                     f"  🟡 [{warning['category'].upper()}] {warning['message']}"
                 )
@@ -686,7 +607,7 @@ class DeploymentValidator:
         logger.info("=" * 60)
 
 
-def main():
+def main() -> Any:
     parser = argparse.ArgumentParser(description="Fluxion Deployment Validator")
     parser.add_argument(
         "--environment", default="production", help="Target environment"
@@ -700,34 +621,23 @@ def main():
         help="Validate resource configuration",
     )
     parser.add_argument("--output", help="Output file for report")
-
     args = parser.parse_args()
-
     validator = DeploymentValidator(args.environment)
-
     logger.info("🚀 Starting Deployment Readiness Validation...")
     logger.info(f"🎯 Target environment: {args.environment}")
     logger.info()
-    # Run core validations
     validator.validate_kubernetes_cluster()
     validator.validate_monitoring_stack()
     validator.validate_logging_stack()
     validator.validate_backup_strategy()
     validator.validate_network_security()
-
-    # Run optional validations
     if args.validate_secrets:
         validator.validate_secrets_management()
         validator.validate_database_connectivity()
-
     if args.validate_resources:
         validator.validate_resource_requirements()
-
-    # Generate and display report
     validator.generate_report(args.output)
     validator.print_summary()
-
-    # Exit with appropriate code
     critical_failures = [
         f for f in validator.failures if f.get("severity") == "critical"
     ]

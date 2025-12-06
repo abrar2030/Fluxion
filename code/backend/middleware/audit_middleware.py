@@ -13,7 +13,6 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-
 from fastapi import Request, Response
 from services.audit.audit_service import AuditService
 from services.security.encryption_service import EncryptionService
@@ -82,12 +81,10 @@ class AuditMiddleware(BaseHTTPMiddleware):
     and creates immutable audit trails for compliance and forensic analysis.
     """
 
-    def __init__(self, app):
+    def __init__(self, app: Any) -> Any:
         super().__init__(app)
         self.audit_service = AuditService()
         self.encryption_service = EncryptionService()
-
-        # Audit configuration
         self.sensitive_headers = {
             "authorization",
             "cookie",
@@ -103,16 +100,12 @@ class AuditMiddleware(BaseHTTPMiddleware):
             "ssn",
             "credit_card",
         }
-
-        # Compliance requirements
         self.compliance_endpoints = {
             "/api/v1/transactions": ["PCI_DSS", "SOX", "AML"],
             "/api/v1/users": ["GDPR", "CCPA", "KYC"],
             "/api/v1/compliance": ["SOX", "AML", "CFTC"],
             "/api/v1/reports": ["SOX", "SEC", "FINRA"],
         }
-
-        # Risk scoring factors
         self.risk_factors = {
             "high_value_transaction": 3.0,
             "admin_operation": 2.5,
@@ -127,33 +120,18 @@ class AuditMiddleware(BaseHTTPMiddleware):
         """Main middleware dispatch method"""
         start_time = time.time()
         event_id = self._generate_event_id()
-
-        # Capture request details
         request_data = await self._capture_request_data(request, event_id)
-
         try:
-            # Process request
             response = await call_next(request)
-
-            # Capture response details
             response_data = self._capture_response_data(response)
-
-            # Create audit event
             audit_event = await self._create_audit_event(
                 request, response, request_data, response_data, start_time, event_id
             )
-
-            # Log audit event asynchronously
             asyncio.create_task(self._log_audit_event(audit_event))
-
-            # Add audit headers
             response.headers["X-Audit-Event-ID"] = event_id
             response.headers["X-Audit-Timestamp"] = audit_event.timestamp
-
             return response
-
         except Exception as e:
-            # Log exception in audit trail
             error_event = await self._create_error_audit_event(
                 request, request_data, str(e), start_time, event_id
             )
@@ -162,7 +140,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
 
     def _generate_event_id(self) -> str:
         """Generate unique event ID"""
-        timestamp = str(int(time.time() * 1000000))  # microsecond precision
+        timestamp = str(int(time.time() * 1000000))
         random_part = hashlib.sha256(f"{timestamp}{time.time()}".encode()).hexdigest()[
             :8
         ]
@@ -172,7 +150,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
         self, request: Request, event_id: str
     ) -> Dict[str, Any]:
         """Capture comprehensive request data"""
-        # Basic request information
         request_data = {
             "method": request.method,
             "url": str(request.url),
@@ -184,8 +161,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
             "content_type": request.headers.get("content-type", ""),
             "content_length": request.headers.get("content-length", "0"),
         }
-
-        # Capture request body for audit (with sensitive data masking)
         try:
             if request.method in ["POST", "PUT", "PATCH", "DELETE"]:
                 body = await self._capture_request_body(request)
@@ -193,25 +168,17 @@ class AuditMiddleware(BaseHTTPMiddleware):
         except Exception as e:
             logger.warning(f"Failed to capture request body for audit: {e}")
             request_data["body"] = "Failed to capture"
-
-        # Extract user context
         request_data["user_context"] = await self._extract_user_context(request)
-
-        # Device fingerprinting
         request_data["device_fingerprint"] = self._generate_device_fingerprint(request)
-
-        # Geographic information
         request_data["geographic_info"] = await self._get_geographic_info(
             request_data["client_ip"]
         )
-
         return request_data
 
     async def _capture_request_body(self, request: Request) -> Dict[str, Any]:
         """Safely capture request body"""
         try:
             content_type = request.headers.get("content-type", "")
-
             if "application/json" in content_type:
                 body = await request.body()
                 if body:
@@ -221,7 +188,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 return dict(form_data)
             elif "multipart/form-data" in content_type:
                 form_data = await request.form()
-                # Don't log file contents, just metadata
                 result = {}
                 for key, value in form_data.items():
                     if hasattr(value, "filename"):
@@ -238,14 +204,11 @@ class AuditMiddleware(BaseHTTPMiddleware):
                         result[key] = str(value)
                 return result
             else:
-                # For other content types, just log the size
                 body = await request.body()
                 return {"size": len(body), "type": content_type}
-
         except Exception as e:
             logger.warning(f"Error capturing request body: {e}")
             return {"error": "Failed to capture body"}
-
         return {}
 
     def _capture_response_data(self, response: Response) -> Dict[str, Any]:
@@ -259,20 +222,14 @@ class AuditMiddleware(BaseHTTPMiddleware):
 
     def _get_client_ip(self, request: Request) -> str:
         """Extract client IP address"""
-        # Check X-Forwarded-For header
         forwarded_for = request.headers.get("x-forwarded-for")
         if forwarded_for:
             return forwarded_for.split(",")[0].strip()
-
-        # Check X-Real-IP header
         real_ip = request.headers.get("x-real-ip")
         if real_ip:
             return real_ip.strip()
-
-        # Fall back to direct connection IP
         if request.client:
             return request.client.host
-
         return "unknown"
 
     async def _extract_user_context(self, request: Request) -> Dict[str, Any]:
@@ -284,31 +241,21 @@ class AuditMiddleware(BaseHTTPMiddleware):
             "permissions": [],
             "authentication_method": None,
         }
-
         try:
-            # Extract from Authorization header
             auth_header = request.headers.get("authorization")
             if auth_header and auth_header.startswith("Bearer "):
-                # In production, decode JWT token to extract user info
                 context["authentication_method"] = "jwt"
-                # Placeholder for JWT decoding
                 context["user_id"] = "authenticated_user"
-
-            # Extract session ID from headers or cookies
             session_id = request.headers.get("x-session-id")
             if not session_id:
                 cookies = request.headers.get("cookie", "")
-                # Parse session ID from cookies
                 for cookie in cookies.split(";"):
                     if "session_id=" in cookie:
                         session_id = cookie.split("session_id=")[1].split(";")[0]
                         break
-
             context["session_id"] = session_id
-
         except Exception as e:
             logger.warning(f"Error extracting user context: {e}")
-
         return context
 
     def _generate_device_fingerprint(self, request: Request) -> str:
@@ -323,14 +270,11 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 "upgrade-insecure-requests", ""
             ),
         }
-
         fingerprint_string = json.dumps(fingerprint_data, sort_keys=True)
         return hashlib.sha256(fingerprint_string.encode()).hexdigest()[:16]
 
     async def _get_geographic_info(self, ip_address: str) -> Optional[Dict[str, str]]:
         """Get geographic information for IP address"""
-        # In production, this would use a GeoIP service
-        # For now, return placeholder
         if ip_address and ip_address != "unknown":
             return {
                 "country": "Unknown",
@@ -345,7 +289,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
         if isinstance(data, dict):
             masked_data = {}
             for key, value in data.items():
-                if any(sensitive in key.lower() for sensitive in self.sensitive_params):
+                if any(
+                    (sensitive in key.lower() for sensitive in self.sensitive_params)
+                ):
                     masked_data[key] = self._mask_value(str(value))
                 else:
                     masked_data[key] = self._mask_sensitive_data(value)
@@ -374,21 +320,11 @@ class AuditMiddleware(BaseHTTPMiddleware):
         """Create comprehensive audit event"""
         processing_time = time.time() - start_time
         timestamp = datetime.now(timezone.utc).isoformat()
-
-        # Determine event type and severity
         event_type = self._determine_event_type(request, response)
         severity = self._determine_severity(request, response, processing_time)
-
-        # Calculate risk score
         risk_score = await self._calculate_risk_score(request, response, request_data)
-
-        # Determine compliance tags
         compliance_tags = self._get_compliance_tags(request.url.path)
-
-        # Classify data sensitivity
         data_classification = self._classify_data_sensitivity(request.url.path)
-
-        # Create audit event
         audit_event = AuditEvent(
             event_id=event_id,
             timestamp=timestamp,
@@ -423,12 +359,9 @@ class AuditMiddleware(BaseHTTPMiddleware):
             ),
             device_fingerprint=request_data.get("device_fingerprint"),
             business_context=await self._extract_business_context(request, response),
-            integrity_hash="",  # Will be calculated after serialization
+            integrity_hash="",
         )
-
-        # Calculate integrity hash
         audit_event.integrity_hash = self._calculate_integrity_hash(audit_event)
-
         return audit_event
 
     def _determine_event_type(
@@ -437,7 +370,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
         """Determine audit event type based on request/response"""
         path = request.url.path.lower()
         method = request.method.upper()
-
         if "/auth/" in path:
             return AuditEventType.AUTHENTICATION
         elif "/transactions/" in path:
@@ -463,7 +395,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
             return AuditSeverity.HIGH
         elif "/admin/" in request.url.path or "/transactions/" in request.url.path:
             return AuditSeverity.MEDIUM
-        elif processing_time > 5.0:  # Slow response
+        elif processing_time > 5.0:
             return AuditSeverity.MEDIUM
         else:
             return AuditSeverity.LOW
@@ -473,47 +405,30 @@ class AuditMiddleware(BaseHTTPMiddleware):
     ) -> float:
         """Calculate risk score for the event"""
         base_score = 1.0
-
-        # High-value transaction
         if "/transactions/" in request.url.path and request.method in ["POST", "PUT"]:
             base_score *= self.risk_factors["high_value_transaction"]
-
-        # Admin operations
         if "/admin/" in request.url.path:
             base_score *= self.risk_factors["admin_operation"]
-
-        # Data export operations
         if "export" in request.url.path or "download" in request.url.path:
             base_score *= self.risk_factors["data_export"]
-
-        # Configuration changes
         if "/config/" in request.url.path and request.method in [
             "POST",
             "PUT",
             "DELETE",
         ]:
             base_score *= self.risk_factors["configuration_change"]
-
-        # Failed authentication
         if response.status_code == 401:
             base_score *= self.risk_factors["failed_authentication"]
-
-        # Off-hours access (simplified check)
         current_hour = datetime.now().hour
         if current_hour < 6 or current_hour > 22:
             base_score *= self.risk_factors["off_hours_access"]
-
-        # Suspicious IP (placeholder logic)
         client_ip = request_data.get("client_ip", "")
         if self._is_suspicious_ip(client_ip):
             base_score *= self.risk_factors["suspicious_ip"]
-
-        return min(base_score, 10.0)  # Cap at 10.0
+        return min(base_score, 10.0)
 
     def _is_suspicious_ip(self, ip_address: str) -> bool:
         """Check if IP address is suspicious"""
-        # In production, this would check against threat intelligence feeds
-        # For now, return False
         return False
 
     def _get_compliance_tags(self, path: str) -> List[str]:
@@ -522,7 +437,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
         for endpoint_pattern, compliance_reqs in self.compliance_endpoints.items():
             if endpoint_pattern in path:
                 tags.extend(compliance_reqs)
-        return list(set(tags))  # Remove duplicates
+        return list(set(tags))
 
     def _classify_data_sensitivity(self, path: str) -> str:
         """Classify data sensitivity level"""
@@ -571,25 +486,15 @@ class AuditMiddleware(BaseHTTPMiddleware):
     ) -> Dict[str, Any]:
         """Extract business context from request/response"""
         context = {}
-
-        # Extract transaction amount if present
         if "/transactions/" in request.url.path:
-            # In production, this would parse the request body for transaction details
             context["transaction_type"] = "financial"
-
-        # Extract user tier information
-        # In production, this would be extracted from user session/JWT
         context["user_tier"] = "standard"
-
         return context
 
     def _calculate_integrity_hash(self, audit_event: AuditEvent) -> str:
         """Calculate integrity hash for audit event"""
-        # Create a copy without the hash field
         event_dict = asdict(audit_event)
         event_dict.pop("integrity_hash", None)
-
-        # Serialize and hash
         event_json = json.dumps(event_dict, sort_keys=True, default=str)
         return hashlib.sha256(event_json.encode()).hexdigest()
 
@@ -604,7 +509,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
         """Create audit event for errors"""
         processing_time = time.time() - start_time
         timestamp = datetime.now(timezone.utc).isoformat()
-
         audit_event = AuditEvent(
             event_id=event_id,
             timestamp=timestamp,
@@ -628,7 +532,7 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 "device_fingerprint": request_data.get("device_fingerprint"),
                 "geographic_info": request_data.get("geographic_info"),
             },
-            risk_score=5.0,  # Errors are medium-high risk
+            risk_score=5.0,
             compliance_tags=self._get_compliance_tags(request.url.path),
             data_classification=self._classify_data_sensitivity(request.url.path),
             geographic_location=self._format_geographic_location(
@@ -638,7 +542,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
             business_context={},
             integrity_hash="",
         )
-
         audit_event.integrity_hash = self._calculate_integrity_hash(audit_event)
         return audit_event
 
@@ -648,7 +551,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
             await self.audit_service.log_event(audit_event)
         except Exception as e:
             logger.error(f"Failed to log audit event {audit_event.event_id}: {e}")
-            # Fallback to local logging
             logger.info(f"AUDIT_EVENT: {json.dumps(asdict(audit_event), default=str)}")
 
     async def get_audit_statistics(self) -> Dict[str, Any]:

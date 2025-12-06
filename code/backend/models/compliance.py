@@ -11,7 +11,6 @@ from code.backend.models.base import (
 )
 from datetime import datetime
 from typing import Optional
-
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -44,10 +43,10 @@ class KYCStatus(enum.Enum):
 class KYCTier(enum.Enum):
     """KYC verification tiers"""
 
-    TIER_0 = "tier_0"  # No verification
-    TIER_1 = "tier_1"  # Basic verification
-    TIER_2 = "tier_2"  # Enhanced verification
-    TIER_3 = "tier_3"  # Full verification
+    TIER_0 = "tier_0"
+    TIER_1 = "tier_1"
+    TIER_2 = "tier_2"
+    TIER_3 = "tier_3"
 
 
 class AMLRiskLevel(enum.Enum):
@@ -95,7 +94,6 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
     """KYC record model"""
 
     __tablename__ = "kyc_records"
-
     user_id = Column(
         UUID(as_uuid=True),
         ForeignKey("users.id"),
@@ -103,8 +101,6 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
         unique=True,
         comment="User ID",
     )
-
-    # KYC Status and Tier
     status = Column(
         Enum(KYCStatus),
         default=KYCStatus.NOT_STARTED,
@@ -114,14 +110,10 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
     tier = Column(
         Enum(KYCTier), default=KYCTier.TIER_0, nullable=False, comment="KYC tier"
     )
-
-    # Provider information
     provider = Column(String(50), nullable=True, comment="KYC provider")
     provider_reference = Column(
         String(100), nullable=True, comment="Provider reference ID"
     )
-
-    # Personal information (encrypted)
     first_name = Column(String(255), nullable=True, comment="First name (encrypted)")
     last_name = Column(String(255), nullable=True, comment="Last name (encrypted)")
     middle_name = Column(String(255), nullable=True, comment="Middle name (encrypted)")
@@ -129,8 +121,6 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
         String(255), nullable=True, comment="Date of birth (encrypted)"
     )
     nationality = Column(String(255), nullable=True, comment="Nationality (encrypted)")
-
-    # Identity documents
     document_type = Column(String(50), nullable=True, comment="Document type")
     document_number = Column(
         String(255), nullable=True, comment="Document number (encrypted)"
@@ -141,8 +131,6 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
     document_expiry = Column(
         String(255), nullable=True, comment="Document expiry (encrypted)"
     )
-
-    # Address information (encrypted)
     address_line1 = Column(
         String(255), nullable=True, comment="Address line 1 (encrypted)"
     )
@@ -153,8 +141,6 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
     state = Column(String(255), nullable=True, comment="State (encrypted)")
     postal_code = Column(String(255), nullable=True, comment="Postal code (encrypted)")
     country = Column(String(255), nullable=True, comment="Country (encrypted)")
-
-    # Verification details
     verification_method = Column(
         String(50), nullable=True, comment="Verification method"
     )
@@ -168,8 +154,6 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
     address_verification = Column(
         Boolean, default=False, nullable=False, comment="Address verification passed"
     )
-
-    # Timestamps
     submitted_at = Column(
         DateTime(timezone=True), nullable=True, comment="KYC submission timestamp"
     )
@@ -182,8 +166,6 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
     expires_at = Column(
         DateTime(timezone=True), nullable=True, comment="KYC expiry timestamp"
     )
-
-    # Review information
     reviewer_id = Column(
         UUID(as_uuid=True),
         ForeignKey("users.id"),
@@ -192,21 +174,14 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
     )
     review_notes = Column(Text, nullable=True, comment="Review notes")
     rejection_reason = Column(Text, nullable=True, comment="Rejection reason")
-
-    # Risk assessment
     risk_score = Column(Float, nullable=True, comment="Risk score")
     risk_factors = Column(JSON, nullable=True, comment="Risk factors")
-
-    # Document storage
     document_urls = Column(JSON, nullable=True, comment="Document URLs (encrypted)")
-
-    # Relationships
     user = relationship("User", foreign_keys=[user_id], back_populates="kyc_records")
     reviewer = relationship("User", foreign_keys=[reviewer_id])
 
-    # Encrypted fields
     @property
-    def encrypted_fields(self):
+    def encrypted_fields(self) -> Any:
         return [
             "first_name",
             "last_name",
@@ -231,7 +206,7 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
 
     def is_valid(self) -> bool:
         """Check if KYC is valid"""
-        return self.status == KYCStatus.APPROVED and not self.is_expired()
+        return self.status == KYCStatus.APPROVED and (not self.is_expired())
 
     def days_until_expiry(self) -> Optional[int]:
         """Get days until KYC expiry"""
@@ -245,7 +220,6 @@ class AMLCheck(BaseModel, TimestampMixin, AuditMixin):
     """AML check model"""
 
     __tablename__ = "aml_checks"
-
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, comment="User ID"
     )
@@ -255,26 +229,18 @@ class AMLCheck(BaseModel, TimestampMixin, AuditMixin):
         nullable=True,
         comment="Transaction ID",
     )
-
-    # Check details
     check_type = Column(String(50), nullable=False, comment="AML check type")
     provider = Column(String(50), nullable=False, comment="AML provider")
     provider_reference = Column(
         String(100), nullable=True, comment="Provider reference"
     )
-
-    # Subject information
     subject_type = Column(
         String(20), nullable=False, comment="Subject type (user, transaction, address)"
     )
     subject_id = Column(String(100), nullable=False, comment="Subject identifier")
-
-    # Risk assessment
     risk_level = Column(Enum(AMLRiskLevel), nullable=False, comment="Risk level")
     risk_score = Column(Float, nullable=True, comment="Risk score")
     confidence_score = Column(Float, nullable=True, comment="Confidence score")
-
-    # Check results
     sanctions_match = Column(
         Boolean, default=False, nullable=False, comment="Sanctions list match"
     )
@@ -282,17 +248,11 @@ class AMLCheck(BaseModel, TimestampMixin, AuditMixin):
     adverse_media = Column(
         Boolean, default=False, nullable=False, comment="Adverse media found"
     )
-
-    # Detailed results
     matches = Column(JSON, nullable=True, comment="Detailed match results")
     alerts = Column(JSON, nullable=True, comment="Alert details")
-
-    # Status
     status = Column(
         String(20), default="completed", nullable=False, comment="Check status"
     )
-
-    # Relationships
     user = relationship("User")
     transaction = relationship("Transaction")
 
@@ -308,7 +268,6 @@ class AMLCheck(BaseModel, TimestampMixin, AuditMixin):
         """Check if there are any matches"""
         return self.sanctions_match or self.pep_match or self.adverse_media
 
-    # Indexes
     __table_args__ = (
         Index("idx_aml_checks_user_created", "user_id", "created_at"),
         Index("idx_aml_checks_risk_level", "risk_level"),
@@ -320,7 +279,6 @@ class ComplianceAlert(BaseModel, TimestampMixin, AuditMixin):
     """Compliance alert model"""
 
     __tablename__ = "compliance_alerts"
-
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, comment="User ID"
     )
@@ -330,8 +288,6 @@ class ComplianceAlert(BaseModel, TimestampMixin, AuditMixin):
         nullable=True,
         comment="Transaction ID",
     )
-
-    # Alert details
     alert_type = Column(Enum(ComplianceAlertType), nullable=False, comment="Alert type")
     severity = Column(String(20), nullable=False, comment="Alert severity")
     status = Column(
@@ -340,17 +296,11 @@ class ComplianceAlert(BaseModel, TimestampMixin, AuditMixin):
         nullable=False,
         comment="Alert status",
     )
-
-    # Alert content
     title = Column(String(200), nullable=False, comment="Alert title")
     description = Column(Text, nullable=False, comment="Alert description")
     details = Column(JSON, nullable=True, comment="Alert details")
-
-    # Risk information
     risk_score = Column(Float, nullable=True, comment="Risk score")
     risk_factors = Column(JSON, nullable=True, comment="Risk factors")
-
-    # Investigation
     assigned_to = Column(
         UUID(as_uuid=True),
         ForeignKey("users.id"),
@@ -359,8 +309,6 @@ class ComplianceAlert(BaseModel, TimestampMixin, AuditMixin):
     )
     investigation_notes = Column(Text, nullable=True, comment="Investigation notes")
     resolution_notes = Column(Text, nullable=True, comment="Resolution notes")
-
-    # Timestamps
     triggered_at = Column(
         DateTime(timezone=True), nullable=False, comment="Alert trigger timestamp"
     )
@@ -370,8 +318,6 @@ class ComplianceAlert(BaseModel, TimestampMixin, AuditMixin):
     resolved_at = Column(
         DateTime(timezone=True), nullable=True, comment="Resolution timestamp"
     )
-
-    # Escalation
     escalated = Column(Boolean, default=False, nullable=False, comment="Escalated flag")
     escalated_at = Column(
         DateTime(timezone=True), nullable=True, comment="Escalation timestamp"
@@ -382,8 +328,6 @@ class ComplianceAlert(BaseModel, TimestampMixin, AuditMixin):
         nullable=True,
         comment="Escalated to user",
     )
-
-    # Relationships
     user = relationship("User", foreign_keys=[user_id])
     transaction = relationship("Transaction")
     assignee = relationship("User", foreign_keys=[assigned_to])
@@ -400,10 +344,9 @@ class ComplianceAlert(BaseModel, TimestampMixin, AuditMixin):
         """Check if alert is overdue"""
         if self.is_open():
             delta = datetime.utcnow() - self.triggered_at
-            return delta.total_seconds() > (hours * 3600)
+            return delta.total_seconds() > hours * 3600
         return False
 
-    # Indexes
     __table_args__ = (
         Index("idx_compliance_alerts_status_type", "status", "alert_type"),
         Index("idx_compliance_alerts_user_triggered", "user_id", "triggered_at"),
@@ -416,8 +359,6 @@ class AuditLog(BaseModel, TimestampMixin):
     """Audit log model"""
 
     __tablename__ = "audit_logs"
-
-    # User and session
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, comment="User ID"
     )
@@ -427,8 +368,6 @@ class AuditLog(BaseModel, TimestampMixin):
         nullable=True,
         comment="Session ID",
     )
-
-    # Event details
     event_type = Column(String(50), nullable=False, comment="Event type")
     event_category = Column(String(50), nullable=False, comment="Event category")
     level = Column(
@@ -437,38 +376,24 @@ class AuditLog(BaseModel, TimestampMixin):
         nullable=False,
         comment="Log level",
     )
-
-    # Event description
     title = Column(String(200), nullable=False, comment="Event title")
     description = Column(Text, nullable=True, comment="Event description")
-
-    # Context information
     resource_type = Column(String(50), nullable=True, comment="Resource type")
     resource_id = Column(String(100), nullable=True, comment="Resource ID")
     action = Column(String(50), nullable=True, comment="Action performed")
-
-    # Request details
     endpoint = Column(String(255), nullable=True, comment="API endpoint")
     method = Column(String(10), nullable=True, comment="HTTP method")
     ip_address = Column(String(45), nullable=True, comment="IP address")
     user_agent = Column(Text, nullable=True, comment="User agent")
-
-    # Changes
     old_values = Column(JSON, nullable=True, comment="Old values")
     new_values = Column(JSON, nullable=True, comment="New values")
-
-    # Additional data
     metadata = Column(JSON, nullable=True, comment="Additional metadata")
-
-    # Compliance and retention
     retention_period = Column(
         Integer, nullable=True, comment="Retention period in days"
     )
     is_sensitive = Column(
         Boolean, default=False, nullable=False, comment="Contains sensitive data"
     )
-
-    # Relationships
     user = relationship("User", foreign_keys=[user_id], back_populates="audit_logs")
 
     def is_expired(self) -> bool:
@@ -478,7 +403,6 @@ class AuditLog(BaseModel, TimestampMixin):
             return datetime.utcnow() > expiry_date
         return False
 
-    # Indexes for performance
     __table_args__ = (
         Index("idx_audit_logs_user_created", "user_id", "created_at"),
         Index("idx_audit_logs_event_type", "event_type"),
@@ -492,18 +416,12 @@ class RegulatoryReport(BaseModel, TimestampMixin, AuditMixin):
     """Regulatory report model"""
 
     __tablename__ = "regulatory_reports"
-
-    # Report details
     report_type = Column(String(50), nullable=False, comment="Report type")
     report_period = Column(String(20), nullable=False, comment="Report period")
     jurisdiction = Column(String(50), nullable=False, comment="Jurisdiction")
-
-    # Report content
     title = Column(String(200), nullable=False, comment="Report title")
     description = Column(Text, nullable=True, comment="Report description")
     data = Column(JSON, nullable=False, comment="Report data")
-
-    # Status and submission
     status = Column(
         String(20), default="draft", nullable=False, comment="Report status"
     )
@@ -513,17 +431,11 @@ class RegulatoryReport(BaseModel, TimestampMixin, AuditMixin):
     submitted_at = Column(
         DateTime(timezone=True), nullable=True, comment="Submission timestamp"
     )
-
-    # File information
     file_path = Column(String(500), nullable=True, comment="Report file path")
     file_hash = Column(String(64), nullable=True, comment="Report file hash")
-
-    # Compliance
     regulatory_reference = Column(
         String(100), nullable=True, comment="Regulatory reference"
     )
-
-    # Indexes
     __table_args__ = (
         Index("idx_regulatory_reports_type_period", "report_type", "report_period"),
         Index("idx_regulatory_reports_jurisdiction", "jurisdiction"),

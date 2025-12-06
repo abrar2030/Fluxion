@@ -12,7 +12,6 @@ from code.backend.models.base import (
     TimestampMixin,
 )
 from datetime import datetime
-
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -73,8 +72,6 @@ class User(
     """User model with enhanced security and compliance features"""
 
     __tablename__ = "users"
-
-    # Basic information
     email = Column(
         String(255),
         unique=True,
@@ -86,8 +83,6 @@ class User(
         String(100), unique=True, nullable=True, index=True, comment="Username"
     )
     hashed_password = Column(String(128), nullable=False, comment="Hashed password")
-
-    # Personal information (encrypted)
     first_name = Column(String(255), nullable=True, comment="First name (encrypted)")
     last_name = Column(String(255), nullable=True, comment="Last name (encrypted)")
     phone_number = Column(
@@ -96,8 +91,6 @@ class User(
     date_of_birth = Column(
         String(255), nullable=True, comment="Date of birth (encrypted)"
     )
-
-    # Address information (encrypted)
     address_line1 = Column(
         String(255), nullable=True, comment="Address line 1 (encrypted)"
     )
@@ -108,8 +101,6 @@ class User(
     state = Column(String(100), nullable=True, comment="State/Province (encrypted)")
     postal_code = Column(String(20), nullable=True, comment="Postal code (encrypted)")
     country = Column(String(100), nullable=True, comment="Country (encrypted)")
-
-    # Account status and security
     status = Column(
         Enum(UserStatus),
         default=UserStatus.PENDING,
@@ -125,15 +116,11 @@ class User(
     is_phone_verified = Column(
         Boolean, default=False, nullable=False, comment="Phone verification status"
     )
-
-    # Multi-factor authentication
     mfa_enabled = Column(
         Boolean, default=False, nullable=False, comment="MFA enabled flag"
     )
     mfa_secret = Column(String(255), nullable=True, comment="MFA secret (encrypted)")
     backup_codes = Column(JSON, nullable=True, comment="MFA backup codes (encrypted)")
-
-    # Security tracking
     failed_login_attempts = Column(
         Integer, default=0, nullable=False, comment="Failed login attempts count"
     )
@@ -147,8 +134,6 @@ class User(
     password_changed_at = Column(
         DateTime(timezone=True), nullable=True, comment="Password change timestamp"
     )
-
-    # KYC and compliance
     kyc_status = Column(
         Enum(KYCStatus),
         default=KYCStatus.NOT_STARTED,
@@ -161,16 +146,12 @@ class User(
     kyc_expires_at = Column(
         DateTime(timezone=True), nullable=True, comment="KYC expiry timestamp"
     )
-
-    # Blockchain wallets
     primary_wallet_address = Column(
         String(42), nullable=True, index=True, comment="Primary wallet address"
     )
     wallet_addresses = Column(
         JSON, nullable=True, comment="Additional wallet addresses"
     )
-
-    # Preferences and settings
     timezone = Column(
         String(50), default="UTC", nullable=False, comment="User timezone"
     )
@@ -180,8 +161,6 @@ class User(
     currency = Column(
         String(10), default="USD", nullable=False, comment="Preferred currency"
     )
-
-    # Notification preferences
     email_notifications = Column(
         Boolean, default=True, nullable=False, comment="Email notifications enabled"
     )
@@ -191,8 +170,6 @@ class User(
     push_notifications = Column(
         Boolean, default=True, nullable=False, comment="Push notifications enabled"
     )
-
-    # Terms and privacy
     terms_accepted_at = Column(
         DateTime(timezone=True), nullable=True, comment="Terms acceptance timestamp"
     )
@@ -201,8 +178,6 @@ class User(
         nullable=True,
         comment="Privacy policy acceptance timestamp",
     )
-
-    # Relationships
     profile = relationship(
         "UserProfile",
         back_populates="user",
@@ -231,9 +206,8 @@ class User(
         "AuditLog", foreign_keys="AuditLog.user_id", cascade="all, delete-orphan"
     )
 
-    # Encrypted fields
     @property
-    def encrypted_fields(self):
+    def encrypted_fields(self) -> Any:
         return [
             "first_name",
             "last_name",
@@ -250,7 +224,7 @@ class User(
 
     def is_active(self) -> bool:
         """Check if user account is active"""
-        return self.status == UserStatus.ACTIVE and not self.is_deleted
+        return self.status == UserStatus.ACTIVE and (not self.is_deleted)
 
     def is_locked(self) -> bool:
         """Check if user account is locked"""
@@ -262,7 +236,7 @@ class User(
 
     def can_login(self) -> bool:
         """Check if user can login"""
-        return self.is_active() and not self.is_locked() and self.is_email_verified
+        return self.is_active() and (not self.is_locked()) and self.is_email_verified
 
     def add_wallet_address(self, address: str) -> None:
         """Add a wallet address"""
@@ -290,7 +264,6 @@ class UserProfile(BaseModel, TimestampMixin, AuditMixin):
     """Extended user profile information"""
 
     __tablename__ = "user_profiles"
-
     user_id = Column(
         UUID(as_uuid=True),
         ForeignKey("users.id"),
@@ -298,23 +271,17 @@ class UserProfile(BaseModel, TimestampMixin, AuditMixin):
         unique=True,
         comment="User ID",
     )
-
-    # Professional information
     occupation = Column(String(100), nullable=True, comment="User occupation")
     employer = Column(String(100), nullable=True, comment="Employer name")
     annual_income = Column(
         String(255), nullable=True, comment="Annual income (encrypted)"
     )
     net_worth = Column(String(255), nullable=True, comment="Net worth (encrypted)")
-
-    # Investment profile
     investment_experience = Column(
         String(50), nullable=True, comment="Investment experience level"
     )
     risk_tolerance = Column(String(50), nullable=True, comment="Risk tolerance level")
     investment_goals = Column(JSON, nullable=True, comment="Investment goals")
-
-    # Social and referral
     referral_code = Column(
         String(20), unique=True, nullable=True, comment="User's referral code"
     )
@@ -324,13 +291,9 @@ class UserProfile(BaseModel, TimestampMixin, AuditMixin):
         nullable=True,
         comment="Referring user ID",
     )
-
-    # Profile completion
     profile_completion_percentage = Column(
         Integer, default=0, nullable=False, comment="Profile completion percentage"
     )
-
-    # Relationships
     user = relationship("User", back_populates="profile")
 
     def calculate_completion_percentage(self) -> int:
@@ -347,15 +310,14 @@ class UserProfile(BaseModel, TimestampMixin, AuditMixin):
             self.user.city,
             self.user.country,
         ]
-        completed = sum(1 for field in fields if field is not None)
-        return int((completed / len(fields)) * 100)
+        completed = sum((1 for field in fields if field is not None))
+        return int(completed / len(fields) * 100)
 
 
 class UserSession(BaseModel, TimestampMixin):
     """User session tracking"""
 
     __tablename__ = "user_sessions"
-
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, comment="User ID"
     )
@@ -365,14 +327,10 @@ class UserSession(BaseModel, TimestampMixin):
     refresh_token = Column(
         String(255), unique=True, nullable=True, index=True, comment="Refresh token"
     )
-
-    # Session details
     ip_address = Column(String(45), nullable=True, comment="IP address")
     user_agent = Column(Text, nullable=True, comment="User agent string")
     device_info = Column(JSON, nullable=True, comment="Device information")
     location = Column(JSON, nullable=True, comment="Geolocation data")
-
-    # Session status
     is_active = Column(
         Boolean, default=True, nullable=False, comment="Session active status"
     )
@@ -382,13 +340,9 @@ class UserSession(BaseModel, TimestampMixin):
     last_activity_at = Column(
         DateTime(timezone=True), nullable=True, comment="Last activity timestamp"
     )
-
-    # Security
     is_suspicious = Column(
         Boolean, default=False, nullable=False, comment="Suspicious activity flag"
     )
-
-    # Relationships
     user = relationship("User", back_populates="sessions")
 
     def is_expired(self) -> bool:
@@ -397,14 +351,13 @@ class UserSession(BaseModel, TimestampMixin):
 
     def is_valid(self) -> bool:
         """Check if session is valid"""
-        return self.is_active and not self.is_expired()
+        return self.is_active and (not self.is_expired())
 
 
 class UserActivity(BaseModel, TimestampMixin):
     """User activity logging"""
 
     __tablename__ = "user_activities"
-
     user_id = Column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, comment="User ID"
     )
@@ -414,31 +367,19 @@ class UserActivity(BaseModel, TimestampMixin):
         nullable=True,
         comment="Session ID",
     )
-
-    # Activity details
     activity_type = Column(String(50), nullable=False, comment="Activity type")
     description = Column(Text, nullable=True, comment="Activity description")
     endpoint = Column(String(255), nullable=True, comment="API endpoint")
     method = Column(String(10), nullable=True, comment="HTTP method")
-
-    # Request/Response data
     request_data = Column(JSON, nullable=True, comment="Request data (sanitized)")
     response_status = Column(Integer, nullable=True, comment="Response status code")
-
-    # Context
     ip_address = Column(String(45), nullable=True, comment="IP address")
     user_agent = Column(Text, nullable=True, comment="User agent")
-
-    # Risk assessment
     risk_score = Column(Float, nullable=True, comment="Activity risk score")
     is_flagged = Column(
         Boolean, default=False, nullable=False, comment="Flagged for review"
     )
-
-    # Relationships
     user = relationship("User", back_populates="activities")
-
-    # Indexes for performance
     __table_args__ = (
         Index("idx_user_activities_user_created", "user_id", "created_at"),
         Index("idx_user_activities_type_created", "activity_type", "created_at"),

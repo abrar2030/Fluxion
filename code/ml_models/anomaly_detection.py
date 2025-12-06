@@ -2,7 +2,6 @@ import json
 import logging
 import os
 from datetime import datetime
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -10,7 +9,6 @@ from sklearn.cluster import DBSCAN
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -20,7 +18,7 @@ class AnomalyDetector:
     Anomaly detection system for blockchain transactions and supply chain events
     """
 
-    def __init__(self, contamination=0.05, random_state=42):
+    def __init__(self, contamination: Any = 0.05, random_state: Any = 42) -> Any:
         self.contamination = contamination
         self.random_state = random_state
         self.isolation_forest = IsolationForest(
@@ -33,26 +31,20 @@ class AnomalyDetector:
         self.scaler = StandardScaler()
         self.is_fitted = False
 
-    def fit(self, X):
+    def fit(self, X: Any) -> Any:
         """
         Fit the anomaly detection models on training data
 
         Args:
             X (numpy.ndarray): Training data of shape (n_samples, n_features)
         """
-        # Scale the data
         X_scaled = self.scaler.fit_transform(X)
-
-        # Fit Isolation Forest
         self.isolation_forest.fit(X_scaled)
-
-        # Fit DBSCAN
         self.dbscan.fit(X_scaled)
-
         self.is_fitted = True
         logger.info("Anomaly detection models fitted successfully")
 
-    def predict(self, X):
+    def predict(self, X: Any) -> Any:
         """
         Predict anomalies in new data
 
@@ -64,27 +56,16 @@ class AnomalyDetector:
         """
         if not self.is_fitted:
             raise ValueError("Model is not fitted yet. Call fit() first.")
-
-        # Scale the data
         X_scaled = self.scaler.transform(X)
-
-        # Predict with Isolation Forest
         if_predictions = self.isolation_forest.predict(X_scaled)
-
-        # Predict with DBSCAN (cluster labels, -1 for outliers)
         dbscan_labels = self.dbscan.fit_predict(X_scaled)
         dbscan_predictions = np.where(dbscan_labels == -1, -1, 1)
-
-        # Combine predictions (if either model flags as anomaly, consider it anomaly)
         combined_predictions = np.where(
-            (if_predictions == -1) | (dbscan_predictions == -1),
-            -1,  # Anomaly
-            1,  # Normal
+            (if_predictions == -1) | (dbscan_predictions == -1), -1, 1
         )
-
         return combined_predictions
 
-    def anomaly_score(self, X):
+    def anomaly_score(self, X: Any) -> Any:
         """
         Calculate anomaly scores for data points
 
@@ -96,17 +77,11 @@ class AnomalyDetector:
         """
         if not self.is_fitted:
             raise ValueError("Model is not fitted yet. Call fit() first.")
-
-        # Scale the data
         X_scaled = self.scaler.transform(X)
-
-        # Get decision function from Isolation Forest (negative of anomaly score)
-        # Convert to positive anomaly score where higher = more anomalous
         if_scores = -self.isolation_forest.decision_function(X_scaled)
-
         return if_scores
 
-    def save(self, filepath):
+    def save(self, filepath: Any) -> Any:
         """
         Save the anomaly detection model
 
@@ -129,7 +104,7 @@ class AnomalyDetector:
         logger.info(f"Anomaly detection model saved to {filepath}")
 
     @classmethod
-    def load(cls, filepath):
+    def load(cls: Any, filepath: Any) -> Any:
         """
         Load a saved anomaly detection model
 
@@ -142,7 +117,6 @@ class AnomalyDetector:
         import joblib
 
         data = joblib.load(filepath)
-
         detector = cls(
             contamination=data["contamination"], random_state=data["random_state"]
         )
@@ -150,7 +124,6 @@ class AnomalyDetector:
         detector.dbscan = data["dbscan"]
         detector.scaler = data["scaler"]
         detector.is_fitted = data["is_fitted"]
-
         logger.info(f"Anomaly detection model loaded from {filepath}")
         return detector
 
@@ -160,37 +133,31 @@ class ModelVersionManager:
     Manages model versioning and A/B testing
     """
 
-    def __init__(self, model_dir="models"):
+    def __init__(self, model_dir: Any = "models") -> Any:
         self.model_dir = model_dir
         self.models = {}
         self.active_models = {}
         self.model_metrics = {}
         self.ab_test_config = {}
-
-        # Create model directory if it doesn't exist
         os.makedirs(model_dir, exist_ok=True)
-
-        # Load existing models if available
         self._load_model_registry()
 
-    def _load_model_registry(self):
+    def _load_model_registry(self) -> Any:
         """Load the model registry from disk"""
         registry_path = os.path.join(self.model_dir, "model_registry.json")
         if os.path.exists(registry_path):
             try:
                 with open(registry_path, "r") as f:
                     registry = json.load(f)
-
                 self.models = registry.get("models", {})
                 self.active_models = registry.get("active_models", {})
                 self.model_metrics = registry.get("model_metrics", {})
                 self.ab_test_config = registry.get("ab_test_config", {})
-
                 logger.info(f"Loaded model registry with {len(self.models)} models")
             except Exception as e:
                 logger.error(f"Error loading model registry: {e}")
 
-    def _save_model_registry(self):
+    def _save_model_registry(self) -> Any:
         """Save the model registry to disk"""
         registry_path = os.path.join(self.model_dir, "model_registry.json")
         try:
@@ -201,15 +168,15 @@ class ModelVersionManager:
                 "ab_test_config": self.ab_test_config,
                 "last_updated": datetime.now().isoformat(),
             }
-
             with open(registry_path, "w") as f:
                 json.dump(registry, f, indent=2)
-
             logger.info(f"Saved model registry with {len(self.models)} models")
         except Exception as e:
             logger.error(f"Error saving model registry: {e}")
 
-    def register_model(self, model_type, model_path, version, metadata=None):
+    def register_model(
+        self, model_type: Any, model_path: Any, version: Any, metadata: Any = None
+    ) -> Any:
         """
         Register a new model version
 
@@ -224,17 +191,13 @@ class ModelVersionManager:
         """
         if model_type not in self.models:
             self.models[model_type] = {}
-
         model_id = f"{model_type}_v{version}"
-
         self.models[model_type][version] = {
             "model_id": model_id,
             "model_path": model_path,
             "registered_at": datetime.now().isoformat(),
             "metadata": metadata or {},
         }
-
-        # Initialize metrics for this model
         if model_id not in self.model_metrics:
             self.model_metrics[model_id] = {
                 "inference_count": 0,
@@ -242,13 +205,11 @@ class ModelVersionManager:
                 "error_count": 0,
                 "performance_metrics": {},
             }
-
         self._save_model_registry()
         logger.info(f"Registered model {model_id}")
-
         return model_id
 
-    def activate_model(self, model_type, version):
+    def activate_model(self, model_type: Any, version: Any) -> Any:
         """
         Activate a specific model version as the primary model
 
@@ -258,12 +219,11 @@ class ModelVersionManager:
         """
         if model_type not in self.models or version not in self.models[model_type]:
             raise ValueError(f"Model {model_type} version {version} not found")
-
         self.active_models[model_type] = version
         self._save_model_registry()
         logger.info(f"Activated {model_type} version {version}")
 
-    def get_active_model_path(self, model_type):
+    def get_active_model_path(self, model_type: Any) -> Any:
         """
         Get the path to the currently active model
 
@@ -275,11 +235,12 @@ class ModelVersionManager:
         """
         if model_type not in self.active_models:
             raise ValueError(f"No active model for type {model_type}")
-
         version = self.active_models[model_type]
         return self.models[model_type][version]["model_path"]
 
-    def configure_ab_test(self, model_type, versions, traffic_split):
+    def configure_ab_test(
+        self, model_type: Any, versions: Any, traffic_split: Any
+    ) -> Any:
         """
         Configure A/B testing between model versions
 
@@ -292,26 +253,21 @@ class ModelVersionManager:
             raise ValueError(
                 "Number of versions must match number of traffic split values"
             )
-
         if sum(traffic_split) != 100:
             raise ValueError("Traffic split must sum to 100")
-
-        # Verify all versions exist
         for version in versions:
             if model_type not in self.models or version not in self.models[model_type]:
                 raise ValueError(f"Model {model_type} version {version} not found")
-
         self.ab_test_config[model_type] = {
             "versions": versions,
             "traffic_split": traffic_split,
             "started_at": datetime.now().isoformat(),
             "active": True,
         }
-
         self._save_model_registry()
         logger.info(f"Configured A/B test for {model_type} with versions {versions}")
 
-    def select_model_for_request(self, model_type, request_id=None):
+    def select_model_for_request(self, model_type: Any, request_id: Any = None) -> Any:
         """
         Select a model version based on A/B testing configuration
 
@@ -322,39 +278,30 @@ class ModelVersionManager:
         Returns:
             str: Selected model version
         """
-        # If no A/B test is active, return the default active model
         if (
             model_type not in self.ab_test_config
             or not self.ab_test_config[model_type]["active"]
         ):
             return self.active_models.get(model_type)
-
-        # Get A/B test configuration
         config = self.ab_test_config[model_type]
         versions = config["versions"]
         traffic_split = config["traffic_split"]
-
-        # If request_id is provided, use it for deterministic selection
         if request_id:
-            # Hash the request_id to get a deterministic value
             import hashlib
 
             hash_value = int(hashlib.md5(request_id.encode()).hexdigest(), 16) % 100
         else:
-            # Otherwise use random selection
             hash_value = np.random.randint(0, 100)
-
-        # Select version based on traffic split
         cumulative = 0
         for i, split in enumerate(traffic_split):
             cumulative += split
             if hash_value < cumulative:
                 return versions[i]
-
-        # Fallback to the last version
         return versions[-1]
 
-    def record_inference(self, model_id, inference_time, error=False):
+    def record_inference(
+        self, model_id: Any, inference_time: Any, error: Any = False
+    ) -> Any:
         """
         Record inference statistics for a model
 
@@ -370,27 +317,19 @@ class ModelVersionManager:
                 "error_count": 0,
                 "performance_metrics": {},
             }
-
         metrics = self.model_metrics[model_id]
-
-        # Update metrics
         count = metrics["inference_count"]
         avg_time = metrics["avg_inference_time"]
-
-        # Update average inference time
         metrics["inference_count"] += 1
         metrics["avg_inference_time"] = (avg_time * count + inference_time) / (
             count + 1
         )
-
         if error:
             metrics["error_count"] += 1
-
-        # Save periodically (every 100 inferences)
         if metrics["inference_count"] % 100 == 0:
             self._save_model_registry()
 
-    def update_performance_metrics(self, model_id, metrics):
+    def update_performance_metrics(self, model_id: Any, metrics: Any) -> Any:
         """
         Update performance metrics for a model
 
@@ -405,12 +344,10 @@ class ModelVersionManager:
                 "error_count": 0,
                 "performance_metrics": {},
             }
-
-        # Update metrics
         self.model_metrics[model_id]["performance_metrics"].update(metrics)
         self._save_model_registry()
 
-    def get_model_metrics(self, model_id=None):
+    def get_model_metrics(self, model_id: Any = None) -> Any:
         """
         Get metrics for a specific model or all models
 
@@ -425,7 +362,7 @@ class ModelVersionManager:
         else:
             return self.model_metrics
 
-    def generate_metrics_report(self, output_path=None):
+    def generate_metrics_report(self, output_path: Any = None) -> Any:
         """
         Generate a report of model metrics
 
@@ -442,28 +379,21 @@ class ModelVersionManager:
             "metrics": self.model_metrics,
             "ab_tests": self.ab_test_config,
         }
-
         if output_path:
             with open(output_path, "w") as f:
                 json.dump(report, f, indent=2)
-
-            # Generate plots
             self._generate_metrics_plots(os.path.dirname(output_path))
-
         return report
 
-    def _generate_metrics_plots(self, output_dir):
+    def _generate_metrics_plots(self, output_dir: Any) -> Any:
         """Generate plots for model metrics"""
-        # Plot inference times
         plt.figure(figsize=(12, 6))
         model_ids = []
         avg_times = []
-
         for model_id, metrics in self.model_metrics.items():
             if metrics["inference_count"] > 0:
                 model_ids.append(model_id)
                 avg_times.append(metrics["avg_inference_time"])
-
         if model_ids:
             plt.bar(model_ids, avg_times)
             plt.xlabel("Model")
@@ -472,18 +402,14 @@ class ModelVersionManager:
             plt.xticks(rotation=45)
             plt.tight_layout()
             plt.savefig(os.path.join(output_dir, "inference_times.png"))
-
-        # Plot error rates
         plt.figure(figsize=(12, 6))
         error_rates = []
-
         for model_id, metrics in self.model_metrics.items():
             if metrics["inference_count"] > 0:
                 error_rate = metrics["error_count"] / metrics["inference_count"] * 100
                 error_rates.append(error_rate)
             else:
                 error_rates.append(0)
-
         if model_ids:
             plt.bar(model_ids, error_rates)
             plt.xlabel("Model")
@@ -494,7 +420,9 @@ class ModelVersionManager:
             plt.savefig(os.path.join(output_dir, "error_rates.png"))
 
 
-def train_anomaly_detection_model(data_path=None, save_path="anomaly_detector.pkl"):
+def train_anomaly_detection_model(
+    data_path: Any = None, save_path: Any = "anomaly_detector.pkl"
+) -> Any:
     """
     Train an anomaly detection model for blockchain transactions
 
@@ -506,66 +434,44 @@ def train_anomaly_detection_model(data_path=None, save_path="anomaly_detector.pk
         AnomalyDetector: Trained anomaly detection model
     """
     logger.info("Training anomaly detection model")
-
-    # Load or generate synthetic data
     try:
         if data_path and os.path.exists(data_path):
             df = pd.read_csv(data_path)
             logger.info(f"Loaded anomaly detection training data from {data_path}")
         else:
-            # Generate synthetic data for demonstration
             logger.info("Generating synthetic data for anomaly detection training")
             np.random.seed(42)
             n_samples = 1000
             n_features = 10
-
-            # Create normal data
             normal_data = np.random.randn(n_samples, n_features)
-
-            # Create anomalies (5% of data)
             n_anomalies = int(n_samples * 0.05)
             anomalies = np.random.randn(n_anomalies, n_features) * 5 + 5
-
-            # Combine data
             X = np.vstack([normal_data, anomalies])
-
-            # Create labels (1 for normal, -1 for anomaly)
             y = np.ones(n_samples + n_anomalies)
             y[n_samples:] = -1
-
-            # Create DataFrame
             df = pd.DataFrame(X, columns=[f"feature_{i}" for i in range(n_features)])
             df["label"] = y
     except Exception as e:
         logger.error(f"Error loading or generating data: {e}")
         raise
-
-    # Prepare data
     if "label" in df.columns:
         X = df.drop("label", axis=1).values
         y = df["label"].values
     else:
         X = df.values
         y = None
-
-    # Initialize and train anomaly detector
     detector = AnomalyDetector(contamination=0.05)
     detector.fit(X)
-
-    # Evaluate if labels are available
     if y is not None:
         predictions = detector.predict(X)
         accuracy = np.mean(predictions == y)
         logger.info(f"Anomaly detection accuracy: {accuracy:.4f}")
-
-    # Save model
     detector.save(save_path)
     logger.info(f"Anomaly detection model saved to {save_path}")
-
     return detector
 
 
-def setup_model_versioning():
+def setup_model_versioning() -> Any:
     """
     Set up model versioning and A/B testing framework
 
@@ -573,11 +479,7 @@ def setup_model_versioning():
         ModelVersionManager: Configured model version manager
     """
     logger.info("Setting up model versioning and A/B testing framework")
-
-    # Initialize model version manager
     manager = ModelVersionManager(model_dir="models")
-
-    # Register initial models if they exist
     if os.path.exists("liquidity_predictor.pt"):
         manager.register_model(
             model_type="liquidity",
@@ -590,7 +492,6 @@ def setup_model_versioning():
             },
         )
         manager.activate_model("liquidity", "1.0")
-
     if os.path.exists("supply_chain_forecaster.pt"):
         manager.register_model(
             model_type="supply_chain",
@@ -603,7 +504,6 @@ def setup_model_versioning():
             },
         )
         manager.activate_model("supply_chain", "1.0")
-
     if os.path.exists("anomaly_detector.pkl"):
         manager.register_model(
             model_type="anomaly",
@@ -616,21 +516,14 @@ def setup_model_versioning():
             },
         )
         manager.activate_model("anomaly", "1.0")
-
-    # Generate initial metrics report
     manager.generate_metrics_report("models/initial_metrics_report.json")
-
     logger.info("Model versioning and A/B testing framework set up successfully")
     return manager
 
 
 if __name__ == "__main__":
-    # Train anomaly detection model
     anomaly_model = train_anomaly_detection_model(
-        data_path=None, save_path="anomaly_detector.pkl"  # Use synthetic data
+        data_path=None, save_path="anomaly_detector.pkl"
     )
-
-    # Set up model versioning
     version_manager = setup_model_versioning()
-
     logger.info("ML model enhancements completed successfully")

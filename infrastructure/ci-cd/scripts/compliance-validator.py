@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Fluxion Compliance Validator
 Validates infrastructure and application compliance with financial standards
@@ -11,9 +10,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Optional
-
 import yaml
-
 from core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -22,13 +19,11 @@ logger = get_logger(__name__)
 class ComplianceValidator:
     """Financial compliance validator for Fluxion infrastructure"""
 
-    def __init__(self, framework: str = "financial"):
+    def __init__(self, framework: str = "financial") -> Any:
         self.framework = framework
         self.violations = []
         self.warnings = []
         self.passed_checks = []
-
-        # Financial compliance requirements
         self.requirements = {
             "data_retention": {
                 "min_years": 7,
@@ -44,7 +39,7 @@ class ComplianceValidator:
                 "mfa_required": True,
                 "rbac_enabled": True,
                 "least_privilege": True,
-                "session_timeout": 1800,  # 30 minutes
+                "session_timeout": 1800,
                 "description": "Strong access controls must be implemented",
             },
             "audit_logging": {
@@ -64,8 +59,8 @@ class ComplianceValidator:
                 "automated": True,
                 "tested": True,
                 "offsite": True,
-                "rto_hours": 4,  # Recovery Time Objective
-                "rpo_hours": 1,  # Recovery Point Objective
+                "rto_hours": 4,
+                "rpo_hours": 1,
                 "description": "Robust backup and recovery procedures required",
             },
             "vulnerability_management": {
@@ -77,7 +72,7 @@ class ComplianceValidator:
             "incident_response": {
                 "plan_exists": True,
                 "tested": True,
-                "notification_time": 72,  # hours
+                "notification_time": 72,
                 "description": "Incident response plan must be in place",
             },
         }
@@ -96,14 +91,11 @@ class ComplianceValidator:
                 }
             )
             return
-
-        # Check for security policies
         security_files = [
             "network-policies.yaml",
             "pod-security-policy.yaml",
             "rbac.yaml",
         ]
-
         for file in security_files:
             file_path = k8s_dir / "base" / file
             if not file_path.exists():
@@ -117,8 +109,6 @@ class ComplianceValidator:
                 )
             else:
                 self.passed_checks.append(f"Security file present: {file}")
-
-        # Validate pod security standards
         for yaml_file in k8s_dir.rglob("*.yaml"):
             try:
                 with open(yaml_file, "r") as f:
@@ -139,8 +129,6 @@ class ComplianceValidator:
         spec = deployment.get("spec", {})
         template = spec.get("template", {})
         pod_spec = template.get("spec", {})
-
-        # Check security context
         security_context = pod_spec.get("securityContext", {})
         if not security_context.get("runAsNonRoot"):
             self.violations.append(
@@ -151,13 +139,9 @@ class ComplianceValidator:
                     "requirement": "access_control",
                 }
             )
-
-        # Check containers
         containers = pod_spec.get("containers", [])
         for container in containers:
             container_security = container.get("securityContext", {})
-
-            # Check privilege escalation
             if container_security.get("allowPrivilegeEscalation", True):
                 self.violations.append(
                     {
@@ -167,8 +151,6 @@ class ComplianceValidator:
                         "requirement": "access_control",
                     }
                 )
-
-            # Check read-only root filesystem
             if not container_security.get("readOnlyRootFilesystem"):
                 self.warnings.append(
                     {
@@ -176,8 +158,6 @@ class ComplianceValidator:
                         "message": f"Container root filesystem not read-only in {filename}",
                     }
                 )
-
-            # Check resource limits
             resources = container.get("resources", {})
             if not resources.get("limits"):
                 self.violations.append(
@@ -203,8 +183,6 @@ class ComplianceValidator:
                 }
             )
             return
-
-        # Check for required files
         required_files = ["main.tf", "variables.tf", "outputs.tf"]
         for file in required_files:
             file_path = tf_dir / file
@@ -217,8 +195,6 @@ class ComplianceValidator:
                         "requirement": "infrastructure",
                     }
                 )
-
-        # Validate main.tf for security best practices
         main_tf = tf_dir / "main.tf"
         if main_tf.exists():
             self._validate_terraform_security(main_tf)
@@ -228,8 +204,6 @@ class ComplianceValidator:
         try:
             with open(tf_file, "r") as f:
                 content = f.read()
-
-            # Check for encryption configurations
             if "kms_key_id" not in content:
                 self.violations.append(
                     {
@@ -241,8 +215,6 @@ class ComplianceValidator:
                 )
             else:
                 self.passed_checks.append("KMS encryption configuration present")
-
-            # Check for backup configurations
             if "backup_retention" not in content:
                 self.violations.append(
                     {
@@ -252,8 +224,6 @@ class ComplianceValidator:
                         "requirement": "backup_recovery",
                     }
                 )
-
-            # Check for monitoring configurations
             if "cloudtrail" not in content.lower():
                 self.violations.append(
                     {
@@ -263,8 +233,6 @@ class ComplianceValidator:
                         "requirement": "audit_logging",
                     }
                 )
-
-            # Check for security groups
             if "security_group" not in content:
                 self.violations.append(
                     {
@@ -274,7 +242,6 @@ class ComplianceValidator:
                         "requirement": "network_security",
                     }
                 )
-
         except Exception as e:
             self.warnings.append(
                 {"category": "terraform", "message": f"Could not parse {tf_file}: {e}"}
@@ -283,12 +250,10 @@ class ComplianceValidator:
     def validate_docker_configuration(self, docker_path: str) -> None:
         """Validate Docker configuration for compliance"""
         logger.info("🔍 Validating Docker configuration...")
-        # Check Docker Compose files
         compose_files = [
             Path(docker_path) / "docker-compose.yml",
             Path(docker_path) / "docker-compose.yaml",
         ]
-
         for compose_file in compose_files:
             if compose_file.exists():
                 self._validate_docker_compose(compose_file)
@@ -308,11 +273,8 @@ class ComplianceValidator:
         try:
             with open(compose_file, "r") as f:
                 compose_config = yaml.safe_load(f)
-
             services = compose_config.get("services", {})
-
             for service_name, service_config in services.items():
-                # Check for security options
                 security_opt = service_config.get("security_opt", [])
                 if "no-new-privileges:true" not in security_opt:
                     self.violations.append(
@@ -323,8 +285,6 @@ class ComplianceValidator:
                             "requirement": "access_control",
                         }
                     )
-
-                # Check for user specification
                 if not service_config.get("user"):
                     self.warnings.append(
                         {
@@ -332,8 +292,6 @@ class ComplianceValidator:
                             "message": f"Service {service_name} not running as specific user",
                         }
                     )
-
-                # Check for read-only containers
                 if not service_config.get("read_only"):
                     self.warnings.append(
                         {
@@ -341,8 +299,6 @@ class ComplianceValidator:
                             "message": f"Service {service_name} not configured as read-only",
                         }
                     )
-
-                # Check for health checks
                 if not service_config.get("healthcheck"):
                     self.violations.append(
                         {
@@ -352,7 +308,6 @@ class ComplianceValidator:
                             "requirement": "monitoring",
                         }
                     )
-
         except Exception as e:
             self.warnings.append(
                 {
@@ -375,8 +330,6 @@ class ComplianceValidator:
                 }
             )
             return
-
-        # Check for security role
         security_role = ansible_dir / "roles" / "security"
         if not security_role.exists():
             self.violations.append(
@@ -389,8 +342,6 @@ class ComplianceValidator:
             )
         else:
             self.passed_checks.append("Ansible security role present")
-
-        # Check for main playbook
         main_playbook = ansible_dir / "playbooks" / "main.yml"
         if main_playbook.exists():
             self._validate_ansible_playbook(main_playbook)
@@ -400,29 +351,24 @@ class ComplianceValidator:
         try:
             with open(playbook_file, "r") as f:
                 playbook = yaml.safe_load(f)
-
             if isinstance(playbook, list):
                 for play in playbook:
-                    # Check for privilege escalation controls
-                    if play.get("become") and not play.get("become_user"):
+                    if play.get("become") and (not play.get("become_user")):
                         self.warnings.append(
                             {
                                 "category": "ansible",
                                 "message": "Privilege escalation without specific user",
                             }
                         )
-
-                    # Check for security-related roles
                     roles = play.get("roles", [])
                     security_roles = ["security", "hardening", "firewall"]
-                    if not any(role in str(roles) for role in security_roles):
+                    if not any((role in str(roles) for role in security_roles)):
                         self.warnings.append(
                             {
                                 "category": "ansible",
                                 "message": "No security-related roles found in playbook",
                             }
                         )
-
         except Exception as e:
             self.warnings.append(
                 {
@@ -435,16 +381,13 @@ class ComplianceValidator:
         """Validate secrets management practices"""
         logger.info("🔍 Validating secrets management...")
         base_dir = Path(base_path)
-
-        # Check for hardcoded secrets
         secret_patterns = [
-            r'password\s*=\s*["\'][^"\']+["\']',
-            r'secret\s*=\s*["\'][^"\']+["\']',
-            r'token\s*=\s*["\'][^"\']+["\']',
-            r'key\s*=\s*["\'][^"\']+["\']',
-            r'api_key\s*=\s*["\'][^"\']+["\']',
+            "password\\s*=\\s*[\"\\'][^\"\\']+[\"\\']",
+            "secret\\s*=\\s*[\"\\'][^\"\\']+[\"\\']",
+            "token\\s*=\\s*[\"\\'][^\"\\']+[\"\\']",
+            "key\\s*=\\s*[\"\\'][^\"\\']+[\"\\']",
+            "api_key\\s*=\\s*[\"\\'][^\"\\']+[\"\\']",
         ]
-
         for file_path in base_dir.rglob("*"):
             if file_path.is_file() and file_path.suffix in [
                 ".yml",
@@ -456,7 +399,6 @@ class ComplianceValidator:
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
                         content = f.read()
-
                     for pattern in secret_patterns:
                         matches = re.findall(pattern, content, re.IGNORECASE)
                         if matches:
@@ -468,11 +410,8 @@ class ComplianceValidator:
                                     "requirement": "access_control",
                                 }
                             )
-
                 except Exception:
-                    continue  # Skip files that can't be read
-
-        # Check for Vault configuration
+                    continue
         vault_configs = list(base_dir.rglob("*vault*"))
         if vault_configs:
             self.passed_checks.append("Vault configuration found")
@@ -492,9 +431,8 @@ class ComplianceValidator:
             len(self.violations) + len(self.warnings) + len(self.passed_checks)
         )
         compliance_score = (
-            (len(self.passed_checks) / total_checks * 100) if total_checks > 0 else 0
+            len(self.passed_checks) / total_checks * 100 if total_checks > 0 else 0
         )
-
         report = {
             "timestamp": datetime.now().isoformat(),
             "framework": self.framework,
@@ -511,7 +449,6 @@ class ComplianceValidator:
             "passed_checks": self.passed_checks,
             "requirements": self.requirements,
         }
-
         if output_file:
             with open(output_file, "w") as f:
                 json.dump(report, f, indent=2)
@@ -524,16 +461,15 @@ class ComplianceValidator:
             len(self.violations) + len(self.warnings) + len(self.passed_checks)
         )
         compliance_score = (
-            (len(self.passed_checks) / total_checks * 100) if total_checks > 0 else 0
+            len(self.passed_checks) / total_checks * 100 if total_checks > 0 else 0
         )
-
         logger.info("\n" + "=" * 60)
         logger.info("🏛️  FINANCIAL COMPLIANCE VALIDATION REPORT")
         logger.info("=" * 60)
         logger.info(f"Framework: {self.framework.upper()}")
         logger.info(f"Compliance Score: {compliance_score:.1f}%")
         logger.info(
-            f"Status: {'✅ COMPLIANT' if len(self.violations) == 0 else '❌ NON-COMPLIANT'}"
+            f"Status: {('✅ COMPLIANT' if len(self.violations) == 0 else '❌ NON-COMPLIANT')}"
         )
         logger.info()
         logger.info(f"📊 Summary:")
@@ -556,7 +492,7 @@ class ComplianceValidator:
             logger.info()
         if self.warnings:
             logger.info("⚠️  Warnings:")
-            for warning in self.warnings[:5]:  # Show first 5 warnings
+            for warning in self.warnings[:5]:
                 logger.info(
                     f"  🟡 [{warning['category'].upper()}] {warning['message']}"
                 )
@@ -576,7 +512,7 @@ class ComplianceValidator:
         logger.info("=" * 60)
 
 
-def main():
+def main() -> Any:
     parser = argparse.ArgumentParser(description="Fluxion Compliance Validator")
     parser.add_argument("--framework", default="financial", help="Compliance framework")
     parser.add_argument("--path", default=".", help="Path to validate")
@@ -597,26 +533,18 @@ def main():
     parser.add_argument(
         "--docker", default="infrastructure", help="Docker configuration path"
     )
-
     args = parser.parse_args()
-
     validator = ComplianceValidator(args.framework)
-
     logger.info("🏛️  Starting Financial Compliance Validation...")
     logger.info(f"📁 Base path: {args.path}")
     logger.info()
-    # Run validations
     validator.validate_kubernetes_manifests(args.kubernetes)
     validator.validate_terraform_configuration(args.terraform)
     validator.validate_ansible_configuration(args.ansible)
     validator.validate_docker_configuration(args.docker)
     validator.validate_secrets_management(args.path)
-
-    # Generate and display report
     validator.generate_report(args.output)
     validator.print_summary()
-
-    # Exit with appropriate code
     sys.exit(0 if len(validator.violations) == 0 else 1)
 
 

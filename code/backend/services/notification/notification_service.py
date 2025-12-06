@@ -13,7 +13,6 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
-
 from services.security.encryption_service import EncryptionService
 
 logger = logging.getLogger(__name__)
@@ -99,7 +98,7 @@ class NotificationPreference:
     user_id: str
     notification_type: NotificationType
     enabled_channels: List[NotificationChannel]
-    frequency: str  # immediate, daily, weekly, never
+    frequency: str
     quiet_hours_start: Optional[str]
     quiet_hours_end: Optional[str]
     timezone: str
@@ -173,20 +172,16 @@ class NotificationService:
     - Integration with external services
     """
 
-    def __init__(self):
+    def __init__(self) -> Any:
         self.encryption_service = EncryptionService()
-
-        # Notification service configuration
         self.max_retries = 3
-        self.retry_delays = [300, 900, 3600]  # 5min, 15min, 1hour
+        self.retry_delays = [300, 900, 3600]
         self.batch_size = 100
         self.rate_limits = {
-            NotificationChannel.EMAIL: 1000,  # per hour
-            NotificationChannel.SMS: 100,  # per hour
-            NotificationChannel.PUSH: 5000,  # per hour
+            NotificationChannel.EMAIL: 1000,
+            NotificationChannel.SMS: 100,
+            NotificationChannel.PUSH: 5000,
         }
-
-        # Email configuration (would be from settings in production)
         self.smtp_config = {
             "host": "smtp.gmail.com",
             "port": 587,
@@ -194,38 +189,28 @@ class NotificationService:
             "password": "app_password",
             "use_tls": True,
         }
-
-        # SMS configuration (would integrate with Twilio, AWS SNS, etc.)
         self.sms_config = {
             "provider": "twilio",
             "account_sid": "your_account_sid",
             "auth_token": "your_auth_token",
             "from_number": "+1234567890",
         }
-
-        # Push notification configuration (would integrate with FCM, APNS, etc.)
         self.push_config = {
             "fcm_server_key": "your_fcm_server_key",
             "apns_key_id": "your_apns_key_id",
             "apns_team_id": "your_apns_team_id",
         }
-
-        # In-memory storage (in production, use database and message queue)
         self.notifications: Dict[str, Notification] = {}
         self.templates: Dict[str, NotificationTemplate] = {}
         self.user_preferences: Dict[str, List[NotificationPreference]] = {}
         self.notification_batches: Dict[str, NotificationBatch] = {}
         self.delivery_queue: List[str] = []
         self.retry_queue: List[Tuple[str, datetime]] = []
-
-        # Initialize default templates
         self._initialize_default_templates()
-
-        # Start background workers
         asyncio.create_task(self._delivery_worker())
         asyncio.create_task(self._retry_worker())
 
-    def _initialize_default_templates(self):
+    def _initialize_default_templates(self) -> Any:
         """Initialize default notification templates"""
         default_templates = [
             {
@@ -233,23 +218,7 @@ class NotificationService:
                 "notification_type": NotificationType.WELCOME,
                 "channel": NotificationChannel.EMAIL,
                 "subject_template": "Welcome to Fluxion, {{first_name}}!",
-                "body_template": """
-Dear {{first_name}},
-
-Welcome to Fluxion! We're excited to have you join our financial platform.
-
-Your account has been successfully created with the email: {{email}}
-
-Next steps:
-1. Verify your email address
-2. Complete your profile
-3. Set up your investment preferences
-
-If you have any questions, please don't hesitate to contact our support team.
-
-Best regards,
-The Fluxion Team
-                """,
+                "body_template": "\nDear {{first_name}},\n\nWelcome to Fluxion! We're excited to have you join our financial platform.\n\nYour account has been successfully created with the email: {{email}}\n\nNext steps:\n1. Verify your email address\n2. Complete your profile\n3. Set up your investment preferences\n\nIf you have any questions, please don't hesitate to contact our support team.\n\nBest regards,\nThe Fluxion Team\n                ",
                 "variables": ["first_name", "email"],
                 "language": "en",
             },
@@ -258,23 +227,7 @@ The Fluxion Team
                 "notification_type": NotificationType.TRANSACTION_NOTIFICATION,
                 "channel": NotificationChannel.EMAIL,
                 "subject_template": "Transaction Alert: {{transaction_type}} of {{amount}}",
-                "body_template": """
-Dear {{first_name}},
-
-This is to notify you of a recent transaction on your account:
-
-Transaction Details:
-- Type: {{transaction_type}}
-- Amount: {{amount}} {{currency}}
-- Date: {{transaction_date}}
-- Status: {{status}}
-- Reference: {{reference_number}}
-
-If you did not authorize this transaction, please contact us immediately.
-
-Best regards,
-Fluxion Security Team
-                """,
+                "body_template": "\nDear {{first_name}},\n\nThis is to notify you of a recent transaction on your account:\n\nTransaction Details:\n- Type: {{transaction_type}}\n- Amount: {{amount}} {{currency}}\n- Date: {{transaction_date}}\n- Status: {{status}}\n- Reference: {{reference_number}}\n\nIf you did not authorize this transaction, please contact us immediately.\n\nBest regards,\nFluxion Security Team\n                ",
                 "variables": [
                     "first_name",
                     "transaction_type",
@@ -291,25 +244,7 @@ Fluxion Security Team
                 "notification_type": NotificationType.SECURITY_ALERT,
                 "channel": NotificationChannel.EMAIL,
                 "subject_template": "Security Alert: {{alert_type}}",
-                "body_template": """
-Dear {{first_name}},
-
-We detected unusual activity on your account:
-
-Alert Details:
-- Type: {{alert_type}}
-- Time: {{alert_time}}
-- Location: {{location}}
-- Device: {{device_info}}
-
-If this was you, no action is needed. If you don't recognize this activity, please:
-1. Change your password immediately
-2. Review your account activity
-3. Contact our security team
-
-Best regards,
-Fluxion Security Team
-                """,
+                "body_template": "\nDear {{first_name}},\n\nWe detected unusual activity on your account:\n\nAlert Details:\n- Type: {{alert_type}}\n- Time: {{alert_time}}\n- Location: {{location}}\n- Device: {{device_info}}\n\nIf this was you, no action is needed. If you don't recognize this activity, please:\n1. Change your password immediately\n2. Review your account activity\n3. Contact our security team\n\nBest regards,\nFluxion Security Team\n                ",
                 "variables": [
                     "first_name",
                     "alert_type",
@@ -324,22 +259,7 @@ Fluxion Security Team
                 "notification_type": NotificationType.RISK_ALERT,
                 "channel": NotificationChannel.EMAIL,
                 "subject_template": "Portfolio Risk Alert: {{risk_level}}",
-                "body_template": """
-Dear {{first_name}},
-
-Your portfolio risk assessment has identified a {{risk_level}} risk situation:
-
-Risk Details:
-- Portfolio: {{portfolio_name}}
-- Risk Score: {{risk_score}}/10
-- Primary Risk Factors: {{risk_factors}}
-- Recommended Actions: {{recommendations}}
-
-Please review your portfolio and consider the recommended actions.
-
-Best regards,
-Fluxion Risk Management Team
-                """,
+                "body_template": "\nDear {{first_name}},\n\nYour portfolio risk assessment has identified a {{risk_level}} risk situation:\n\nRisk Details:\n- Portfolio: {{portfolio_name}}\n- Risk Score: {{risk_score}}/10\n- Primary Risk Factors: {{risk_factors}}\n- Recommended Actions: {{recommendations}}\n\nPlease review your portfolio and consider the recommended actions.\n\nBest regards,\nFluxion Risk Management Team\n                ",
                 "variables": [
                     "first_name",
                     "risk_level",
@@ -351,7 +271,6 @@ Fluxion Risk Management Team
                 "language": "en",
             },
         ]
-
         for template_data in default_templates:
             template_id = f"template_{uuid.uuid4().hex[:8]}"
             template = NotificationTemplate(
@@ -386,24 +305,16 @@ Fluxion Risk Management Team
         expires_at: Optional[datetime] = None,
     ) -> Dict[str, Any]:
         """Send a notification to a user"""
-
-        # Check user preferences
         if not await self._check_user_preferences(user_id, notification_type, channel):
             return {
                 "notification_id": None,
                 "status": "blocked_by_preferences",
                 "message": "Notification blocked by user preferences",
             }
-
-        # Get recipient information
         recipient = await self._get_recipient_address(user_id, channel)
         if not recipient:
             raise ValueError(f"No {channel.value} address found for user {user_id}")
-
-        # Generate notification ID
         notification_id = f"notif_{uuid.uuid4().hex[:12]}"
-
-        # Process template if provided
         if template_id and template_variables:
             template = self.templates.get(template_id)
             if template:
@@ -413,8 +324,6 @@ Fluxion Risk Management Team
                 message = self._render_template(
                     template.body_template, template_variables
                 )
-
-        # Create notification
         notification = Notification(
             notification_id=notification_id,
             user_id=user_id,
@@ -442,17 +351,12 @@ Fluxion Risk Management Team
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
-
         self.notifications[notification_id] = notification
-
-        # Add to delivery queue if immediate, otherwise schedule
         if scheduled_at is None or scheduled_at <= datetime.now(timezone.utc):
             self.delivery_queue.append(notification_id)
-
         logger.info(
             f"Notification created: {notification_id} for user {user_id} via {channel.value}"
         )
-
         return {
             "notification_id": notification_id,
             "status": "queued",
@@ -474,8 +378,6 @@ Fluxion Risk Management Team
     ) -> Dict[str, Any]:
         """Send batch notification to multiple recipients"""
         batch_id = f"batch_{uuid.uuid4().hex[:12]}"
-
-        # Create batch record
         batch = NotificationBatch(
             batch_id=batch_id,
             name=name,
@@ -494,10 +396,7 @@ Fluxion Risk Management Team
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
-
         self.notification_batches[batch_id] = batch
-
-        # Create individual notifications for each recipient
         notification_ids = []
         for recipient_id in recipients:
             try:
@@ -505,8 +404,8 @@ Fluxion Risk Management Team
                     user_id=recipient_id,
                     notification_type=notification_type,
                     channel=channel,
-                    subject="",  # Will be filled from template
-                    message="",  # Will be filled from template
+                    subject="",
+                    message="",
                     template_id=template_id,
                     template_variables=template_variables,
                     scheduled_at=scheduled_at,
@@ -518,14 +417,11 @@ Fluxion Risk Management Team
                     f"Failed to create notification for recipient {recipient_id}: {str(e)}"
                 )
                 batch.failed_count += 1
-
         batch.status = "processing"
         batch.updated_at = datetime.now(timezone.utc)
-
         logger.info(
             f"Batch notification created: {batch_id} with {len(notification_ids)} notifications"
         )
-
         return {
             "batch_id": batch_id,
             "total_recipients": batch.total_recipients,
@@ -539,7 +435,6 @@ Fluxion Risk Management Team
         notification = self.notifications.get(notification_id)
         if not notification:
             raise ValueError("Notification not found")
-
         return {
             "notification_id": notification_id,
             "status": notification.status.value,
@@ -573,20 +468,13 @@ Fluxion Risk Management Team
         user_notifications = [
             notif for notif in self.notifications.values() if notif.user_id == user_id
         ]
-
-        # Apply status filter
         if status:
             user_notifications = [
                 notif for notif in user_notifications if notif.status.value == status
             ]
-
-        # Sort by creation date (newest first)
         user_notifications.sort(key=lambda x: x.created_at, reverse=True)
-
-        # Apply pagination
         total_count = len(user_notifications)
         paginated_notifications = user_notifications[offset : offset + limit]
-
         formatted_notifications = []
         for notif in paginated_notifications:
             formatted_notifications.append(
@@ -609,7 +497,6 @@ Fluxion Risk Management Team
                     ),
                 }
             )
-
         return {
             "user_id": user_id,
             "notifications": formatted_notifications,
@@ -624,7 +511,6 @@ Fluxion Risk Management Team
     ) -> Dict[str, Any]:
         """Update user notification preferences"""
         user_prefs = []
-
         for pref_data in preferences:
             preference = NotificationPreference(
                 user_id=user_id,
@@ -639,11 +525,8 @@ Fluxion Risk Management Team
                 updated_at=datetime.now(timezone.utc),
             )
             user_prefs.append(preference)
-
         self.user_preferences[user_id] = user_prefs
-
         logger.info(f"Notification preferences updated for user {user_id}")
-
         return {
             "user_id": user_id,
             "preferences_count": len(user_prefs),
@@ -655,14 +538,11 @@ Fluxion Risk Management Team
         notification = self.notifications.get(notification_id)
         if not notification:
             raise ValueError("Notification not found")
-
         if notification.status == NotificationStatus.DELIVERED:
             notification.status = NotificationStatus.OPENED
             notification.opened_at = datetime.now(timezone.utc)
             notification.updated_at = datetime.now(timezone.utc)
-
             logger.info(f"Notification marked as opened: {notification_id}")
-
         return {
             "notification_id": notification_id,
             "status": notification.status.value,
@@ -670,8 +550,6 @@ Fluxion Risk Management Team
                 notification.opened_at.isoformat() if notification.opened_at else None
             ),
         }
-
-    # Private helper methods
 
     async def _delivery_worker(self):
         """Background worker for processing notification delivery queue"""
@@ -681,7 +559,7 @@ Fluxion Risk Management Team
                     notification_id = self.delivery_queue.pop(0)
                     await self._deliver_notification(notification_id)
                 else:
-                    await asyncio.sleep(1)  # Wait before checking again
+                    await asyncio.sleep(1)
             except Exception as e:
                 logger.error(f"Delivery worker error: {str(e)}")
                 await asyncio.sleep(5)
@@ -692,16 +570,13 @@ Fluxion Risk Management Team
             try:
                 current_time = datetime.now(timezone.utc)
                 ready_retries = []
-
                 for notification_id, retry_time in self.retry_queue:
                     if current_time >= retry_time:
                         ready_retries.append((notification_id, retry_time))
-
                 for notification_id, retry_time in ready_retries:
                     self.retry_queue.remove((notification_id, retry_time))
                     await self._deliver_notification(notification_id)
-
-                await asyncio.sleep(60)  # Check every minute
+                await asyncio.sleep(60)
             except Exception as e:
                 logger.error(f"Retry worker error: {str(e)}")
                 await asyncio.sleep(60)
@@ -711,8 +586,6 @@ Fluxion Risk Management Team
         notification = self.notifications.get(notification_id)
         if not notification:
             return
-
-        # Check if notification has expired
         if (
             notification.expires_at
             and datetime.now(timezone.utc) > notification.expires_at
@@ -721,9 +594,7 @@ Fluxion Risk Management Team
             notification.failed_reason = "Notification expired"
             notification.updated_at = datetime.now(timezone.utc)
             return
-
         try:
-            # Deliver based on channel
             if notification.channel == NotificationChannel.EMAIL:
                 await self._send_email(notification)
             elif notification.channel == NotificationChannel.SMS:
@@ -732,40 +603,29 @@ Fluxion Risk Management Team
                 await self._send_push_notification(notification)
             elif notification.channel == NotificationChannel.IN_APP:
                 await self._send_in_app_notification(notification)
-
-            # Update status
             notification.status = NotificationStatus.SENT
             notification.sent_at = datetime.now(timezone.utc)
             notification.updated_at = datetime.now(timezone.utc)
-
-            # Simulate delivery confirmation (in production, use webhooks)
             await asyncio.sleep(1)
             notification.status = NotificationStatus.DELIVERED
             notification.delivered_at = datetime.now(timezone.utc)
-
             logger.info(
                 f"Notification delivered: {notification_id} via {notification.channel.value}"
             )
-
         except Exception as e:
-            # Handle delivery failure
             notification.retry_count += 1
             notification.failed_reason = str(e)
             notification.updated_at = datetime.now(timezone.utc)
-
             if notification.retry_count < notification.max_retries:
-                # Schedule retry
                 retry_delay = self.retry_delays[
                     min(notification.retry_count - 1, len(self.retry_delays) - 1)
                 ]
                 retry_time = datetime.now(timezone.utc) + timedelta(seconds=retry_delay)
                 self.retry_queue.append((notification_id, retry_time))
-
                 logger.warning(
                     f"Notification delivery failed, scheduled retry {notification.retry_count}: {notification_id}"
                 )
             else:
-                # Max retries reached
                 notification.status = NotificationStatus.FAILED
                 logger.error(
                     f"Notification delivery failed permanently: {notification_id} - {str(e)}"
@@ -773,42 +633,29 @@ Fluxion Risk Management Team
 
     async def _send_email(self, notification: Notification):
         """Send email notification"""
-        # Create email message
         msg = MIMEMultipart()
         msg["From"] = notification.sender
         msg["To"] = notification.recipient
         msg["Subject"] = notification.subject
-
-        # Add body
         msg.attach(MIMEText(notification.message, "plain"))
-
         if notification.html_content:
             msg.attach(MIMEText(notification.html_content, "html"))
-
-        # Send email (simplified - in production, use proper SMTP with authentication)
-        # This is a mock implementation
         logger.info(f"Email sent to {notification.recipient}: {notification.subject}")
 
     async def _send_sms(self, notification: Notification):
         """Send SMS notification"""
-        # In production, integrate with SMS provider (Twilio, AWS SNS, etc.)
-        # This is a mock implementation
         logger.info(
             f"SMS sent to {notification.recipient}: {notification.message[:50]}..."
         )
 
     async def _send_push_notification(self, notification: Notification):
         """Send push notification"""
-        # In production, integrate with FCM, APNS, etc.
-        # This is a mock implementation
         logger.info(
             f"Push notification sent to {notification.recipient}: {notification.subject}"
         )
 
     async def _send_in_app_notification(self, notification: Notification):
         """Send in-app notification"""
-        # Store in-app notification for user to see when they log in
-        # This is a mock implementation
         logger.info(
             f"In-app notification created for {notification.user_id}: {notification.subject}"
         )
@@ -821,20 +668,15 @@ Fluxion Risk Management Team
     ) -> bool:
         """Check if user allows this type of notification on this channel"""
         user_prefs = self.user_preferences.get(user_id, [])
-
         for pref in user_prefs:
             if pref.notification_type == notification_type:
                 return channel in pref.enabled_channels
-
-        # Default to allow if no specific preference set
         return True
 
     async def _get_recipient_address(
         self, user_id: str, channel: NotificationChannel
     ) -> Optional[str]:
         """Get recipient address for the specified channel"""
-        # In production, get from user service
-        # This is a mock implementation
         if channel == NotificationChannel.EMAIL:
             return f"user{user_id}@example.com"
         elif channel == NotificationChannel.SMS:
@@ -843,7 +685,6 @@ Fluxion Risk Management Team
             return f"device_token_{user_id}"
         elif channel == NotificationChannel.IN_APP:
             return user_id
-
         return None
 
     def _get_sender_address(self, channel: NotificationChannel) -> str:
@@ -868,7 +709,6 @@ Fluxion Risk Management Team
         status_counts = {}
         channel_counts = {}
         type_counts = {}
-
         for notification in self.notifications.values():
             status_counts[notification.status.value] = (
                 status_counts.get(notification.status.value, 0) + 1
@@ -879,7 +719,6 @@ Fluxion Risk Management Team
             type_counts[notification.notification_type.value] = (
                 type_counts.get(notification.notification_type.value, 0) + 1
             )
-
         return {
             "total_notifications": len(self.notifications),
             "total_templates": len(self.templates),
