@@ -263,7 +263,7 @@ class ComplianceMiddleware(BaseHTTPMiddleware):
                     if body:
                         data["body"] = json.loads(body.decode("utf-8"))
                 elif "application/x-www-form-urlencoded" in content_type:
-                    form_data = await request.form()
+                    await request.form()
                     data["body"] = dict[str, Any]()
             except Exception as e:
                 logger.warning(f"Failed to extract request body: {e}")
