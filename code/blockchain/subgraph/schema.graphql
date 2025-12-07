@@ -1,16 +1,16 @@
 type SyntheticAsset @entity {
-  id: ID!
-  oracle: Bytes!
-  collateralRatio: BigInt!
-  priceFeed: Bytes!
-  createdBlock: BigInt!
+    id: ID!
+    oracle: Bytes!
+    collateralRatio: BigInt!
+    priceFeed: Bytes!
+    createdBlock: BigInt!
 }
 
 type LiquidityPool @entity {
-  id: ID!
-  assets: [Bytes!]!
-  weights: [BigInt!]!
-  fee: BigInt!
-  amplification: BigInt!
-  tvl: BigInt!
+    id: ID!
+    assets: [Bytes!]!
+    weights: [BigInt!]!
+    fee: BigInt!
+    amplification: BigInt!
+    tvl: BigInt!
 }
