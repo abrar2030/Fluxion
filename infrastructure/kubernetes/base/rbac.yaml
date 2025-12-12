@@ -1,183 +1,183 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.appName }}-frontend-sa
-  namespace: {{ .Values.namespace | default "default" }}
-  labels:
-    app: {{ .Values.appName }}-frontend
+    name: fluxion-frontend-sa
+    namespace: default
+    labels:
+        app: fluxion-frontend
 automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.appName }}-backend-sa
-  namespace: {{ .Values.namespace | default "default" }}
-  labels:
-    app: {{ .Values.appName }}-backend
+    name: fluxion-backend-sa
+    namespace: default
+    labels:
+        app: fluxion-backend
 automountServiceAccountToken: true
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.appName }}-database-sa
-  namespace: {{ .Values.namespace | default "default" }}
-  labels:
-    app: {{ .Values.appName }}-database
+    name: fluxion-database-sa
+    namespace: default
+    labels:
+        app: fluxion-database
 automountServiceAccountToken: false
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.appName }}-redis-sa
-  namespace: {{ .Values.namespace | default "default" }}
-  labels:
-    app: {{ .Values.appName }}-redis
+    name: fluxion-redis-sa
+    namespace: default
+    labels:
+        app: fluxion-redis
 automountServiceAccountToken: false
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: {{ .Values.namespace | default "default" }}
-  name: {{ .Values.appName }}-backend-role
+    namespace: default
+    name: fluxion-backend-role
 rules:
-# Allow reading secrets for configuration
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get", "list"]
-  resourceNames:
-    - "{{ .Values.appName }}-app-secrets"
-    - "{{ .Values.appName }}-database-secrets"
-# Allow reading configmaps
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["get", "list"]
-  resourceNames:
-    - "{{ .Values.appName }}-config"
-# Allow creating events for logging
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["create"]
+    # Allow reading secrets for configuration
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'list']
+      resourceNames:
+          - 'fluxion-app-secrets'
+          - 'fluxion-database-secrets'
+    # Allow reading configmaps
+    - apiGroups: ['']
+      resources: ['configmaps']
+      verbs: ['get', 'list']
+      resourceNames:
+          - 'fluxion-config'
+    # Allow creating events for logging
+    - apiGroups: ['']
+      resources: ['events']
+      verbs: ['create']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.appName }}-backend-binding
-  namespace: {{ .Values.namespace | default "default" }}
+    name: fluxion-backend-binding
+    namespace: default
 subjects:
-- kind: ServiceAccount
-  name: {{ .Values.appName }}-backend-sa
-  namespace: {{ .Values.namespace | default "default" }}
+    - kind: ServiceAccount
+      name: fluxion-backend-sa
+      namespace: default
 roleRef:
-  kind: Role
-  name: {{ .Values.appName }}-backend-role
-  apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: fluxion-backend-role
+    apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: {{ .Values.namespace | default "default" }}
-  name: {{ .Values.appName }}-monitoring-role
+    namespace: default
+    name: fluxion-monitoring-role
 rules:
-# Allow reading pods and services for service discovery
-- apiGroups: [""]
-  resources: ["pods", "services", "endpoints"]
-  verbs: ["get", "list", "watch"]
-# Allow reading metrics
-- apiGroups: [""]
-  resources: ["pods/metrics", "services/metrics"]
-  verbs: ["get"]
+    # Allow reading pods and services for service discovery
+    - apiGroups: ['']
+      resources: ['pods', 'services', 'endpoints']
+      verbs: ['get', 'list', 'watch']
+    # Allow reading metrics
+    - apiGroups: ['']
+      resources: ['pods/metrics', 'services/metrics']
+      verbs: ['get']
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.appName }}-monitoring-sa
-  namespace: {{ .Values.namespace | default "default" }}
-  labels:
-    app: {{ .Values.appName }}-monitoring
+    name: fluxion-monitoring-sa
+    namespace: default
+    labels:
+        app: fluxion-monitoring
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.appName }}-monitoring-binding
-  namespace: {{ .Values.namespace | default "default" }}
+    name: fluxion-monitoring-binding
+    namespace: default
 subjects:
-- kind: ServiceAccount
-  name: {{ .Values.appName }}-monitoring-sa
-  namespace: {{ .Values.namespace | default "default" }}
+    - kind: ServiceAccount
+      name: fluxion-monitoring-sa
+      namespace: default
 roleRef:
-  kind: Role
-  name: {{ .Values.appName }}-monitoring-role
-  apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: fluxion-monitoring-role
+    apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: {{ .Values.namespace | default "default" }}
-  name: {{ .Values.appName }}-backup-role
+    namespace: default
+    name: fluxion-backup-role
 rules:
-# Allow reading secrets for database access
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get", "list"]
-  resourceNames:
-    - "{{ .Values.appName }}-database-secrets"
-# Allow creating events for logging
-- apiGroups: [""]
-  resources: ["events"]
-  verbs: ["create"]
-# Allow reading configmaps for backup configuration
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["get", "list"]
-  resourceNames:
-    - "{{ .Values.appName }}-backup-config"
+    # Allow reading secrets for database access
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'list']
+      resourceNames:
+          - 'fluxion-database-secrets'
+    # Allow creating events for logging
+    - apiGroups: ['']
+      resources: ['events']
+      verbs: ['create']
+    # Allow reading configmaps for backup configuration
+    - apiGroups: ['']
+      resources: ['configmaps']
+      verbs: ['get', 'list']
+      resourceNames:
+          - 'fluxion-backup-config'
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.appName }}-backup-sa
-  namespace: {{ .Values.namespace | default "default" }}
-  labels:
-    app: {{ .Values.appName }}-backup
+    name: fluxion-backup-sa
+    namespace: default
+    labels:
+        app: fluxion-backup
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.appName }}-backup-binding
-  namespace: {{ .Values.namespace | default "default" }}
+    name: fluxion-backup-binding
+    namespace: default
 subjects:
-- kind: ServiceAccount
-  name: {{ .Values.appName }}-backup-sa
-  namespace: {{ .Values.namespace | default "default" }}
+    - kind: ServiceAccount
+      name: fluxion-backup-sa
+      namespace: default
 roleRef:
-  kind: Role
-  name: {{ .Values.appName }}-backup-role
-  apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: fluxion-backup-role
+    apiGroup: rbac.authorization.k8s.io
 ---
 # ClusterRole for cross-namespace monitoring (if needed)
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: {{ .Values.appName }}-cluster-monitoring-role
+    name: fluxion-cluster-monitoring-role
 rules:
-- apiGroups: [""]
-  resources: ["nodes", "nodes/metrics", "services", "endpoints", "pods"]
-  verbs: ["get", "list", "watch"]
-- apiGroups: ["extensions", "networking.k8s.io"]
-  resources: ["ingresses"]
-  verbs: ["get", "list", "watch"]
-- nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
-  verbs: ["get"]
+    - apiGroups: ['']
+      resources: ['nodes', 'nodes/metrics', 'services', 'endpoints', 'pods']
+      verbs: ['get', 'list', 'watch']
+    - apiGroups: ['extensions', 'networking.k8s.io']
+      resources: ['ingresses']
+      verbs: ['get', 'list', 'watch']
+    - nonResourceURLs: ['/metrics', '/metrics/cadvisor']
+      verbs: ['get']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: {{ .Values.appName }}-cluster-monitoring-binding
+    name: fluxion-cluster-monitoring-binding
 roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: {{ .Values.appName }}-cluster-monitoring-role
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: fluxion-cluster-monitoring-role
 subjects:
-- kind: ServiceAccount
-  name: {{ .Values.appName }}-monitoring-sa
-  namespace: {{ .Values.namespace | default "default" }}
+    - kind: ServiceAccount
+      name: fluxion-monitoring-sa
+      namespace: default
