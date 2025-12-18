@@ -1,322 +1,238 @@
 # Fluxion Infrastructure
 
-This directory contains the comprehensive infrastructure configuration for the Fluxion platform, enhanced to meet financial industry security and compliance requirements.
+Complete, audited, and hardened infrastructure configuration for the Fluxion platform.
 
-## 🏛️ Financial Compliance Features
+## 🔒 Security & Compliance
 
-### Security Features
+This infrastructure has been audited and fixed to meet:
 
-- **Multi-layered Security**: OS hardening, network segmentation, and application-level security
-- **Zero Trust Architecture**: Comprehensive RBAC, network policies, and least privilege access
-- **Secrets Management**: HashiCorp Vault integration for secure credential management
-- **Encryption**: End-to-end encryption at rest and in transit with key rotation
-- **Vulnerability Management**: Automated scanning and remediation workflows
-
-### Compliance Standards
-
-- **Data Retention**: 7-year retention policy for financial data
-- **Audit Logging**: Immutable audit trails with real-time monitoring
-- **Access Controls**: Multi-factor authentication and session management
-- **Backup & Recovery**: Automated backups with disaster recovery procedures
-- **Regulatory Compliance**: SOX, PCI DSS, and financial services regulations
-
-## 📁 Directory Structure
-
-```
-infrastructure/
-├── ansible/                    # Configuration management
-│   ├── playbooks/             # Main playbooks
-│   ├── roles/                 # Reusable roles
-│   │   ├── common/           # Base system configuration
-│   │   ├── security/         # Security hardening
-│   │   ├── database/         # Database setup
-│   │   └── webserver/        # Web server configuration
-│   └── inventory/            # Environment inventories
-├── kubernetes/               # Container orchestration
-│   ├── base/                 # Base manifests
-│   │   ├── app-*.yaml       # Application deployments
-│   │   ├── monitoring-*.yaml # Monitoring stack
-│   │   ├── logging-*.yaml   # Logging infrastructure
-│   │   ├── security-*.yaml  # Security policies
-│   │   └── compliance-*.yaml # Compliance monitoring
-│   ├── overlays/            # Environment-specific configs
-│   └── charts/              # Helm charts
-├── terraform/               # Infrastructure as Code
-│   ├── main.tf              # Main configuration
-│   ├── variables.tf         # Variable definitions
-│   ├── outputs.tf           # Output values
-│   └── modules/             # Reusable modules
-│       ├── network/         # VPC and networking
-│       ├── security/        # Security groups and policies
-│       ├── compute/         # EC2 and auto-scaling
-│       ├── database/        # RDS and data storage
-│       └── storage/         # S3 and backup storage
-├── ci-cd/                   # Continuous Integration/Deployment
-│   ├── github-actions/      # GitHub Actions workflows
-│   ├── gitlab-ci/          # GitLab CI configurations
-│   ├── jenkins/            # Jenkins pipelines
-│   └── scripts/            # Deployment and validation scripts
-├── docker-compose.yml       # Local development environment
-├── docker-compose.zk.yml    # Kafka/Zookeeper stack
-└── README.md               # This file
-```
+- DevOps best practices
+- FinOps security standards
+- SecOps hardening requirements
+- Financial industry compliance
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Docker and Docker Compose
-- Kubernetes cluster (local or cloud)
-- Terraform >= 1.0
-- Ansible >= 2.9
-- HashiCorp Vault
-- AWS CLI (for cloud deployment)
+```bash
+# Install required tools
+terraform --version  # >= 1.6.6
+ansible --version    # >= 2.9
+kubectl version      # >= 1.25
+python3 --version    # >= 3.10
+```
 
 ### Local Development
 
+1. **Copy example configurations:**
+
 ```bash
-# Start the complete development stack
-docker-compose up -d
-
-# Verify all services are running
-docker-compose ps
-
-# Access services
-# - Frontend: http://localhost:3000
-# - Backend API: http://localhost:5000
-# - Grafana: http://localhost:3001
-# - Kibana: http://localhost:5601
-# - Vault: http://localhost:8200
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+cp ansible/inventory.example ansible/inventory
+cp ansible/group_vars/all.example ansible/group_vars/all.yml
+cp kubernetes/base/app-secrets.example.yaml kubernetes/base/app-secrets.yaml
 ```
 
-### Production Deployment
+2. **Update with your values:**
 
-#### 1. Infrastructure Provisioning
+```bash
+# Edit Terraform variables
+vim terraform/terraform.tfvars
+
+# Set database password via environment variable (recommended)
+export TF_VAR_db_password="your-secure-password"
+
+# Encrypt Ansible secrets
+ansible-vault create ansible/group_vars/all.yml
+```
+
+3. **Start local development environment:**
+
+```bash
+docker-compose up -d
+```
+
+## 🧪 Validation
+
+Run the comprehensive validation script:
+
+```bash
+./validate_infrastructure.sh
+```
+
+Or validate components individually:
+
+### Terraform
 
 ```bash
 cd terraform/
-terraform init
-terraform plan -var-file="environments/prod.tfvars"
-terraform apply -var-file="environments/prod.tfvars"
+terraform fmt -recursive
+terraform init -backend=false
+terraform validate
 ```
 
-#### 2. Configuration Management
-
-```bash
-cd ansible/
-ansible-playbook -i inventory/production playbooks/main.yml
-```
-
-#### 3. Application Deployment
+### Kubernetes
 
 ```bash
 cd kubernetes/
-kubectl apply -k overlays/production/
+yamllint base/
+kubectl apply --dry-run=client -f base/
 ```
 
-#### 4. Validation
+### Ansible
 
 ```bash
-# Run compliance validation
-python3 ci-cd/scripts/compliance-validator.py --framework financial
-
-# Run deployment readiness check
-python3 ci-cd/scripts/deployment-validator.py --environment production
+cd ansible/
+ansible-galaxy install -r requirements.yml
+ansible-lint playbooks/main.yml
 ```
 
-## 🔒 Security Configuration
+## 📁 Directory Structure
 
-### Secrets Management
+```
+infrastructure/
+├── README.md                    # This file
+├── CHANGES.md                   # Detailed change log
+├── .gitignore                   # Ignore sensitive files
+├── validate_infrastructure.sh   # Validation script
+├── terraform/                   # Infrastructure as Code
+│   ├── main.tf
+│   ├── backend.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   ├── terraform.tfvars.example  # COPY and update this
+│   ├── .terraform-version
+│   └── modules/
+├── kubernetes/                  # Container orchestration
+│   ├── base/                    # Base manifests
+│   │   ├── *-deployment.yaml
+│   │   ├── *-service.yaml
+│   │   ├── app-secrets.example.yaml  # COPY and update this
+│   │   └── pod-security-standards.yaml
+│   └── environments/            # Environment overlays
+├── ansible/                     # Configuration management
+│   ├── playbooks/
+│   ├── roles/
+│   ├── inventory.example        # COPY and update this
+│   ├── group_vars/all.example   # COPY and update this
+│   └── requirements.yml
+├── ci-cd/                       # CI/CD pipelines
+│   ├── ci-cd.yml
+│   ├── github-actions/
+│   └── scripts/
+├── docker-compose.yml           # Local development
+└── validation_logs/             # Validation outputs
+```
 
-All sensitive data is managed through HashiCorp Vault:
+## 🔐 Secrets Management
+
+### DO NOT commit these files:
+
+- `terraform/terraform.tfvars`
+- `terraform/*.tfstate*`
+- `ansible/inventory`
+- `ansible/group_vars/all.yml`
+- `kubernetes/base/app-secrets.yaml`
+- `.env` files
+
+### Use `.example` files as templates:
+
+- Copy `.example` files to remove the `.example` suffix
+- Update with your actual values
+- The `.gitignore` will prevent accidental commits
+
+### Recommended secret management:
+
+- **Terraform**: Use environment variables (`TF_VAR_*`) or Terraform Cloud
+- **Kubernetes**: Use External Secrets Operator + HashiCorp Vault
+- **Ansible**: Use `ansible-vault` for encrypted variables
+- **CI/CD**: Use GitHub Secrets / GitLab CI Variables
+
+## 🏗️ Deployment
+
+### Terraform Infrastructure
 
 ```bash
-# Initialize Vault (first time only)
-vault operator init
-vault operator unseal
+cd terraform/
 
-# Store application secrets
-vault kv put secret/jwt secret="your-jwt-secret"
-vault kv put secret/api key="your-api-key"
-vault kv put secret/encryption key="your-encryption-key"
+# Initialize
+terraform init
+
+# Plan
+terraform plan -out=plan.out
+
+# Apply
+terraform apply plan.out
 ```
 
-### Network Security
-
-- **Network Policies**: Kubernetes network segmentation
-- **Security Groups**: AWS VPC security controls
-- **Firewall Rules**: OS-level traffic filtering
-- **TLS/SSL**: End-to-end encryption
-
-### Access Control
-
-- **RBAC**: Role-based access control in Kubernetes
-- **IAM**: AWS Identity and Access Management
-- **MFA**: Multi-factor authentication required
-- **Session Management**: Automatic session timeout
-
-## 📊 Monitoring & Observability
-
-### Metrics Collection
-
-- **Prometheus**: Metrics aggregation and alerting
-- **Grafana**: Visualization and dashboards
-- **Custom Metrics**: Application-specific monitoring
-
-### Centralized Logging
-
-- **Elasticsearch**: Log storage and indexing
-- **Logstash**: Log processing and enrichment
-- **Kibana**: Log visualization and analysis
-- **Fluent Bit**: Log collection and forwarding
-
-### Distributed Tracing
-
-- **Jaeger**: Request tracing across services
-- **OpenTelemetry**: Standardized observability
-
-### Alerting
-
-- **Prometheus Alertmanager**: Alert routing and management
-- **Slack Integration**: Real-time notifications
-- **PagerDuty**: Incident escalation
-
-## 🏥 Health Checks & Monitoring
-
-### Application Health
+### Kubernetes Applications
 
 ```bash
-# Backend API health
-curl http://localhost:5000/health
+cd kubernetes/
 
-# Frontend health
-curl http://localhost:3000/health
+# Validate
+kubectl apply --dry-run=client -f base/
 
-# Database connectivity
-curl http://localhost:5000/health/database
+# Deploy
+kubectl apply -f base/
+
+# Check status
+kubectl get pods -A
 ```
 
-### Infrastructure Health
+### Ansible Configuration
 
 ```bash
-# Kubernetes cluster status
-kubectl get nodes
-kubectl get pods --all-namespaces
+cd ansible/
 
-# Monitoring stack status
-kubectl get pods -n monitoring
-kubectl get pods -n logging
+# Install collections
+ansible-galaxy install -r requirements.yml
+
+# Dry run
+ansible-playbook -i inventory playbooks/main.yml --check
+
+# Execute
+ansible-playbook -i inventory playbooks/main.yml
 ```
 
-## 🔄 Backup & Recovery
+## 📊 Monitoring & Logs
 
-### Automated Backups
+Access local monitoring stack:
 
-- **Database**: Daily automated backups with 7-year retention
-- **Application Data**: Continuous backup to S3
-- **Configuration**: Infrastructure state backup
-- **Logs**: Long-term log archival
+- **Grafana**: http://localhost:3001
+- **Prometheus**: http://localhost:9090
+- **Kibana**: http://localhost:5601
 
-### Disaster Recovery
+## 🐛 Troubleshooting
 
-- **RTO**: 4 hours (Recovery Time Objective)
-- **RPO**: 1 hour (Recovery Point Objective)
-- **Multi-AZ**: High availability across availability zones
-- **Cross-Region**: Disaster recovery in secondary region
-
-## 📋 Compliance & Auditing
-
-### Audit Logging
-
-All system and application activities are logged:
-
-- User authentication and authorization
-- Data access and modifications
-- System configuration changes
-- Security events and incidents
-
-### Compliance Reports
+### Terraform validation fails
 
 ```bash
-# Generate compliance report
-python3 ci-cd/scripts/compliance-validator.py --output compliance-report.json
+# Check formatting
+terraform fmt -check -recursive
 
-# View compliance dashboard
-# Access Grafana at http://localhost:3001
-# Navigate to "Financial Compliance Dashboard"
+# Reinitialize
+rm -rf .terraform/
+terraform init -backend=false
 ```
 
-### Data Retention
-
-- **Financial Data**: 7 years minimum retention
-- **Audit Logs**: 7 years immutable storage
-- **Backup Data**: Automated lifecycle management
-- **Log Data**: Tiered storage with compliance retention
-
-## 🛠️ Troubleshooting
-
-### Common Issues
-
-#### Services Not Starting
+### Kubernetes manifests invalid
 
 ```bash
-# Check service logs
-docker-compose logs [service-name]
+# Check specific file
+kubectl apply --dry-run=client -f kubernetes/base/backend-deployment.yaml
 
-# Restart specific service
-docker-compose restart [service-name]
-
-# Rebuild and restart
-docker-compose up -d --build [service-name]
+# Validate all
+find kubernetes/base/ -name "*.yaml" -exec kubectl apply --dry-run=client -f {} \;
 ```
 
-#### Database Connection Issues
+### Ansible lint errors
 
 ```bash
-# Check database status
-docker-compose exec postgres pg_isready
+# Install missing collections
+ansible-galaxy collection install community.general
 
-# View database logs
-docker-compose logs postgres
-
-# Reset database (development only)
-docker-compose down -v
-docker-compose up -d postgres
+# Run with verbose output
+ansible-lint -v playbooks/main.yml
 ```
-
-#### Kubernetes Issues
-
-```bash
-# Check pod status
-kubectl get pods -o wide
-
-# View pod logs
-kubectl logs [pod-name] -f
-
-# Describe pod for events
-kubectl describe pod [pod-name]
-
-# Check resource usage
-kubectl top nodes
-kubectl top pods
-```
-
-### Performance Tuning
-
-#### Database Optimization
-
-- Connection pooling configuration
-- Query optimization and indexing
-- Memory and storage tuning
-
-#### Application Scaling
-
-- Horizontal pod autoscaling
-- Resource requests and limits
-- Load balancer configuration
-
-#### Monitoring Optimization
-
-- Metrics retention policies
-- Log sampling and filtering
-- Alert threshold tuning

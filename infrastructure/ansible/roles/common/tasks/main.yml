@@ -57,7 +57,7 @@
   when: ansible_os_family == "RedHat"
 
 - name: Set timezone
-  timezone:
+  community.general.timezone:
       name: UTC
 
 - name: Configure and start NTP service

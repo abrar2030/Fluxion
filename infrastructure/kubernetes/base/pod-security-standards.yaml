@@ -1,0 +1,50 @@
+---
+# Pod Security Standards (replaces deprecated PodSecurityPolicy)
+# Kubernetes 1.25+ uses Pod Security Standards instead of PSP
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: fluxion
+    labels:
+        name: fluxion
+        # Enforce restricted Pod Security Standards
+        pod-security.kubernetes.io/enforce: restricted
+        pod-security.kubernetes.io/enforce-version: latest
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: latest
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: latest
+        # Financial compliance labels
+        compliance.fluxion.io/level: 'financial'
+        security.fluxion.io/classification: 'restricted'
+        monitoring.fluxion.io/enabled: 'true'
+    annotations:
+        description: |
+            Fluxion namespace with restricted security standards enforced.
+            All pods must comply with the restricted Pod Security Standard.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: fluxion-staging
+    labels:
+        name: fluxion-staging
+        pod-security.kubernetes.io/enforce: baseline
+        pod-security.kubernetes.io/enforce-version: latest
+        pod-security.kubernetes.io/audit: restricted
+        pod-security.kubernetes.io/audit-version: latest
+        pod-security.kubernetes.io/warn: restricted
+        pod-security.kubernetes.io/warn-version: latest
+        environment: staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: fluxion-monitoring
+    labels:
+        name: fluxion-monitoring
+        pod-security.kubernetes.io/enforce: baseline
+        pod-security.kubernetes.io/enforce-version: latest
+        pod-security.kubernetes.io/audit: baseline
+        pod-security.kubernetes.io/audit-version: latest
+        purpose: monitoring

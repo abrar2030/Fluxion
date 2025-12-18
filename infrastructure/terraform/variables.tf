@@ -27,10 +27,10 @@ variable "default_tags" {
   description = "Default tags to apply to all resources"
   type        = map(string)
   default = {
-    Project     = "Fluxion"
-    Owner       = "DevOps"
-    CostCenter  = "Engineering"
-    Compliance  = "Financial"
+    Project    = "Fluxion"
+    Owner      = "DevOps"
+    CostCenter = "Engineering"
+    Compliance = "Financial"
   }
 }
 
@@ -334,7 +334,7 @@ variable "s3_lifecycle_rules" {
         }
       ]
       expiration = {
-        days = 2555  # 7 years for financial compliance
+        days = 2555 # 7 years for financial compliance
       }
     }
   ]
@@ -343,7 +343,7 @@ variable "s3_lifecycle_rules" {
 variable "backup_retention_days" {
   description = "Backup retention period in days"
   type        = number
-  default     = 2555  # 7 years for financial compliance
+  default     = 2555 # 7 years for financial compliance
 }
 
 # Security Services Configuration

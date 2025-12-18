@@ -1,0 +1,39 @@
+---
+# Global Variables Example
+# Copy to group_vars/all.yml and update with your values
+# Use ansible-vault to encrypt sensitive values
+
+# Database Configuration
+db_name: fluxion
+db_user: fluxion_app
+# IMPORTANT: Set passwords using ansible-vault
+# ansible-vault encrypt_string 'your-password' --name 'db_password'
+# Then paste the encrypted output here
+db_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          REPLACE_WITH_VAULT_ENCRYPTED_PASSWORD
+db_root_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          REPLACE_WITH_VAULT_ENCRYPTED_ROOT_PASSWORD
+db_backup_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          REPLACE_WITH_VAULT_ENCRYPTED_BACKUP_PASSWORD
+db_monitor_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          REPLACE_WITH_VAULT_ENCRYPTED_MONITOR_PASSWORD
+
+# Application Settings
+app_env: production
+app_debug: false
+
+# Backup Settings
+backup_retention_days: 7
+backup_schedule: "0 2 * * *"  # 2 AM daily
+
+# Security Settings
+enable_firewall: true
+enable_selinux: true
+ssh_port: 22
+
+# Logging
+log_retention_days: 90

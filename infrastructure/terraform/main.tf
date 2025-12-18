@@ -18,18 +18,8 @@ terraform {
     }
   }
 
-  # Secure remote state configuration
-  backend "s3" {
-    bucket         = var.terraform_state_bucket
-    key            = "fluxion/terraform.tfstate"
-    region         = var.aws_region
-    encrypt        = true
-    kms_key_id     = var.terraform_state_kms_key
-    dynamodb_table = var.terraform_state_lock_table
-
-    # Enable versioning and MFA delete protection
-    versioning = true
-  }
+  # Backend configuration moved to backend.tf
+  # This allows easier switching between local and remote backends
 }
 
 # Configure AWS Provider with security best practices
@@ -59,8 +49,8 @@ resource "random_id" "session" {
 # Local values for consistent tagging and naming
 locals {
   common_tags = merge(var.default_tags, {
-    Project             = "Fluxion"
-    Environment         = var.environment
+    Project            = "Fluxion"
+    Environment        = var.environment
     ManagedBy          = "Terraform"
     SecurityLevel      = "Financial"
     ComplianceLevel    = "Restricted"
@@ -85,7 +75,7 @@ resource "aws_kms_key" "fluxion_key" {
   description             = "KMS key for Fluxion ${var.environment} environment encryption"
   deletion_window_in_days = var.kms_deletion_window
   enable_key_rotation     = true
-  multi_region           = var.enable_multi_region
+  multi_region            = var.enable_multi_region
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -144,15 +134,15 @@ resource "aws_kms_alias" "fluxion_key" {
 module "network" {
   source = "./modules/network"
 
-  environment         = var.environment
-  vpc_cidr            = var.vpc_cidr
-  availability_zones  = var.availability_zones
-  public_subnet_cidrs = var.public_subnet_cidrs
+  environment          = var.environment
+  vpc_cidr             = var.vpc_cidr
+  availability_zones   = var.availability_zones
+  public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
-  enable_nat_gateway = var.enable_nat_gateway
-  enable_vpn_gateway = var.enable_vpn_gateway
-  enable_flow_logs   = var.enable_flow_logs
-  kms_key_id         = aws_kms_key.fluxion_key.arn
+  enable_nat_gateway   = var.enable_nat_gateway
+  enable_vpn_gateway   = var.enable_vpn_gateway
+  enable_flow_logs     = var.enable_flow_logs
+  kms_key_id           = aws_kms_key.fluxion_key.arn
 
   common_tags = local.common_tags
 }
@@ -161,18 +151,18 @@ module "network" {
 module "security" {
   source = "./modules/security"
 
-  environment  = var.environment
-  vpc_id       = module.network.vpc_id
-  app_name     = var.app_name
-  vpc_cidr     = module.network.vpc_cidr
-  kms_key_id   = aws_kms_key.fluxion_key.arn
+  environment = var.environment
+  vpc_id      = module.network.vpc_id
+  app_name    = var.app_name
+  vpc_cidr    = module.network.vpc_cidr
+  kms_key_id  = aws_kms_key.fluxion_key.arn
 
   # Security configuration
-  enable_guardduty     = var.enable_guardduty
-  enable_config        = var.enable_config
-  enable_cloudtrail    = var.enable_cloudtrail
-  enable_security_hub  = var.enable_security_hub
-  enable_inspector     = var.enable_inspector
+  enable_guardduty    = var.enable_guardduty
+  enable_config       = var.enable_config
+  enable_cloudtrail   = var.enable_cloudtrail
+  enable_security_hub = var.enable_security_hub
+  enable_inspector    = var.enable_inspector
 
   # Compliance settings
   cloudtrail_s3_bucket = var.cloudtrail_s3_bucket
@@ -187,7 +177,7 @@ module "storage" {
 
   environment = var.environment
   app_name    = var.app_name
-  kms_key_id   = aws_kms_key.fluxion_key.arn
+  kms_key_id  = aws_kms_key.fluxion_key.arn
 
   # Storage configuration
   enable_versioning     = var.enable_s3_versioning
@@ -202,30 +192,30 @@ module "storage" {
 module "database" {
   source = "./modules/database"
 
-  environment       = var.environment
-  vpc_id            = module.network.vpc_id
+  environment        = var.environment
+  vpc_id             = module.network.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
-  db_instance_class = var.db_instance_class
-  db_name           = var.db_name
-  db_username       = var.db_username
-  db_password       = var.db_password
+  db_instance_class  = var.db_instance_class
+  db_name            = var.db_name
+  db_username        = var.db_username
+  db_password        = var.db_password
   security_group_ids = [module.security.db_security_group_id]
-  kms_key_id      = aws_kms_key.fluxion_key.arn
+  kms_key_id         = aws_kms_key.fluxion_key.arn
 
   # Database configuration
   allocated_storage       = var.db_allocated_storage
   max_allocated_storage   = var.db_max_allocated_storage
   backup_retention_period = var.db_backup_retention_period
-  backup_window          = var.db_backup_window
-  maintenance_window     = var.db_maintenance_window
-  multi_az               = var.db_multi_az
+  backup_window           = var.db_backup_window
+  maintenance_window      = var.db_maintenance_window
+  multi_az                = var.db_multi_az
 
   # Security settings
-  deletion_protection     = var.db_deletion_protection
-  skip_final_snapshot    = var.db_skip_final_snapshot
-  copy_tags_to_snapshot  = true
-  performance_insights   = var.db_performance_insights
-  monitoring_interval    = var.db_monitoring_interval
+  deletion_protection   = var.db_deletion_protection
+  skip_final_snapshot   = var.db_skip_final_snapshot
+  copy_tags_to_snapshot = true
+  performance_insights  = var.db_performance_insights
+  monitoring_interval   = var.db_monitoring_interval
 
   common_tags = local.common_tags
 }
@@ -234,27 +224,27 @@ module "database" {
 module "compute" {
   source = "./modules/compute"
 
-  environment       = var.environment
-  vpc_id            = module.network.vpc_id
+  environment        = var.environment
+  vpc_id             = module.network.vpc_id
   private_subnet_ids = module.network.private_subnet_ids
-  public_subnet_ids = module.network.public_subnet_ids
-  instance_type     = var.instance_type
-  key_name          = var.key_name
-  app_name          = var.app_name
+  public_subnet_ids  = module.network.public_subnet_ids
+  instance_type      = var.instance_type
+  key_name           = var.key_name
+  app_name           = var.app_name
   security_group_ids = [module.security.app_security_group_id]
-  kms_key_id       = aws_kms_key.fluxion_key.arn
+  kms_key_id         = aws_kms_key.fluxion_key.arn
 
   # Compute configuration
-  min_size             = var.asg_min_size
-  max_size             = var.asg_max_size
-  desired_capacity     = var.asg_desired_capacity
-  enable_monitoring    = var.enable_detailed_monitoring
+  min_size              = var.asg_min_size
+  max_size              = var.asg_max_size
+  desired_capacity      = var.asg_desired_capacity
+  enable_monitoring     = var.enable_detailed_monitoring
   enable_ebs_encryption = true
 
   # Load balancer configuration
-  enable_alb           = var.enable_alb
-  alb_certificate_arn  = var.alb_certificate_arn
-  health_check_path    = var.health_check_path
+  enable_alb          = var.enable_alb
+  alb_certificate_arn = var.alb_certificate_arn
+  health_check_path   = var.health_check_path
 
   common_tags = local.common_tags
 }

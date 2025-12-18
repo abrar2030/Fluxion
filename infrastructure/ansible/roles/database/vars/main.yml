@@ -1,10 +1,26 @@
 ---
 # roles/database/vars/main.yml
-db_name: '{{ db_name }}'
-db_user: '{{ db_user }}'
-db_password: '{{ db_password }}'
-db_root_password: '{{ db_root_password }}'
+# Database configuration variables
+# Sensitive values (passwords) must be provided externally via:
+# - group_vars/all.yml (encrypted with ansible-vault)
+# - --extra-vars on command line
+# - Environment variables
+
+# Database parameters (reference variables defined elsewhere)
+db_name: '{{ db_name | default("fluxion") }}'
+db_user: '{{ db_user | default("fluxion_app") }}'
+
+# Password variables - must be defined externally
+# db_password: defined in group_vars/all.yml or via --extra-vars
+# db_root_password: defined in group_vars/all.yml or via --extra-vars
+
+# Database tuning parameters
 db_max_connections: 150
 db_max_allowed_packet: '64M'
 db_innodb_buffer_pool_size: '256M'
 db_innodb_log_file_size: '64M'
+
+# Connection settings
+db_query_cache_size: '16M'
+db_query_cache_type: 1
+db_thread_cache_size: 8
