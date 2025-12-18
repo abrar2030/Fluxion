@@ -3,9 +3,11 @@ Enhanced database configuration for Fluxion backend
 """
 
 import logging
-from code.backend.config.settings import settings
+import time
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator, Optional
+
+from config.settings import settings
 from sqlalchemy import event, text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -26,7 +28,7 @@ class Base(DeclarativeBase):
 class DatabaseManager:
     """Database connection manager"""
 
-    def __init__(self) -> Any:
+    def __init__(self) -> None:
         self._engine: Optional[AsyncEngine] = None
         self._session_factory: Optional[async_sessionmaker] = None
         self._read_engine: Optional[AsyncEngine] = None
@@ -55,7 +57,7 @@ class DatabaseManager:
         engine = create_async_engine(**engine_kwargs)
 
         @event.listens_for(engine.sync_engine, "connect")
-        def set_sqlite_pragma(dbapi_connection, connection_record):
+        def set_database_config(dbapi_connection, connection_record):
             """Set database-specific optimizations"""
             if "postgresql" in str(engine.url):
                 with dbapi_connection.cursor() as cursor:
@@ -199,10 +201,10 @@ class DatabaseHealthCheck:
         """Check write database health"""
         try:
             async with db_manager.get_session() as session:
+                start_time = time.time()
                 await session.execute(text("SELECT 1"))
-                latency_start = logger.time()
                 await session.execute(text("SELECT pg_sleep(0.001)"))
-                latency = (logger.time() - latency_start) * 1000
+                latency = (time.time() - start_time) * 1000
                 return {
                     "status": "healthy",
                     "latency_ms": round(latency, 2),

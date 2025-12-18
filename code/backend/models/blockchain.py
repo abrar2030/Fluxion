@@ -3,7 +3,7 @@ Blockchain models for Fluxion backend
 """
 
 import enum
-from code.backend.models.base import AuditMixin, BaseModel, TimestampMixin
+from models.base import AuditMixin, BaseModel, TimestampMixin
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
 

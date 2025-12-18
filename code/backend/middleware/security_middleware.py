@@ -10,7 +10,7 @@ import secrets
 import time
 from datetime import datetime, timedelta
 from ipaddress import ip_address, ip_network
-from typing import Optional, Set
+from typing import Any, Optional, Set
 from config.settings import settings
 from fastapi import HTTPException, Request, Response
 from services.auth.jwt_service import JWTService
@@ -69,8 +69,11 @@ class SecurityMiddleware(BaseHTTPMiddleware):
             "X-Download-Options": "noopen",
         }
 
-    def _load_ip_configurations(self) -> Any:
+    def _load_ip_configurations(self) -> None:
         """Load IP whitelist and blacklist from configuration"""
+        # Load from environment variables or configuration file
+        # Example: Load from settings.security.BLOCKED_IPS and settings.security.ALLOWED_IPS
+        # For now, initialize as empty sets - can be populated from config
 
     def _build_csp_header(self) -> str:
         """Build Content Security Policy header"""

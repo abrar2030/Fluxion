@@ -6,7 +6,7 @@ import logging
 import time
 from contextlib import asynccontextmanager
 
-from app.api.v1.router import api_router
+from api.v1.router import api_router
 from config.database import close_database, init_database
 from config.settings import settings
 from fastapi import FastAPI, HTTPException, Request
@@ -102,7 +102,7 @@ app.add_middleware(
 )
 
 # Add trusted host middleware
-if settings.app.ALLOWED_HOSTS:
+if settings.app.ALLOWED_HOSTS and settings.app.ALLOWED_HOSTS != ["*"]:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.app.ALLOWED_HOSTS)
 
 
@@ -116,7 +116,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         status_code=exc.status_code,
         content=ErrorResponse(
             error=exc.detail, error_code=f"HTTP_{exc.status_code}"
-        ).dict(),
+        ).model_dump(),
     )
 
 
@@ -129,7 +129,7 @@ async def starlette_http_exception_handler(
         status_code=exc.status_code,
         content=ErrorResponse(
             error=exc.detail, error_code=f"HTTP_{exc.status_code}"
-        ).dict(),
+        ).model_dump(),
     )
 
 
@@ -152,7 +152,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             error="Validation failed",
             error_code="VALIDATION_ERROR",
             validation_errors=validation_errors,
-        ).dict(),
+        ).model_dump(),
     )
 
 
@@ -168,14 +168,14 @@ async def general_exception_handler(request: Request, exc: Exception):
                 error=str(exc),
                 error_code="INTERNAL_SERVER_ERROR",
                 details={"type": type(exc).__name__},
-            ).dict(),
+            ).model_dump(),
         )
     else:
         return JSONResponse(
             status_code=500,
             content=ErrorResponse(
                 error="Internal server error", error_code="INTERNAL_SERVER_ERROR"
-            ).dict(),
+            ).model_dump(),
         )
 
 
@@ -268,7 +268,7 @@ async def metrics():
 
 
 # Include API routes
-app.include_router(api_router, prefix="/api")
+app.include_router(api_router, prefix="/api/v1")
 
 
 # Root endpoint
@@ -285,39 +285,11 @@ async def root():
     }
 
 
-# Add startup event for additional initialization
-@app.on_event("startup")
-async def startup_event():
-    """Additional startup tasks"""
-    logger.info("Executing additional startup tasks...")
-
-    # Initialize services that need async setup
-    # - Connect to external APIs
-    # - Initialize caches
-    # - Start background tasks
-
-    logger.info("Additional startup tasks completed")
-
-
-# Add shutdown event for cleanup
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Additional shutdown tasks"""
-    logger.info("Executing additional shutdown tasks...")
-
-    # Clean up resources
-    # - Close external connections
-    # - Save state
-    # - Stop background tasks
-
-    logger.info("Additional shutdown tasks completed")
-
-
 if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(
-        "main:app",
+        "app.main:app",
         host="0.0.0.0",
         port=8000,
         reload=settings.app.DEBUG,

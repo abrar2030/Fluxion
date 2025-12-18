@@ -5,18 +5,18 @@ Base Pydantic schemas for Fluxion backend
 from datetime import datetime
 from typing import Any, Dict, Generic, List, Optional, TypeVar
 from uuid import UUID
-from pydantic import BaseModel, Field, validator
-from pydantic.generics import GenericModel
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class BaseSchema(BaseModel):
     """Base schema with common configuration"""
 
-    class Config:
-        orm_mode = True
-        validate_assignment = True
-        use_enum_values = True
-        json_encoders = {datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)}
+    model_config = ConfigDict(
+        from_attributes=True,
+        validate_assignment=True,
+        use_enum_values=True,
+        json_encoders={datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)},
+    )
 
 
 class TimestampSchema(BaseSchema):
@@ -61,8 +61,10 @@ class ValidationErrorResponse(ErrorResponse):
 DataT = TypeVar("DataT")
 
 
-class DataResponse(GenericModel, Generic[DataT]):
+class DataResponse(BaseModel, Generic[DataT]):
     """Generic data response schema"""
+
+    model_config = ConfigDict(from_attributes=True)
 
     success: bool = Field(True, description="Operation success status")
     message: str = Field("Data retrieved successfully", description="Response message")
@@ -70,9 +72,6 @@ class DataResponse(GenericModel, Generic[DataT]):
     timestamp: datetime = Field(
         default_factory=datetime.utcnow, description="Response timestamp"
     )
-
-    class Config:
-        orm_mode = True
 
 
 class PaginationMeta(BaseSchema):
@@ -88,8 +87,10 @@ class PaginationMeta(BaseSchema):
     next_page: Optional[int] = Field(None, description="Next page number")
 
 
-class PaginatedResponse(GenericModel, Generic[DataT]):
+class PaginatedResponse(BaseModel, Generic[DataT]):
     """Paginated response schema"""
+
+    model_config = ConfigDict(from_attributes=True)
 
     success: bool = Field(True, description="Operation success status")
     message: str = Field("Data retrieved successfully", description="Response message")
@@ -98,9 +99,6 @@ class PaginatedResponse(GenericModel, Generic[DataT]):
     timestamp: datetime = Field(
         default_factory=datetime.utcnow, description="Response timestamp"
     )
-
-    class Config:
-        orm_mode = True
 
 
 class HealthCheckResponse(BaseSchema):
@@ -133,11 +131,12 @@ class FilterBase(BaseSchema):
     offset: int = Field(default=0, ge=0, description="Number of items to skip")
     sort_by: Optional[str] = Field(None, description="Field to sort by")
     sort_order: Optional[str] = Field(
-        "desc", regex="^(asc|desc)$", description="Sort order"
+        "desc", pattern="^(asc|desc)$", description="Sort order"
     )
 
-    @validator("sort_order")
-    def validate_sort_order(cls: Any, v: Any) -> Any:
+    @field_validator("sort_order")
+    @classmethod
+    def validate_sort_order(cls, v: Optional[str]) -> Optional[str]:
         if v and v not in ["asc", "desc"]:
             raise ValueError('sort_order must be either "asc" or "desc"')
         return v
@@ -149,9 +148,10 @@ class DateRangeFilter(BaseSchema):
     start_date: Optional[datetime] = Field(None, description="Start date")
     end_date: Optional[datetime] = Field(None, description="End date")
 
-    @validator("end_date")
-    def validate_date_range(cls: Any, v: Any, values: Any) -> Any:
-        if v and values.get("start_date") and (v <= values["start_date"]):
+    @field_validator("end_date")
+    @classmethod
+    def validate_date_range(cls, v: Optional[datetime], info) -> Optional[datetime]:
+        if v and info.data.get("start_date") and (v <= info.data["start_date"]):
             raise ValueError("end_date must be after start_date")
         return v
 
@@ -195,7 +195,7 @@ class BulkOperationRequest(BaseSchema):
 
     operation: str = Field(..., description="Operation to perform")
     items: List[Dict[str, Any]] = Field(
-        ..., min_items=1, max_items=100, description="Items to process"
+        ..., min_length=1, max_length=100, description="Items to process"
     )
     options: Optional[Dict[str, Any]] = Field(None, description="Operation options")
 

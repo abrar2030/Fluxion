@@ -3,7 +3,7 @@ User models for Fluxion backend
 """
 
 import enum
-from code.backend.models.base import (
+from models.base import (
     AuditMixin,
     BaseModel,
     ComplianceMixin,
