@@ -14,10 +14,12 @@ contract SyntheticAssetFactory is Ownable, ChainlinkClient {
         bytes32 jobId;
         uint256 fee;
         bool active;
+        uint256 price;
     }
 
     mapping(bytes32 => SyntheticAsset) public syntheticAssets;
     bytes32[] public assetIds;
+    mapping(bytes32 => bytes32) private requestToAssetId;
 
     event SyntheticAssetCreated(
         bytes32 indexed assetId,
@@ -60,6 +62,24 @@ contract SyntheticAssetFactory is Ownable, ChainlinkClient {
         emit SyntheticAssetCreated(_assetId, address(token), _oracle, _jobId);
     }
 
+    function mintSynthetic(bytes32 _assetId, uint256 _amount) external {
+        SyntheticAsset storage asset = syntheticAssets[_assetId];
+        require(asset.active, 'Asset not active');
+        require(asset.price > 0, 'Price not available');
+
+        // Simple minting logic: 1 unit of collateral for 1 unit of synthetic asset
+        // In a real system, this would involve collateral and price feed logic
+        SyntheticToken(asset.token).mint(msg.sender, _amount);
+    }
+
+    function burnSynthetic(bytes32 _assetId, uint256 _amount) external {
+        SyntheticAsset storage asset = syntheticAssets[_assetId];
+        require(asset.active, 'Asset not active');
+
+        // Simple burning logic
+        SyntheticToken(asset.token).burn(msg.sender, _amount);
+    }
+
     function requestPriceUpdate(bytes32 _assetId) external {
         SyntheticAsset memory asset = syntheticAssets[_assetId];
         require(asset.active, 'Asset not active');
@@ -74,15 +94,17 @@ contract SyntheticAssetFactory is Ownable, ChainlinkClient {
         req.add('assetId', bytes32ToString(_assetId));
 
         // Send request
-        sendChainlinkRequestTo(asset.oracle, req, asset.fee);
+        bytes32 requestId = sendChainlinkRequestTo(asset.oracle, req, asset.fee);
+        requestToAssetId[requestId] = _assetId;
     }
 
     function fulfillPriceUpdate(
         bytes32 _requestId,
         uint256 _price
     ) external recordChainlinkFulfillment(_requestId) {
-        // Implementation for price update logic
-        // This would update the price of the synthetic asset
+        bytes32 assetId = requestToAssetId[_requestId];
+        require(assetId != 0, 'Request not found');
+        syntheticAssets[assetId].price = _price;
     }
 
     function deactivateAsset(bytes32 _assetId) external onlyOwner {
@@ -101,15 +123,25 @@ contract SyntheticAssetFactory is Ownable, ChainlinkClient {
 
     // Helper function to convert bytes32 to string
     function bytes32ToString(bytes32 _bytes32) internal pure returns (string memory) {
-        uint8 i = 0;
-        while (i < 32 && _bytes32[i] != 0) {
-            i++;
+        // If the bytes32 is a valid string (e.g., a short name), convert it.
+        // Otherwise, return a hex representation.
+        uint256 charCount = 0;
+        for (uint256 i = 0; i < 32; i++) {
+            if (uint8(_bytes32[i]) != 0) {
+                charCount = i + 1;
+            }
         }
-        bytes memory bytesArray = new bytes(i);
-        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
-            bytesArray[i] = _bytes32[i];
+
+        if (charCount > 0) {
+            bytes memory bytesArray = new bytes(charCount);
+            for (uint256 i = 0; i < charCount; i++) {
+                bytesArray[i] = _bytes32[i];
+            }
+            return string(bytesArray);
+        } else {
+            // Fallback to hex representation if it's not a simple string
+            return string(abi.encodePacked('0x', bytes32(uint256(_bytes32))));
         }
-        return string(bytesArray);
     }
 }
 

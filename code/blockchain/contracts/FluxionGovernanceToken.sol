@@ -10,8 +10,8 @@ import '@openzeppelin/contracts/security/Pausable.sol';
 import '@openzeppelin/contracts/utils/math/Math.sol';
 
 /**
- * @title AdvancedGovernanceToken
- * @dev Enhanced governance token with advanced features for financial applications
+ * @title FluxionGovernanceToken
+ * @dev Governance token with advanced features for financial applications for financial applications
  * Features:
  * - Voting power delegation and checkpointing
  * - Staking rewards and yield farming
@@ -20,7 +20,7 @@ import '@openzeppelin/contracts/utils/math/Math.sol';
  * - Emergency pause functionality
  * - Compliance and regulatory features
  */
-contract AdvancedGovernanceToken is
+contract FluxionGovernanceToken is
     ERC20,
     ERC20Votes,
     ERC20Permit,
@@ -357,17 +357,15 @@ contract AdvancedGovernanceToken is
     }
 
     /**
-     * @dev Distribute fees to stakers
+     * @dev Withdraw collected fees to the treasury
      */
-    function distributeFees() external onlyRole(TREASURY_ROLE) nonReentrant {
-        require(totalFeesCollected > 0, 'No fees to distribute');
-        require(totalStaked > 0, 'No stakers to distribute to');
-
+    function withdrawFeesToTreasury() external onlyRole(TREASURY_ROLE) nonReentrant {
         uint256 feesToDistribute = totalFeesCollected;
+        require(feesToDistribute > 0, 'No fees to distribute');
         totalFeesCollected = 0;
 
-        // Mint tokens for fee distribution
-        _mint(address(this), feesToDistribute);
+        // Transfer collected fees to the treasury
+        _transfer(address(this), treasury, feesToDistribute);
 
         emit FeesDistributed(feesToDistribute);
     }
@@ -592,6 +590,15 @@ contract AdvancedGovernanceToken is
 
     function _burn(address account, uint256 amount) internal override(ERC20, ERC20Votes) {
         super._burn(account, amount);
+    }
+
+    /**
+     * @dev Returns the current voting power of a user.
+     * @param account The address of the user.
+     * @return The current voting power.
+     */
+    function getVotes(address account) external view returns (uint256) {
+        return super.getVotes(account);
     }
 
     // View functions

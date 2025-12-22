@@ -137,7 +137,29 @@ contract SupplyChainTracker is AccessControl, ChainlinkClient {
         asset.location = _location;
 
         // Update custodian mappings
-        _custodianAssets[_to].push(_assetId);
+        // Remove from old custodian's list
+        uint256[] storage fromAssets = _custodianAssets[from];
+        for (uint256 i = 0; i < fromAssets.length; i++) {
+            if (fromAssets[i] == _assetId) {
+                // Replace with last element and pop
+                fromAssets[i] = fromAssets[fromAssets.length - 1];
+                fromAssets.pop();
+                break;
+            }
+        }
+
+        // Add to new custodian's list
+        // Check if already in the list (should not happen if logic is correct, but for safety)
+        bool alreadyAdded = false;
+        for (uint256 i = 0; i < _custodianAssets[_to].length; i++) {
+            if (_custodianAssets[_to][i] == _assetId) {
+                alreadyAdded = true;
+                break;
+            }
+        }
+        if (!alreadyAdded) {
+            _custodianAssets[_to].push(_assetId);
+        }
 
         emit AssetTransferred(_assetId, from, _to, _location);
     }

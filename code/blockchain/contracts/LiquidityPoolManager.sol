@@ -9,10 +9,10 @@ import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import '@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol';
 
 /**
- * @title EnhancedLiquidityPoolManager
- * @dev Enhanced version of LiquidityPoolManager with improved security, governance, and cross-chain capabilities
+ * @title FluxionLiquidityPoolManager
+ * @dev LiquidityPoolManager with improved security, governance, and cross-chain capabilities
  */
-contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
+contract FluxionLiquidityPoolManager is AccessControl, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     bytes32 public constant POOL_ADMIN_ROLE = keccak256('POOL_ADMIN_ROLE');
@@ -145,7 +145,9 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
 
                 // Get price from oracle
                 uint256 price = getAssetPrice(pool.assets[i], _poolId);
-                liquidityValue += (_amounts[i] * price) / 1e18;
+                // Price is scaled from 1e8 (Chainlink default) to 1e18 for consistent calculation
+                uint256 scaledPrice = (price * 1e10);
+                liquidityValue += (_amounts[i] * scaledPrice) / 1e18;
             }
         }
 
@@ -194,8 +196,10 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
         // Return tokens proportionally
         for (uint256 i = 0; i < pool.assets.length; i++) {
             uint256 price = getAssetPrice(pool.assets[i], _poolId);
+            // Price is scaled from 1e8 (Chainlink default) to 1e18 for consistent calculation
+            uint256 scaledPrice = (price * 1e10);
             uint256 tokenAmount = (((amountToRemove * pool.weights[i]) / totalWeight) * 1e18) /
-                price;
+                scaledPrice;
 
             if (tokenAmount > 0) {
                 IERC20(pool.assets[i]).safeTransfer(msg.sender, tokenAmount);
@@ -295,7 +299,7 @@ contract EnhancedLiquidityPoolManager is AccessControl, ReentrancyGuard {
 
         // Execute the function call
         (bool success, ) = address(this).call(_data);
-        require(success, 'Action execution failed');
+        require(success, 'Execution failed');
 
         emit GovernanceActionExecuted(_actionId);
     }
