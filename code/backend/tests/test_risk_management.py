@@ -14,9 +14,9 @@ from fastapi.testclient import TestClient
 from models.portfolio import Portfolio, PortfolioAsset
 from models.transaction import Transaction, TransactionStatus, TransactionType
 from models.user import User
-from services.risk.enhanced_risk_management_service import (
+from services.risk.risk_management_service import (
     CreditRisk,
-    EnhancedRiskManagementService,
+    RiskManagementService,
     LiquidityRisk,
     MarketRisk,
     OperationalRisk,
@@ -29,13 +29,13 @@ from services.risk.enhanced_risk_management_service import (
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class TestEnhancedRiskManagementService:
-    """Test suite for Enhanced Risk Management Service"""
+class TestRiskManagementService:
+    """Test suite for Risk Management Service"""
 
     @pytest.fixture
     def risk_service(self) -> Any:
         """Create risk management service instance"""
-        return EnhancedRiskManagementService()
+        return RiskManagementService()
 
     @pytest.fixture
     def mock_db_session(self) -> Any:
@@ -551,7 +551,7 @@ class TestRiskManagementAPI:
         """Test GET /api/v1/risk/assessment/{user_id} endpoint"""
         user_id = str(uuid4())
         with patch(
-            "services.risk.enhanced_risk_management_service.EnhancedRiskManagementService"
+            "services.risk.risk_management_service.RiskManagementService"
         ) as mock_service:
             mock_service.return_value.perform_comprehensive_assessment.return_value = {
                 "user_id": user_id,
@@ -572,7 +572,7 @@ class TestRiskManagementAPI:
         """Test POST /api/v1/risk/monitor endpoint"""
         portfolio_id = str(uuid4())
         with patch(
-            "services.risk.enhanced_risk_management_service.EnhancedRiskManagementService"
+            "services.risk.risk_management_service.RiskManagementService"
         ) as mock_service:
             mock_service.return_value.start_real_time_monitoring.return_value = {
                 "monitoring_id": str(uuid4()),
@@ -591,7 +591,7 @@ class TestRiskManagementAPI:
     def test_get_risk_alerts_endpoint(self, client: Any, auth_headers: Any) -> Any:
         """Test GET /api/v1/risk/alerts endpoint"""
         with patch(
-            "services.risk.enhanced_risk_management_service.EnhancedRiskManagementService"
+            "services.risk.risk_management_service.RiskManagementService"
         ) as mock_service:
             mock_service.return_value.get_active_alerts.return_value = [
                 {
@@ -613,7 +613,7 @@ class TestRiskManagementAPI:
         user_id = str(uuid4())
         portfolio_id = str(uuid4())
         with patch(
-            "services.risk.enhanced_risk_management_service.EnhancedRiskManagementService"
+            "services.risk.risk_management_service.RiskManagementService"
         ) as mock_service:
             mock_service.return_value.generate_risk_report.return_value = {
                 "executive_summary": "Portfolio shows medium risk profile",

@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class EnhancedLiquidityLSTM(nn.Module):
+class LiquidityLSTM(nn.Module):
 
     def __init__(
         self,
@@ -291,16 +291,16 @@ def train_liquidity_model(
     data_path: Any = None, epochs: Any = 100, save_path: Any = "liquidity_predictor.pt"
 ) -> Any:
     """
-    Train the enhanced liquidity prediction model
+    Train the liquidity prediction model
     """
-    logger.info("Training enhanced liquidity prediction model")
+    logger.info("Training liquidity prediction model")
     train_loader, val_loader, test_loader, scaler_X, scaler_y = prepare_data(
         data_path, sequence_length=20, train_ratio=0.7, val_ratio=0.15
     )
     for inputs, _ in train_loader:
         input_size = inputs.shape[2]
         break
-    model = EnhancedLiquidityLSTM(input_size=input_size, hidden_size=128, num_layers=4)
+    model = LiquidityLSTM(input_size=input_size, hidden_size=128, num_layers=4)
     trainer = ModelTrainer(model, learning_rate=0.001, weight_decay=1e-05)
     train_losses, val_losses = trainer.train(
         train_loader, val_loader, epochs=epochs, patience=15

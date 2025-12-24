@@ -69,7 +69,7 @@ class User(
     EncryptedMixin,
     ComplianceMixin,
 ):
-    """User model with enhanced security and compliance features"""
+    """User model with security and compliance features"""
 
     __tablename__ = "users"
     email = Column(

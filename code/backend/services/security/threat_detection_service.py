@@ -658,7 +658,7 @@ class ThreatDetectionService:
     async def _handle_high_threat(self, threat: ThreatEvent):
         """Handle high-level threat events"""
         await self._apply_rate_limiting(threat.source_ip)
-        await self._enable_enhanced_monitoring(threat.source_ip)
+        await self._enable_monitoring(threat.source_ip)
         await self._send_threat_alert(threat)
 
     async def _handle_medium_threat(self, threat: ThreatEvent):
@@ -674,9 +674,9 @@ class ThreatDetectionService:
         """Apply rate limiting to IP address"""
         logger.info(f"Applying rate limiting to IP {ip_address}")
 
-    async def _enable_enhanced_monitoring(self, ip_address: str):
-        """Enable enhanced monitoring for IP address"""
-        logger.info(f"Enabling enhanced monitoring for IP {ip_address}")
+    async def _enable_monitoring(self, ip_address: str):
+        """Enable monitoring for IP address"""
+        logger.info(f"Enabling monitoring for IP {ip_address}")
 
     async def _increase_monitoring(self, ip_address: str):
         """Increase monitoring level for IP address"""

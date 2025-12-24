@@ -1,5 +1,5 @@
 """
-Enhanced KYC (Know Your Customer) Service for Fluxion Backend
+KYC (Know Your Customer) Service for Fluxion Backend
 Implements comprehensive identity verification, document processing,
 and compliance monitoring following global regulatory standards.
 """
@@ -99,9 +99,9 @@ class KYCAssessment:
     assessed_at: datetime
 
 
-class EnhancedKYCService:
+class KYCService:
     """
-    Enhanced KYC service providing:
+    KYC service providing:
     - Multi-tier identity verification
     - Document authentication and OCR
     - Biometric verification (facial recognition, liveness detection)
@@ -831,7 +831,7 @@ class EnhancedKYCService:
             ),
             "document_renewal_alerts": True,
             "behavioral_analysis": risk_rating in [RiskRating.MEDIUM, RiskRating.HIGH],
-            "enhanced_monitoring": risk_rating == RiskRating.HIGH,
+            "monitoring": risk_rating == RiskRating.HIGH,
         }
 
     async def _store_document_verification(

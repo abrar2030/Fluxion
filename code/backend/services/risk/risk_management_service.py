@@ -1,5 +1,5 @@
 """
-Enhanced Risk Management Service for Fluxion Backend
+Risk Management Service for Fluxion Backend
 Implements comprehensive risk assessment, monitoring, and mitigation strategies
 following financial industry best practices and regulatory requirements.
 """
@@ -81,9 +81,9 @@ class PortfolioRiskMetrics:
     calculated_at: datetime
 
 
-class EnhancedRiskManagementService:
+class RiskManagementService:
     """
-    Enhanced risk management service providing:
+    Risk management service providing:
     - Real-time risk monitoring and assessment
     - Value at Risk (VaR) calculations
     - Stress testing and scenario analysis
