@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from services.auth.enhanced_jwt_service import DeviceInfo, EnhancedJWTService
+from services.auth.jwt_service import DeviceInfo, EnhancedJWTService
 from services.compliance.kyc_service import KYCService
 from services.security.encryption_service import EncryptionService
 

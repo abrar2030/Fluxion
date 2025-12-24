@@ -6,7 +6,8 @@ Tests user registration, authentication, profile management, and security featur
 from unittest.mock import patch
 import pytest
 import pytest_asyncio
-from services.auth.enhanced_jwt_service import DeviceInfo
+from typing import Any
+from services.auth.jwt_service import DeviceInfo
 from services.user.user_service import UserService, UserStatus, UserType
 
 

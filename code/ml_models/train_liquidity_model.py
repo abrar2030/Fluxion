@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
+from typing import Any
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split

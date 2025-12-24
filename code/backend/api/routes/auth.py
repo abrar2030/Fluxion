@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, EmailStr
-from services.auth.enhanced_jwt_service import DeviceInfo, EnhancedJWTService
+from services.auth.jwt_service import DeviceInfo, EnhancedJWTService
 from services.user.user_service import UserService, UserType
 
 router = APIRouter()

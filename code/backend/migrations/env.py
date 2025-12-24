@@ -8,6 +8,7 @@ from alembic import context
 from config.database import Base
 from config.settings import settings
 from sqlalchemy import pool
+from typing import Any
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 

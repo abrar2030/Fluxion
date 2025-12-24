@@ -122,7 +122,3 @@ Each script uses configuration files that should be placed in specific directori
 - Test configs: `./infrastructure/test/configs/`
 - AI/ML configs: `./code/ai/configs/`
 - Monitoring configs: `./infrastructure/monitoring/configs/`
-
-## Support
-
-For issues or enhancements, please create a GitHub issue in the Fluxion repository.

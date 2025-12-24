@@ -8,6 +8,7 @@ from decimal import Decimal
 from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 import pytest
+from typing import Any
 from app.main import app
 from fastapi.testclient import TestClient
 from models.portfolio import Portfolio, PortfolioAsset

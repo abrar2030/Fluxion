@@ -4,6 +4,7 @@ Integration tests for authentication endpoints
 
 import pytest
 from app.main import app
+from typing import Any
 from fastapi.testclient import TestClient
 
 
