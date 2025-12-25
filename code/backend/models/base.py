@@ -16,6 +16,7 @@ class BaseModel(Base):
     """Base model class with common fields"""
 
     __abstract__ = True
+    __allow_unmapped__ = True
     id = Column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -102,7 +103,7 @@ class EncryptedMixin:
     """Mixin for encrypted fields"""
 
     @declared_attr
-    def encrypted_fields(cls: Any) -> Any:
+    def encrypted_fields(cls):
         """Define which fields should be encrypted"""
         return []
 
@@ -131,21 +132,23 @@ class EncryptedMixin:
 class MetadataMixin:
     """Mixin for metadata fields"""
 
-    metadata = Column(JSON, nullable=True, comment="Additional metadata in JSON format")
+    extra_metadata = Column(
+        JSON, nullable=True, comment="Additional metadata in JSON format"
+    )
     tags = Column(JSON, nullable=True, comment="Tags for categorization")
     notes = Column(Text, nullable=True, comment="Additional notes")
 
     def add_metadata(self, key: str, value: Any) -> None:
         """Add metadata key-value pair"""
-        if self.metadata is None:
-            self.metadata = {}
-        self.metadata[key] = value
+        if self.extra_metadata is None:
+            self.extra_metadata = {}
+        self.extra_metadata[key] = value
 
     def get_metadata(self, key: str, default: Any = None) -> Any:
         """Get metadata value by key"""
-        if self.metadata is None:
+        if self.extra_metadata is None:
             return default
-        return self.metadata.get(key, default)
+        return self.extra_metadata.get(key, default)
 
     def add_tag(self, tag: str) -> None:
         """Add a tag"""

@@ -69,7 +69,7 @@ class User(
     EncryptedMixin,
     ComplianceMixin,
 ):
-    """User model with security and compliance features"""
+    """User model with enhanced security and compliance features"""
 
     __tablename__ = "users"
     email = Column(
@@ -207,7 +207,7 @@ class User(
     )
 
     @property
-    def encrypted_fields(self) -> Any:
+    def encrypted_fields(self):
         return [
             "first_name",
             "last_name",

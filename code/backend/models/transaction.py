@@ -161,7 +161,7 @@ class Transaction(BaseModel, TimestampMixin, AuditMixin, ComplianceMixin):
     # Additional data
     input_data = Column(Text, nullable=True, comment="Transaction input data")
     logs = Column(JSON, nullable=True, comment="Transaction logs/events")
-    metadata = Column(JSON, nullable=True, comment="Additional metadata")
+    extra_metadata = Column(JSON, nullable=True, comment="Additional metadata")
 
     # Error handling
     error_message = Column(Text, nullable=True, comment="Error message if failed")

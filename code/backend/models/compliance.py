@@ -49,6 +49,20 @@ class KYCTier(enum.Enum):
     TIER_3 = "tier_3"
 
 
+class DocumentType(enum.Enum):
+    """KYC document types"""
+
+    GOVERNMENT_ID = "government_id"
+    PASSPORT = "passport"
+    DRIVERS_LICENSE = "drivers_license"
+    PROOF_OF_ADDRESS = "proof_of_address"
+    UTILITY_BILL = "utility_bill"
+    BANK_STATEMENT = "bank_statement"
+    TAX_RETURN = "tax_return"
+    BUSINESS_REGISTRATION = "business_registration"
+    OTHER = "other"
+
+
 class AMLRiskLevel(enum.Enum):
     """AML risk levels"""
 
@@ -179,26 +193,6 @@ class KYCRecord(BaseModel, TimestampMixin, AuditMixin, EncryptedMixin):
     document_urls = Column(JSON, nullable=True, comment="Document URLs (encrypted)")
     user = relationship("User", foreign_keys=[user_id], back_populates="kyc_records")
     reviewer = relationship("User", foreign_keys=[reviewer_id])
-
-    @property
-    def encrypted_fields(self) -> Any:
-        return [
-            "first_name",
-            "last_name",
-            "middle_name",
-            "date_of_birth",
-            "nationality",
-            "document_number",
-            "document_issuer",
-            "document_expiry",
-            "address_line1",
-            "address_line2",
-            "city",
-            "state",
-            "postal_code",
-            "country",
-            "document_urls",
-        ]
 
     def is_expired(self) -> bool:
         """Check if KYC is expired"""
@@ -387,7 +381,7 @@ class AuditLog(BaseModel, TimestampMixin):
     user_agent = Column(Text, nullable=True, comment="User agent")
     old_values = Column(JSON, nullable=True, comment="Old values")
     new_values = Column(JSON, nullable=True, comment="New values")
-    metadata = Column(JSON, nullable=True, comment="Additional metadata")
+    extra_metadata = Column(JSON, nullable=True, comment="Additional metadata")
     retention_period = Column(
         Integer, nullable=True, comment="Retention period in days"
     )

@@ -6,7 +6,7 @@ import logging
 import secrets
 import string
 from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 from uuid import UUID
 import bcrypt
 from config.settings import settings

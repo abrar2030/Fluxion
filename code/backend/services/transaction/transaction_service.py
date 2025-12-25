@@ -6,6 +6,7 @@ for financial services with enterprise-grade reliability and compliance.
 
 import asyncio
 import logging
+import secrets
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone

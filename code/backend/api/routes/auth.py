@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPBearer
 from pydantic import BaseModel, EmailStr
-from services.auth.jwt_service import DeviceInfo, JWTService
+from services.auth.jwt_service import DeviceInfo, EnhancedJWTService
 from services.user.user_service import UserService, UserType
 
 router = APIRouter()
@@ -219,7 +219,7 @@ async def disable_mfa(
 @router.post("/logout")
 async def logout_user(
     current_user: Dict[str, Any] = Depends(),  # Would implement JWT dependency
-    jwt_service: JWTService = Depends(),
+    jwt_service: EnhancedJWTService = Depends(),
 ):
     """Logout user and revoke tokens"""
     try:

@@ -1,5 +1,5 @@
 """
-JWT Service for Fluxion Backend
+Enhanced JWT Service for Fluxion Backend
 Implements advanced JWT token management with security features including
 token rotation, blacklisting, device binding, and multi-factor authentication support.
 """
@@ -88,9 +88,9 @@ class DeviceInfo:
     trusted: bool
 
 
-class JWTService:
+class EnhancedJWTService:
     """
-    JWT service providing:
+    Enhanced JWT service providing:
     - Secure token generation and validation
     - Token rotation and refresh
     - Token blacklisting and revocation
@@ -672,3 +672,7 @@ class JWTService:
         if validation_result.status != TokenStatus.VALID:
             raise ValueError(validation_result.error_message)
         return asdict(validation_result.claims)
+
+
+# Backward compatibility alias
+JWTService = EnhancedJWTService

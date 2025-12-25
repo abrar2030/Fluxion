@@ -15,6 +15,7 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -336,7 +337,7 @@ class SupplyChainAsset(BaseModel, TimestampMixin, AuditMixin):
     asset_id = Column(
         BigInteger, unique=True, nullable=False, comment="On-chain asset ID"
     )
-    metadata = Column(Text, nullable=False, comment="Asset metadata")
+    asset_metadata = Column(Text, nullable=False, comment="Asset metadata")
 
     # Current state
     current_custodian = Column(

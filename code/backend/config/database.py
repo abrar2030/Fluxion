@@ -1,5 +1,5 @@
 """
-Database configuration for Fluxion backend
+Enhanced database configuration for Fluxion backend
 """
 
 import logging
@@ -38,22 +38,34 @@ class DatabaseManager:
         self, database_url: str, is_read_replica: bool = False
     ) -> AsyncEngine:
         """Create database engine with optimized settings"""
+        # Determine if this is a SQLite database
+        is_sqlite = "sqlite" in database_url.lower()
+
+        # Base engine configuration
         engine_kwargs = {
             "url": database_url,
             "echo": settings.database.DB_ECHO and (not is_read_replica),
-            "poolclass": QueuePool,
-            "pool_size": settings.database.DB_POOL_SIZE,
-            "max_overflow": settings.database.DB_MAX_OVERFLOW,
-            "pool_timeout": settings.database.DB_POOL_TIMEOUT,
-            "pool_recycle": settings.database.DB_POOL_RECYCLE,
-            "pool_pre_ping": True,
-            "connect_args": {
-                "server_settings": {
-                    "application_name": f"fluxion_{('read' if is_read_replica else 'write')}",
-                    "jit": "off",
-                }
-            },
         }
+
+        # Only add pool configuration for non-SQLite databases
+        if not is_sqlite:
+            engine_kwargs.update(
+                {
+                    "poolclass": QueuePool,
+                    "pool_size": settings.database.DB_POOL_SIZE,
+                    "max_overflow": settings.database.DB_MAX_OVERFLOW,
+                    "pool_timeout": settings.database.DB_POOL_TIMEOUT,
+                    "pool_recycle": settings.database.DB_POOL_RECYCLE,
+                    "pool_pre_ping": True,
+                    "connect_args": {
+                        "server_settings": {
+                            "application_name": f"fluxion_{('read' if is_read_replica else 'write')}",
+                            "jit": "off",
+                        }
+                    },
+                }
+            )
+
         engine = create_async_engine(**engine_kwargs)
 
         @event.listens_for(engine.sync_engine, "connect")
