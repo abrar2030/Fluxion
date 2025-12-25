@@ -1,5 +1,5 @@
 """
-Enhanced database configuration for Fluxion backend
+Database configuration for Fluxion backend
 """
 
 import logging

@@ -16,11 +16,11 @@ from fastapi.testclient import TestClient
 from models.compliance import DocumentType, KYCRecord, KYCStatus
 from models.user import User
 from services.compliance.compliance_service import ComplianceService
-from services.compliance.enhanced_kyc_service import (
+from services.compliance.kyc_service import (
     BiometricVerificationResult,
     DocumentStatus,
     DocumentVerificationResult,
-    EnhancedKYCService,
+    KYCService,
     KYCAssessment,
     KYCTier,
     RiskRating,
@@ -28,13 +28,13 @@ from services.compliance.enhanced_kyc_service import (
 from sqlalchemy.ext.asyncio import AsyncSession
 
 
-class TestEnhancedKYCService:
-    """Test suite for Enhanced KYC Service"""
+class TestKYCService:
+    """Test suite for KYC Service"""
 
     @pytest.fixture
     def kyc_service(self) -> Any:
         """Create KYC service instance"""
-        return EnhancedKYCService()
+        return KYCService()
 
     @pytest.fixture
     def mock_db_session(self) -> Any:
@@ -568,9 +568,7 @@ class TestComplianceAPI:
     def test_initiate_kyc_endpoint(self, client: Any, auth_headers: Any) -> Any:
         """Test POST /api/v1/kyc/initiate endpoint"""
         user_id = str(uuid4())
-        with patch(
-            "services.compliance.enhanced_kyc_service.EnhancedKYCService"
-        ) as mock_service:
+        with patch("services.compliance.kyc_service.KYCService") as mock_service:
             mock_service.return_value.initiate_kyc_process.return_value = {
                 "kyc_id": str(uuid4()),
                 "user_id": user_id,
@@ -592,9 +590,7 @@ class TestComplianceAPI:
         user_id = str(uuid4())
         files = {"document": ("passport.jpg", b"fake_image_data", "image/jpeg")}
         data = {"user_id": user_id, "document_type": "government_id"}
-        with patch(
-            "services.compliance.enhanced_kyc_service.EnhancedKYCService"
-        ) as mock_service:
+        with patch("services.compliance.kyc_service.KYCService") as mock_service:
             mock_service.return_value.verify_document.return_value = (
                 DocumentVerificationResult(
                     document_id=str(uuid4()),
@@ -622,9 +618,7 @@ class TestComplianceAPI:
     ) -> Any:
         """Test GET /api/v1/compliance/status endpoint"""
         user_id = str(uuid4())
-        with patch(
-            "services.compliance.enhanced_kyc_service.EnhancedKYCService"
-        ) as mock_service:
+        with patch("services.compliance.kyc_service.KYCService") as mock_service:
             mock_service.return_value.perform_comprehensive_assessment.return_value = (
                 KYCAssessment(
                     user_id=user_id,
@@ -659,9 +653,7 @@ class TestComplianceAPI:
         user_id = str(uuid4())
         files = {"selfie": ("selfie.jpg", b"fake_selfie_data", "image/jpeg")}
         data = {"user_id": user_id}
-        with patch(
-            "services.compliance.enhanced_kyc_service.EnhancedKYCService"
-        ) as mock_service:
+        with patch("services.compliance.kyc_service.KYCService") as mock_service:
             mock_service.return_value.verify_biometric.return_value = (
                 BiometricVerificationResult(
                     verification_id=str(uuid4()),

@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class EnhancedLiquidityLSTM(nn.Module):
+class LiquidityLSTM(nn.Module):
 
     def __init__(
         self,
@@ -300,7 +300,7 @@ def train_liquidity_model(
     for inputs, _ in train_loader:
         input_size = inputs.shape[2]
         break
-    model = EnhancedLiquidityLSTM(input_size=input_size, hidden_size=128, num_layers=4)
+    model = LiquidityLSTM(input_size=input_size, hidden_size=128, num_layers=4)
     trainer = ModelTrainer(model, learning_rate=0.001, weight_decay=1e-05)
     train_losses, val_losses = trainer.train(
         train_loader, val_loader, epochs=epochs, patience=15
