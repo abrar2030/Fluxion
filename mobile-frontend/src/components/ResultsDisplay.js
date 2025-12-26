@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, ScrollView, View } from 'react-native';
 import { Card, Text, Title, Paragraph, useTheme } from 'react-native-paper';
 
 const ResultsDisplay = ({ results }) => {
