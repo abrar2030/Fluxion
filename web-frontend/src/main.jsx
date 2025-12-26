@@ -4,6 +4,8 @@ import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import App from './App';
 import { Web3Provider } from './lib/web3-config.jsx';
+import { DataProvider } from './lib/data-context';
+import { UIProvider } from './lib/ui-context';
 import './index.css';
 
 // Theme customization
@@ -91,11 +93,15 @@ const theme = extendTheme({
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
         <ChakraProvider theme={theme}>
-            <Web3Provider>
-                <Router>
-                    <App />
-                </Router>
-            </Web3Provider>
+            <UIProvider>
+                <DataProvider>
+                    <Web3Provider>
+                        <Router>
+                            <App />
+                        </Router>
+                    </Web3Provider>
+                </DataProvider>
+            </UIProvider>
         </ChakraProvider>
     </React.StrictMode>,
 );
