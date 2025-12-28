@@ -18,7 +18,7 @@ set -euo pipefail
 
 echo "Starting Fluxion project setup..."
 
-PROJECT_DIR="/home/ubuntu/fluxion_project"
+PROJECT_DIR="/Fluxion"
 
 if [ ! -d "${PROJECT_DIR}" ]; then
   echo "Error: Project directory ${PROJECT_DIR} not found."
