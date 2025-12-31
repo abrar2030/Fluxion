@@ -1,91 +1,102 @@
-# Documentation Directory
+# Fluxion Documentation
 
-## Overview
+Welcome to the comprehensive documentation for Fluxion, a cutting-edge synthetic asset liquidity engine leveraging zero-knowledge proofs and cross-chain technology.
 
-The `docs` directory contains comprehensive documentation for the Fluxion synthetic asset liquidity engine. This directory serves as the central knowledge base for developers, contributors, and users of the platform, providing detailed information about architecture, APIs, security, and more.
+## Table of Contents
 
-## Directory Structure
+| Document                                | Description                                                   |
+| --------------------------------------- | ------------------------------------------------------------- |
+| [Installation Guide](INSTALLATION.md)   | Step-by-step installation instructions for all platforms      |
+| [Usage Guide](USAGE.md)                 | How to use Fluxion for trading, liquidity provision, and more |
+| [API Reference](API.md)                 | Complete API documentation with examples                      |
+| [CLI Reference](CLI.md)                 | Command-line interface documentation                          |
+| [Configuration Guide](CONFIGURATION.md) | Configuration options and environment variables               |
+| [Feature Matrix](FEATURE_MATRIX.md)     | Comprehensive feature overview and availability               |
+| [Architecture](ARCHITECTURE.md)         | System architecture and design patterns                       |
+| [Examples](EXAMPLES/)                   | Working code examples and tutorials                           |
+| [Contributing Guide](CONTRIBUTING.md)   | How to contribute to Fluxion                                  |
+| [Troubleshooting](TROUBLESHOOTING.md)   | Common issues and solutions                                   |
 
-- `API_SPEC.md`: Detailed API specifications and endpoint documentation
-- `ARCHITECTURE.md`: System architecture overview and component interactions
-- `CONTRIBUTING.md`: Guidelines for contributing to the Fluxion project
-- `DEPLOYMENT.md`: Instructions for deploying Fluxion in various environments
-- `LIQUIDITY_MODEL.md`: Documentation of the liquidity model and algorithms
-- `SECURITY.md`: Security practices, audit information, and vulnerability reporting
-- `images/`: Supporting images and diagrams for documentation
+## Quick Start
 
-## Documentation Components
+Fluxion is a production-ready synthetic asset liquidity engine that enables:
 
-### API Specification
+- **Synthetic Asset Creation**: Tokenize real-world assets (stocks, commodities, forex)
+- **Zero-Knowledge Trading**: Private and scalable trading with zkEVM integration
+- **Cross-Chain Liquidity**: Unified liquidity across 10+ blockchain networks
+- **AI-Powered Market Making**: ML-driven liquidity optimization and price prediction
 
-The `API_SPEC.md` file provides comprehensive documentation of all API endpoints, including:
+### 3-Step Quickstart
 
-- Request and response formats
-- Authentication requirements
-- Rate limiting information
-- Error codes and handling
-- Example requests and responses
+```bash
+# 1. Clone the repository
+git clone https://github.com/abrar2030/Fluxion.git && cd Fluxion
 
-### Architecture Overview
+# 2. Install dependencies
+./scripts/setup_fluxion_env.sh
 
-The `ARCHITECTURE.md` file describes the overall system architecture, including:
+# 3. Run the application
+./scripts/run_fluxion.sh
+```
 
-- Component interactions
-- Data flow diagrams
-- Technology stack details
-- Scalability considerations
-- Integration points with external systems
+Access the web interface at `http://localhost:3000` and the API at `http://localhost:8000`.
 
-### Contribution Guidelines
+## Documentation Overview
 
-The `CONTRIBUTING.md` file outlines how to contribute to the Fluxion project, covering:
+### For Users
 
-- Code style and standards
-- Pull request process
-- Issue reporting guidelines
-- Development environment setup
-- Testing requirements
+- Start with [Installation Guide](INSTALLATION.md) to set up your environment
+- Read [Usage Guide](USAGE.md) to learn how to trade and provide liquidity
+- Check [Troubleshooting](TROUBLESHOOTING.md) if you encounter issues
 
-### Deployment Guide
+### For Developers
 
-The `DEPLOYMENT.md` file provides instructions for deploying Fluxion, including:
+- Review [Architecture](ARCHITECTURE.md) to understand the system design
+- Use [API Reference](API.md) and [CLI Reference](CLI.md) for integration
+- Explore [Examples](EXAMPLES/) for practical implementations
+- Read [Contributing Guide](CONTRIBUTING.md) before submitting pull requests
 
-- Environment requirements
-- Configuration options
-- Deployment procedures for different environments
-- Monitoring and maintenance recommendations
-- Troubleshooting common issues
+### For Operators
 
-### Liquidity Model
+- Follow [Configuration Guide](CONFIGURATION.md) to customize your deployment
+- Use automation scripts documented in [CLI Reference](CLI.md)
+- Monitor system health using endpoints in [API Reference](API.md)
 
-The `LIQUIDITY_MODEL.md` file explains the mathematical models and algorithms used for:
+## System Requirements
 
-- Synthetic asset pricing
-- Liquidity pool management
-- Risk assessment
-- Market making strategies
-- Cross-chain liquidity optimization
+| Component   | Minimum   | Recommended |
+| ----------- | --------- | ----------- |
+| **CPU**     | 4 cores   | 8+ cores    |
+| **RAM**     | 16GB      | 32GB+       |
+| **Storage** | 100GB SSD | 500GB+ SSD  |
+| **Network** | 100Mbps   | 1Gbps+      |
 
-### Security Documentation
+## Technology Stack
 
-The `SECURITY.md` file covers security aspects of the platform, including:
+- **Blockchain**: Solidity 0.8.19, Foundry, zkSync
+- **Backend**: Python 3.10+ (FastAPI), Celery, gRPC
+- **Frontend**: React 18, TypeScript, ethers.js 6
+- **Database**: PostgreSQL, TimescaleDB, Redis
+- **Infrastructure**: Kubernetes, Docker, Terraform
 
-- Security model and assumptions
-- Audit reports and findings
-- Vulnerability disclosure policy
-- Security best practices
-- Emergency procedures
+## Support
 
-## Usage
+- **GitHub Issues**: [https://github.com/abrar2030/Fluxion/issues](https://github.com/abrar2030/Fluxion/issues)
+- **Documentation**: This directory
+- **Security Issues**: See [Security Policy](../docs/SECURITY.md)
 
-The documentation in this directory is designed to be read in conjunction with the codebase. It is recommended to start with the `ARCHITECTURE.md` file for a high-level overview before diving into specific components.
+## License
 
-## Maintaining Documentation
+Fluxion is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details.
 
-When making changes to the codebase, corresponding documentation should be updated to reflect those changes. Documentation PRs should follow the same review process as code PRs.
+## Recent Updates
 
-## Related Resources
+This documentation was last updated for Fluxion v1.0.0 and includes coverage of all major features including:
 
-- Main [README.md](../README.md) at the repository root
-- [Code documentation](../code/README.md)
-- External documentation at the project website
+- Enhanced AI/ML models for liquidity prediction
+- Cross-chain messaging via Chainlink CCIP
+- zkEVM integration for privacy-preserving trades
+- Multi-environment deployment automation
+- Comprehensive monitoring and alerting setup
+
+For detailed change history, see the project [README](../README.md).
