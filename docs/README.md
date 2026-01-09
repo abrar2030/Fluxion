@@ -79,24 +79,6 @@ Access the web interface at `http://localhost:3000` and the API at `http://local
 - **Database**: PostgreSQL, TimescaleDB, Redis
 - **Infrastructure**: Kubernetes, Docker, Terraform
 
-## Support
-
-- **GitHub Issues**: [https://github.com/abrar2030/Fluxion/issues](https://github.com/abrar2030/Fluxion/issues)
-- **Documentation**: This directory
-- **Security Issues**: See [Security Policy](../docs/SECURITY.md)
-
 ## License
 
 Fluxion is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details.
-
-## Recent Updates
-
-This documentation was last updated for Fluxion v1.0.0 and includes coverage of all major features including:
-
-- Enhanced AI/ML models for liquidity prediction
-- Cross-chain messaging via Chainlink CCIP
-- zkEVM integration for privacy-preserving trades
-- Multi-environment deployment automation
-- Comprehensive monitoring and alerting setup
-
-For detailed change history, see the project [README](../README.md).
