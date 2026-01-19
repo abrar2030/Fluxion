@@ -1,7 +1,7 @@
 # Fluxion
 
-![CI/CD Status](https://img.shields.io/github/actions/workflow/status/abrar2030/Fluxion/cicd.yml?branch=main&label=CI/CD&logo=github)
-[![Test Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](https://github.com/abrar2030/Fluxion/actions)
+![CI/CD Status](https://img.shields.io/github/actions/workflow/status/quantsingularity/Fluxion/cicd.yml?branch=main&label=CI/CD&logo=github)
+[![Test Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](https://github.com/quantsingularity/Fluxion/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ## ⚡ Synthetic Asset Liquidity Engine
@@ -123,13 +123,13 @@ The project uses a monorepo structure with separate directories for the blockcha
 
 ### Setup Steps
 
-| Step                             | Command                                                            | Description                                                           |
-| :------------------------------- | :----------------------------------------------------------------- | :-------------------------------------------------------------------- |
-| **1. Clone Repository**          | `git clone https://github.com/abrar2030/Fluxion.git && cd Fluxion` | Download the source code.                                             |
-| **2. Install Blockchain Deps**   | `cd code/blockchain && forge install`                              | Install dependencies for smart contracts.                             |
-| **3. Install Backend Deps**      | `cd ../backend && pip install -r requirements.txt`                 | Install Python dependencies.                                          |
-| **4. Install Web Frontend Deps** | `cd ../web-frontend && npm install`                                | Install Node.js dependencies for the web application.                 |
-| **5. Configure Environment**     | `cp .env.example .env`                                             | Create the environment file and add blockchain RPC URLs and API keys. |
+| Step                             | Command                                                                   | Description                                                           |
+| :------------------------------- | :------------------------------------------------------------------------ | :-------------------------------------------------------------------- |
+| **1. Clone Repository**          | `git clone https://github.com/quantsingularity/Fluxion.git && cd Fluxion` | Download the source code.                                             |
+| **2. Install Blockchain Deps**   | `cd code/blockchain && forge install`                                     | Install dependencies for smart contracts.                             |
+| **3. Install Backend Deps**      | `cd ../backend && pip install -r requirements.txt`                        | Install Python dependencies.                                          |
+| **4. Install Web Frontend Deps** | `cd ../web-frontend && npm install`                                       | Install Node.js dependencies for the web application.                 |
+| **5. Configure Environment**     | `cp .env.example .env`                                                    | Create the environment file and add blockchain RPC URLs and API keys. |
 
 ## Deployment
 

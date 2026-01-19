@@ -749,7 +749,7 @@ forge test -vvvv
 ```
 
 2. **Search GitHub issues:**
-    - [Fluxion Issues](https://github.com/abrar2030/Fluxion/issues)
+    - [Fluxion Issues](https://github.com/quantsingularity/Fluxion/issues)
 
 3. **Create new issue:**
     - Provide error messages

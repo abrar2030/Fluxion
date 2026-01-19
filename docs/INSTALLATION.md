@@ -42,7 +42,7 @@ Use the automated setup script for a quick development environment:
 
 ```bash
 # Clone the repository
-git clone https://github.com/abrar2030/Fluxion.git
+git clone https://github.com/quantsingularity/Fluxion.git
 cd Fluxion
 
 # Run automated setup
@@ -65,7 +65,7 @@ Use Docker for a consistent, isolated environment:
 
 ```bash
 # Clone the repository
-git clone https://github.com/abrar2030/Fluxion.git
+git clone https://github.com/quantsingularity/Fluxion.git
 cd Fluxion
 
 # Start all services with Docker Compose
@@ -89,7 +89,7 @@ For full control over the installation process:
 
 ```bash
 # Clone repository
-git clone https://github.com/abrar2030/Fluxion.git
+git clone https://github.com/quantsingularity/Fluxion.git
 cd Fluxion
 
 # Follow component-specific instructions below
@@ -323,6 +323,6 @@ After installation:
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/abrar2030/Fluxion/issues)
+- **Issues**: [GitHub Issues](https://github.com/quantsingularity/Fluxion/issues)
 - **Documentation**: This docs directory
 - **Community**: Join discussions in GitHub Discussions

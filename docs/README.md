@@ -30,7 +30,7 @@ Fluxion is a production-ready synthetic asset liquidity engine that enables:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/abrar2030/Fluxion.git && cd Fluxion
+git clone https://github.com/quantsingularity/Fluxion.git && cd Fluxion
 
 # 2. Install dependencies
 ./scripts/setup_fluxion_env.sh

@@ -34,7 +34,7 @@ git clone https://github.com/YOUR-USERNAME/Fluxion.git
 cd Fluxion
 
 # Add upstream remote
-git remote add upstream https://github.com/abrar2030/Fluxion.git
+git remote add upstream https://github.com/quantsingularity/Fluxion.git
 ```
 
 ### 2. Set Up Development Environment
