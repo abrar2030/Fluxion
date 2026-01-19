@@ -37,6 +37,24 @@ Fluxion is a cutting-edge synthetic asset liquidity engine that leverages zero-k
 
 Fluxion revolutionizes synthetic asset trading by providing deep, cross-chain liquidity through a combination of zero-knowledge proofs, AI-driven market making, and advanced risk management. The platform enables the creation, trading, and settlement of synthetic assets with minimal slippage, reduced fees, and enhanced security across multiple blockchain networks.
 
+## Project Structure
+
+The project is organized into several main components:
+
+```
+Fluxion/
+├── code/                   # Core backend logic, services, and shared utilities
+├── docs/                   # Project documentation
+├── infrastructure/         # DevOps, deployment, and infra-related code
+├── mobile-frontend/        # Mobile application
+├── web-frontend/           # Web dashboard
+├── scripts/                # Automation, setup, and utility scripts
+├── LICENSE                 # License information
+├── README.md               # Project overview and instructions
+├── eslint.config.js        # ESLint configuration
+└── package.json            # Node.js project metadata and dependencies
+```
+
 ## Key Features
 
 ### Synthetic Asset Creation
