@@ -192,12 +192,40 @@ The project maintains comprehensive test coverage across all components to ensur
 
 Fluxion uses GitHub Actions for continuous integration and deployment, ensuring a robust and automated software delivery lifecycle.
 
-| Stage                           | Description                                                                 | Key Workflow File   |
-| :------------------------------ | :-------------------------------------------------------------------------- | :------------------ |
-| **Continuous Integration (CI)** | Automated testing, linting, and code quality checks on every pull request.  | `ci.yml`            |
-| **Smart Contract Security**     | Automated security scanning of Solidity code.                               | `security_scan.yml` |
-| **Docker Image Build**          | Building and publishing Docker images for all services (backend, frontend). | `docker_build.yml`  |
-| **Continuous Deployment (CD)**  | Automated deployment to staging and production environments via ArgoCD.     | `cd_deploy.yml`     |
+| Stage                | Control Area                    | Institutional-Grade Detail                                                              |
+| :------------------- | :------------------------------ | :-------------------------------------------------------------------------------------- |
+| **Formatting Check** | Change Triggers                 | Enforced on all `push` and `pull_request` events to `main` and `develop`                |
+|                      | Manual Oversight                | On-demand execution via controlled `workflow_dispatch`                                  |
+|                      | Source Integrity                | Full repository checkout with complete Git history for auditability                     |
+|                      | Python Runtime Standardization  | Python 3.10 with deterministic dependency caching                                       |
+|                      | Backend Code Hygiene            | `autoflake` to detect unused imports/variables using non-mutating diff-based validation |
+|                      | Backend Style Compliance        | `black --check` to enforce institutional formatting standards                           |
+|                      | Non-Intrusive Validation        | Temporary workspace comparison to prevent unauthorized source modification              |
+|                      | Node.js Runtime Control         | Node.js 18 with locked dependency installation via `npm ci`                             |
+|                      | Web Frontend Formatting Control | Prettier checks for web-facing assets                                                   |
+|                      | Mobile Frontend Formatting      | Prettier enforcement for mobile application codebases                                   |
+|                      | Documentation Governance        | Repository-wide Markdown formatting enforcement                                         |
+|                      | Infrastructure Configuration    | Prettier validation for YAML/YML infrastructure definitions                             |
+|                      | Compliance Gate                 | Any formatting deviation fails the pipeline and blocks merge                            |
+
+## Documentation
+
+| Document                    | Path                 | Description                                                            |
+| :-------------------------- | :------------------- | :--------------------------------------------------------------------- |
+| **README**                  | `README.md`          | High-level overview, project scope, and repository entry point         |
+| **Quickstart Guide**        | `QUICKSTART.md`      | Fast-track guide to get the system running with minimal setup          |
+| **Installation Guide**      | `INSTALLATION.md`    | Step-by-step installation and environment setup                        |
+| **Deployment Guide**        | `DEPLOYMENT.md`      | Deployment procedures, environments, and operational considerations    |
+| **API Reference**           | `API.md`             | Detailed documentation for all API endpoints                           |
+| **CLI Reference**           | `CLI.md`             | Command-line interface usage, commands, and examples                   |
+| **User Guide**              | `USAGE.md`           | Comprehensive end-user guide, workflows, and examples                  |
+| **Architecture Overview**   | `ARCHITECTURE.md`    | System architecture, components, and design rationale                  |
+| **Configuration Guide**     | `CONFIGURATION.md`   | Configuration options, environment variables, and tuning               |
+| **Feature Matrix**          | `FEATURE_MATRIX.md`  | Feature coverage, capabilities, and roadmap alignment                  |
+| **Smart Contracts**         | `SMART_CONTRACTS.md` | Smart contract architecture, interfaces, and security considerations   |
+| **Security Guide**          | `SECURITY.md`        | Security model, threat assumptions, and responsible disclosure process |
+| **Contributing Guidelines** | `CONTRIBUTING.md`    | Contribution workflow, coding standards, and PR requirements           |
+| **Troubleshooting**         | `TROUBLESHOOTING.md` | Common issues, diagnostics, and remediation steps                      |
 
 ## Contributing
 
