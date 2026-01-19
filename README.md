@@ -18,18 +18,20 @@ Fluxion is a cutting-edge synthetic asset liquidity engine that leverages zero-k
 
 ## 📚 Table of Contents
 
-| Section                          | Description                                                             |
-| :------------------------------- | :---------------------------------------------------------------------- |
-| [Overview](#overview)            | High-level summary of the platform's value proposition.                 |
-| [Key Features](#key-features)    | Detailed breakdown of core functionalities.                             |
-| [Tech Stack](#tech-stack)        | Technologies used across all layers of the application.                 |
-| [Architecture](#architecture)    | Component-based view of the system's structure.                         |
-| [Installation](#installation)    | Instructions for setting up the development environment.                |
-| [Deployment](#deployment)        | Guide for local, testnet, and production deployment.                    |
-| [Testing](#testing)              | Overview of the comprehensive testing strategy.                         |
-| [CI/CD Pipeline](#cicd-pipeline) | Details on the automated continuous integration and deployment process. |
-| [Contributing](#contributing)    | Guidelines for community contributions.                                 |
-| [License](#license)              | Licensing information.                                                  |
+| Section                                 | Description                                                             |
+| :-------------------------------------- | :---------------------------------------------------------------------- |
+| [Overview](#overview)                   | High-level summary of the platform's value proposition.                 |
+| [Project Structure](#project-structure) | Overview of the repository layout and major directories.                |
+| [Key Features](#key-features)           | Detailed breakdown of core functionalities.                             |
+| [Tech Stack](#tech-stack)               | Technologies used across all layers of the application.                 |
+| [Architecture](#architecture)           | Component-based view of the system's structure.                         |
+| [Installation](#installation)           | Instructions for setting up the development environment.                |
+| [Deployment](#deployment)               | Guide for local, testnet, and production deployment.                    |
+| [Testing](#testing)                     | Overview of the comprehensive testing strategy.                         |
+| [CI/CD Pipeline](#cicd-pipeline)        | Details on the automated continuous integration and deployment process. |
+| [Documentation](#documentation)         | References to detailed guides, API docs, and architecture resources.    |
+| [Contributing](#contributing)           | Guidelines for community contributions.                                 |
+| [License](#license)                     | Licensing information.                                                  |
 
 ---
 
